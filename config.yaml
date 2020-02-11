@@ -1,0 +1,42 @@
+%YAML:1.0
+
+#---------------------------------
+#weiya data preprocess config file
+#---------------------------------
+
+
+#util info
+StNo: 0
+EdNo: 100
+
+#camera param
+ImgWd: 1080
+ImgHg: 720
+
+#path 
+ImgPath: "abc"
+PosPath: "def"
+OutPath: "gxg"
+
+
+
+#root path
+# RootPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output"
+
+# #image path(relative with root path)
+# ImagePath: "LeftCamera/"
+
+# #gray image output path
+# OutPutPath: "../gray/"
+
+# #post file path 
+# PosTFilePath: "1002-0001-190828-00.PosT"
+
+# #imu raw data file
+# ImuRawPath: "imr.txt"
+
+# #post + img info output file
+# PstPath: "gray/pst.txt"
+
+# #img + imu info output file
+# ImuPath: "gray/imu.txt"
