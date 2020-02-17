@@ -14,64 +14,63 @@ float FrameGrid::mfGridElementHeightInv  = 0.0;
                                                int minLevel,int maxLevel)
     {
         SzVector vIndices;
-    vIndices.reserve(pframe->getKeySize());
+        vIndices.reserve(pframe->getKeySize());
 
-    const int nMinCellX = max(0, (int)floor((x - r) * mfGridElementWidthInv));
-    if(nMinCellX >= FRAME_GRID_COLS)
-        return vIndices;
+        const int nMinCellX = max(0, (int)floor((x - r) * mfGridElementWidthInv));
+        if (nMinCellX >= FRAME_GRID_COLS)
+            return vIndices;
 
-    const int nMaxCellX = min((int)FRAME_GRID_COLS - 1,(int)ceil((x + r) * mfGridElementWidthInv));
-    if(nMaxCellX < 0)
-        return vIndices;
+        const int nMaxCellX = min((int)FRAME_GRID_COLS - 1, (int)ceil((x + r) * mfGridElementWidthInv));
+        if (nMaxCellX < 0)
+            return vIndices;
 
-    const int nMinCellY = max(0,(int)floor((y - r) * mfGridElementHeightInv));
-    if(nMinCellY >= FRAME_GRID_ROWS)
-        return vIndices;
+        const int nMinCellY = max(0, (int)floor((y - r) * mfGridElementHeightInv));
+        if (nMinCellY >= FRAME_GRID_ROWS)
+            return vIndices;
 
-    const int nMaxCellY = min((int)FRAME_GRID_ROWS - 1,(int)ceil((y  + r) * mfGridElementHeightInv));
-    if(nMaxCellY < 0)
-        return vIndices;
+        const int nMaxCellY = min((int)FRAME_GRID_ROWS - 1, (int)ceil((y + r) * mfGridElementHeightInv));
+        if (nMaxCellY < 0)
+            return vIndices;
 
-    const bool bCheckLevels = ( minLevel > 0 ) || ( maxLevel >= 0 ) ;
+        const bool bCheckLevels = (minLevel > 0) || (maxLevel >= 0);
 
-    for(int ix = nMinCellX; ix <= nMaxCellX; ix++)
-    {
-        for(int iy = nMinCellY; iy <= nMaxCellY; iy++)
+        for (int ix = nMinCellX; ix <= nMaxCellX; ix++)
         {
-            const vector<size_t> vCell =  dynamic_cast<PFrame*>(pframe)->mGrid[ix][iy];
-            if(vCell.empty())
-                continue;
-
-            for(size_t j=0, jend = vCell.size(); j<jend; j++)
+            for (int iy = nMinCellY; iy <= nMaxCellY; iy++)
             {
-                const cv::KeyPoint &kpUn = pframe->getKeys()[ vCell[j] ];
-                if(bCheckLevels)
+                const vector<size_t> &vCell = dynamic_cast<PFrame *>(pframe)->mGrid[ix][iy];
+                if (vCell.empty())
+                    continue;
+
+                for (size_t j = 0, jend = vCell.size(); j < jend; j++)
                 {
-                    if(kpUn.octave < minLevel)
-                        continue;
-                    if(maxLevel >= 0)
-                        if(kpUn.octave > maxLevel)
+                    const cv::KeyPoint &kpUn = pframe->getKeys()[vCell[j]];
+                    if (bCheckLevels)
+                    {
+                        if (kpUn.octave < minLevel)
                             continue;
+                        if (maxLevel >= 0)
+                            if (kpUn.octave > maxLevel)
+                                continue;
+                    }
+
+                    const float distx = kpUn.pt.x - x;
+                    const float disty = kpUn.pt.y - y;
+
+                    // if(fabs(distx)<r && fabs(disty)<r)
+                    //     vIndices.push_back(vCell[j]);
+
+                    float d = sqrt(distx * distx + disty * disty);
+
+                    if (d < r)
+                    {
+                        vIndices.push_back(vCell[j]);
+                    }
                 }
-
-                const float distx = kpUn.pt.x-x;
-                const float disty = kpUn.pt.y-y;
-
-                // if(fabs(distx)<r && fabs(disty)<r)
-                //     vIndices.push_back(vCell[j]);
-
-                float d = sqrt( distx * distx + disty * disty);
-
-                if(d < r)
-                {
-                    vIndices.push_back(vCell[j]);
-                }
-
             }
         }
-    }
 
-    return vIndices;
+        return vIndices;
     }
 
     //初始化配置参数
@@ -83,13 +82,17 @@ float FrameGrid::mfGridElementHeightInv  = 0.0;
     }
 
     //将特征点分grid
-    void FrameGrid::assignFeaturesToGrid(PFrame &frame)
+    void FrameGrid::assignFeaturesToGrid(IFrame *pframe)
     {
-        frame.mGrid.reserve(FRAME_GRID_COLS);
+        assert(pframe);
+        PFrame &frame = *dynamic_cast<PFrame*>(pframe);
+        
         size_t nReserve = 0.5f * frame.mN / (FRAME_GRID_COLS * FRAME_GRID_ROWS);
+
+        frame.mGrid.resize(FRAME_GRID_COLS);
         for( int i = 0; i < FRAME_GRID_COLS; ++i)
         {
-            frame.mGrid[i].reserve(FRAME_GRID_ROWS);
+            frame.mGrid[i].resize(FRAME_GRID_ROWS);
             for( int j = 0; j < FRAME_GRID_ROWS; ++j)
             {
                 frame.mGrid[i][j].reserve(nReserve);
@@ -111,10 +114,11 @@ float FrameGrid::mfGridElementHeightInv  = 0.0;
 
 
     //构造函数
-    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature):mN(0),mData(data),mFeature(pFeature)
+    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature):mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
         pFeature->detect(data,mKeypts,mDescript);
+        mN = mKeypts.size();
     }
 }
 

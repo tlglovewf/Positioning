@@ -70,7 +70,7 @@ namespace Position
     //匹配  返回匹配对
     MatchVector PFeatureMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
-         assert(preframe && curframe);
+        assert(preframe && curframe);
         int nmatches = 0;
 
         IntVector vnMatches12 = IntVector(preframe->getKeySize(), -1);
@@ -90,6 +90,7 @@ namespace Position
             if (level1 > 0)
                 continue;
 
+            //根据范围在帧中搜索
             SzVector vIndices2 = FrameGrid::getFrameFeaturesInArea(curframe, preframe->getKeys()[i1].pt.x, preframe->getKeys()[i1].pt.y, windowsize, level1, level1);
 
             if (vIndices2.empty())
@@ -188,11 +189,5 @@ namespace Position
         }
 
         return matches;
-    }
-
-    //匹配  返回匹配对特征序号对
-    MatchPairs PFeatureMatcher::search(IFrame *preframe, IFrame *curframe, int windowsize)
-    {
-       return MatchPairs();
     }
 } // namespace Position

@@ -61,10 +61,10 @@ namespace Position
         virtual bool loadDatas() = 0;
 
         //第一个元素
-        virtual FrameVIter begin() = 0;
+        virtual FrameDataVIter begin() = 0;
 
         //最后一个元素
-        virtual FrameVIter end() = 0;
+        virtual FrameDataVIter end() = 0;
 
         // 获取相机参数 default(0)  left    1 right 
         virtual CameraParam getCamera(int index = 0) = 0;
@@ -97,7 +97,7 @@ namespace Position
         //设置相机参数
         virtual void setParams(const CameraParam &cam) = 0;
         //添加单张
-        virtual void addFrame(const FrameData &framedata) = 0;
+        virtual void addFrame(IFrame *pframe) = 0;
         //添加多张
         virtual void addFrames(const FrameVector &framedatas) = 0;
         //处理
@@ -127,8 +127,6 @@ namespace Position
         //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize) = 0;
 
-        //匹配  返回匹配对特征序号对
-        virtual MatchPairs  search(IFrame *preframe, IFrame *curframe, int windowsize) = 0;    
     };
 
 } // namespace Position

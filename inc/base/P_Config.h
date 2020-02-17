@@ -139,6 +139,7 @@ namespace Position
 
         IntConfigParam      FeatureCnt;     //特征点数量
         IntConfigParam      PyramidLevel;   //金字塔层数
+        IntConfigParam      SearchScale;    //搜索半径
 
         FloatConfigParam    ScaleFactor;    //金字塔缩放比例
 

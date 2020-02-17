@@ -20,9 +20,9 @@ namespace Position
             mCamera = std::move(cam);
         }
         //添加单张
-        virtual void addFrame(const FrameData &framedata) 
+        virtual void addFrame(IFrame *pframe) 
         {
-            mFrames.emplace_back(framedata);
+            mFrames.push_back(pframe);
         }
         //添加多张
         virtual void addFrames(const FrameVector &framedatas) 

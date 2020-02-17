@@ -39,7 +39,7 @@ int main(void)
     frame1._img = img1;
     frame2._img = img2;
 
-    std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::IFeature>(pCfg);
+    std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::ORBFeature>(pCfg);
     // Position::KeyPtVector keys1,keys2;
     // Mat des1, des2;
    
@@ -53,9 +53,14 @@ int main(void)
     Position::IFrame *preframe = new Position::PFrame(frame1,pFeature);
     Position::IFrame *curframe = new Position::PFrame(frame2,pFeature);
 
-    Ptr<Position::IFeatureMatcher> pMatcher = new Position::PFeatureMatcher();
+    Position::FrameGrid::initParams(img1.cols,img1.rows);
+    Position::FrameGrid::assignFeaturesToGrid(preframe);
+    Position::FrameGrid::assignFeaturesToGrid(curframe);
+    
 
-    Position::MatchVector matches = pMatcher->match(preframe,curframe,100);
+    Ptr<Position::IFeatureMatcher> pMatcher = new Position::PFeatureMatcher(0.9);
+
+    Position::MatchVector matches = pMatcher->match(preframe,curframe,GETCFGVALUE((*pCfg)["SearchScale"],int));
 
     if(matches.empty())
     {
@@ -64,14 +69,15 @@ int main(void)
     else
     {
         std::cout << "matches size " << matches.size() << std::endl;
+        Mat oimg;
+        cv::drawMatches(frame1._img,preframe->getKeys(),frame2._img,curframe->getKeys(),matches,oimg);
+
+        imwrite("/Users/TLG/Documents/Result/result.jpg",oimg);
+
+        cout << "write file successfully." << endl;
     }
 
-    Mat oimg;
-    cv::drawMatches(frame1._img,preframe->getKeys(),frame2._img,curframe->getKeys(),matches,oimg);
-
-    imwrite("",oimg);
-
-    cout << "write file successfully." << endl;
+    
 
     return 0;
 }

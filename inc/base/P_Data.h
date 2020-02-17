@@ -23,13 +23,13 @@ namespace Position
         }
 
         //第一个元素
-        virtual FrameVIter begin() 
+        virtual FrameDataVIter begin() 
         {
             return mFrameDatas.begin();
         }
 
         //最后一个元素
-        virtual FrameVIter end() 
+        virtual FrameDataVIter end() 
         {
             return mFrameDatas.end();
         }
@@ -50,7 +50,7 @@ namespace Position
         std::shared_ptr<IConfig>    mpCfg;
         std::unique_ptr<IChecker>   mpChecker;
 
-        FrameVector                 mFrameDatas;
+        FrameDataVector             mFrameDatas;
         CameraParam                 mCamera;
     };
 

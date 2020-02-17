@@ -14,6 +14,7 @@ namespace Position
                       FeatureCnt(2000),
                       PyramidLevel(8),
                       ScaleFactor(1.2),
+                      SearchScale(200),
                       ImgPath(""),
                       PosPath(""),
                       OutPath("")
@@ -24,6 +25,7 @@ namespace Position
         PUSH_MAP(ImgHg);
         PUSH_MAP(FeatureCnt);
         PUSH_MAP(PyramidLevel);
+        PUSH_MAP(SearchScale);
         PUSH_MAP(ScaleFactor);
         PUSH_MAP(ImgPath);
         PUSH_MAP(PosPath);
@@ -60,6 +62,7 @@ namespace Position
             READ_VALUE(ImgHg);
             READ_VALUE(FeatureCnt);
             READ_VALUE(PyramidLevel);
+            READ_VALUE(SearchScale);
             READ_VALUE(ScaleFactor);
             READ_VALUE(ImgPath);
             READ_VALUE(PosPath);

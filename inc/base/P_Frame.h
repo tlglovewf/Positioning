@@ -61,7 +61,7 @@ namespace Position
         static void initParams(float width, float height);
 
         //将特征点分grid
-        static void assignFeaturesToGrid(PFrame &frame);
+        static void assignFeaturesToGrid(IFrame *frame);
 
             //判斷關鍵點在哪個grid
         static inline bool PosInGrid( const cv::KeyPoint &kp, int &posX, int &posY)
