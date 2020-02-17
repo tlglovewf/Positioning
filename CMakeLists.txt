@@ -17,6 +17,16 @@ MESSAGE("Build  type: " ${CMAKE_BUILD_TYPE})
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
  
+
+# osx settting 
+if(CMAKE_HOST_APPLE)
+   set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Wl,-rpath,")
+   set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG_SEP ":")
+   cmake_policy(SET CMP0042 NEW)
+endif()
+
+
+
 #Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -44,6 +54,8 @@ if(NOT OpenCV_FOUND)
    if(NOT OpenCV_FOUND)
       message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
    endif()
+else()
+   message("opencv path :" ${OpenCV_LIBS})
 endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
@@ -53,6 +65,8 @@ find_package(Eigen3 3.1.0 REQUIRED)
 include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/inc
+${PROJECT_SOURCE_DIR}/inc/base
+${PROJECT_SOURCE_DIR}/inc/feature
 ${EIGEN3_INCLUDE_DIR}
 #${Pangolin_INCLUDE_DIRS}
 )
@@ -65,16 +79,21 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 set(Positioning "position")
 
 add_library(${Positioning} SHARED
-src/P_Config.cpp
-src/P_Data.cpp
-src/P_Writer.cpp
-src/P_Viewer.cpp
-src/P_Detector.cpp
-src/P_Checker.cpp
-src/P_CoorTrans.cpp
-src/P_DataManager.cpp
-src/P_Positioning.cpp
-src/P_Controller.cpp
+src/base/P_Config.cpp
+src/base/P_Frame.cpp
+src/base/P_Data.cpp
+src/base/P_Writer.cpp
+src/base/P_Viewer.cpp
+src/base/P_Detector.cpp
+src/base/P_Checker.cpp
+src/base/P_CoorTrans.cpp
+src/base/P_DataManager.cpp
+src/base/P_Positioning.cpp
+src/base/P_Controller.cpp
+src/feature/P_Feature.cpp
+src/feature/P_ORBFeature.cpp
+src/feature/P_FeatureMatcher.cpp
+#src/P_Factory.cpp
 )
 
 #link libs

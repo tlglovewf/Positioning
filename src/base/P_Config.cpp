@@ -9,19 +9,25 @@ namespace Position
     PConfig::PConfig():
                       StNo(0), 
                       EdNo(0),
+                      ImgWd(0),  
+                      ImgHg(0),
+                      FeatureCnt(2000),
+                      PyramidLevel(8),
+                      ScaleFactor(1.2),
                       ImgPath(""),
                       PosPath(""),
-                      OutPath(""),
-                      ImgWd(0),  
-                      ImgHg(0)
+                      OutPath("")
     {
         PUSH_MAP(StNo);
         PUSH_MAP(EdNo);
+        PUSH_MAP(ImgWd);
+        PUSH_MAP(ImgHg);
+        PUSH_MAP(FeatureCnt);
+        PUSH_MAP(PyramidLevel);
+        PUSH_MAP(ScaleFactor);
         PUSH_MAP(ImgPath);
         PUSH_MAP(PosPath);
         PUSH_MAP(OutPath);
-        PUSH_MAP(ImgWd);
-        PUSH_MAP(ImgHg);
     }
 
     //析构
@@ -50,13 +56,31 @@ namespace Position
             //配置文件加载成功 开始读取参数
             READ_VALUE(StNo);
             READ_VALUE(EdNo);
-            READ_VALUE(ImgPath);      
-            READ_VALUE(PosPath);
-            READ_VALUE(OutPath);
             READ_VALUE(ImgWd);
             READ_VALUE(ImgHg);
+            READ_VALUE(FeatureCnt);
+            READ_VALUE(PyramidLevel);
+            READ_VALUE(ScaleFactor);
+            READ_VALUE(ImgPath);
+            READ_VALUE(PosPath);
+            READ_VALUE(OutPath);
+           
             //其他信息加载
             loadmore();
         }
+    }
+
+    WeiyaConfig::WeiyaConfig():PConfig(),
+                               ExtriPath(""),
+                               BsPath("")
+    {
+        PUSH_MAP(ExtriPath);
+        PUSH_MAP(BsPath);
+    }
+
+    void WeiyaConfig::loadmore()
+    {
+        READ_VALUE(ExtriPath);
+        READ_VALUE(BsPath);
     }
 }

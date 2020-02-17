@@ -15,7 +15,7 @@
 namespace Position
 {
 //全局字符输出类
-class P_Writer
+class PWriter
 {
 public:
     /* write real trace
@@ -50,7 +50,7 @@ public:
 };
 } // namespace Position
 
-#define PROMT_S(X)   Position::P_Writer::Promt(X);
-#define PROMT_V(X,V) Position::P_Writer::Promt(X,V);
+#define PROMT_S(X)   Position::PWriter::Promt(X);
+#define PROMT_V(X,V) Position::PWriter::Promt(X,V);
 
 #endif

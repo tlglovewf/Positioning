@@ -11,6 +11,7 @@
 namespace Position
 {
 
+    //配置属性
     template<typename T>
     class ConfigParam  : public IConfigParam
     {
@@ -51,6 +52,19 @@ namespace Position
         }
     };
 
+    //float 类型
+    class FloatConfigParam : public ConfigParam<float>
+    {
+    public:
+        DECLARECONS(FloatConfigParam,float)
+
+        //从文件读取
+        virtual void read(const FileStorage &file,const string &nm) 
+        {
+            _v = file[nm];
+        }
+    };
+
     //string 类型 配置参数
     class StringConfigParam : public ConfigParam<string>
     {
@@ -81,6 +95,11 @@ namespace Position
 
     //add more param types
 
+
+    /**********************************
+     **********************************
+     **********************************/
+
     //配置实现类
     class PConfig : public IConfig
     {
@@ -106,27 +125,44 @@ namespace Position
         virtual void loadmore() {}
 
     protected:
-        ParamsMap   mConfigParams;
+        ParamsMap           mConfigParams;
 
-        FileStorage mSettings;
+        FileStorage         mSettings;
 
         //define config params
-        IntConfigParam      StNo;      //开始序号
-        IntConfigParam      EdNo;      //结束序号
+        IntConfigParam      StNo;           //开始序号
+        IntConfigParam      EdNo;           //结束序号
 
-         //相机参数
-        IntConfigParam      ImgWd;     //图像宽度
-        IntConfigParam      ImgHg;     //图像长度
+         //相机参数     
+        IntConfigParam      ImgWd;          //图像宽度
+        IntConfigParam      ImgHg;          //图像长度
+
+        IntConfigParam      FeatureCnt;     //特征点数量
+        IntConfigParam      PyramidLevel;   //金字塔层数
+
+        FloatConfigParam    ScaleFactor;    //金字塔缩放比例
 
         //路径参数
-        StringConfigParam   ImgPath;   //图片路径
-        StringConfigParam   PosPath;   //数据路径
-        StringConfigParam   OutPath;   //输出路径
-
-       
+        StringConfigParam   ImgPath;        //图片路径
+        StringConfigParam   PosPath;        //数据路径
+        StringConfigParam   OutPath;        //输出路径
 
         //add more ...
 
+    };
+
+    //维亚配置数据
+    class WeiyaConfig : public PConfig
+    {
+    public:
+        WeiyaConfig();
+    protected:
+        //其他信息加载
+        virtual void loadmore();
+    protected:
+
+        StringConfigParam ExtriPath;  //相机参数文件路径
+        StringConfigParam BsPath;     //安置参数文件路径
     };
 }
 

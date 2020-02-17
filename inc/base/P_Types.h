@@ -10,9 +10,11 @@
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
 #include <vector>
 #include <memory>
 #include <string>
+#include <iterator>
 
 using namespace std;
 using namespace cv;
@@ -45,7 +47,7 @@ struct BLHCoordinate
 typedef Point3d XYZCoordinate;
 
 //相机结构体
-struct Camera
+struct CameraParam
 {
     Mat K;           //相机内参
     Mat D;           //畸变参数
@@ -63,6 +65,9 @@ struct PoseData {
     double _pitch;      //俯仰角
     double _roll;       //翻滚角
     double _yaw;        //航偏角
+
+    PoseData()
+    { memset(this,0,sizeof(*this));}
 };
 
 //imu 原始数据
@@ -126,12 +131,8 @@ typedef TargetVector::iterator  TargetVIter;
 
 //帧数据
 struct FrameData {
-    
-    // PoseData        _pose;     //姿态
 
-    double          _t;
-
-    BLHCoordinate   _pos;     //属性
+    PoseData        _pos;     //姿态
     
 	std::string     _name;     //路径
 
@@ -144,8 +145,6 @@ struct FrameData {
     {
         _targets.emplace_back(target);
     }
-
-    FrameData():_t(0){}
 };
 
 
@@ -161,6 +160,17 @@ typedef RstVector::iterator     RstVIter;
 
 typedef std::vector<FrameData>  FrameVector;
 typedef FrameVector::iterator   FrameVIter;
+
+typedef std::vector<cv::KeyPoint> KeyPtVector;
+
+typedef std::vector<cv::Point2f>  PtVector;
+
+typedef std::vector<cv::DMatch>   MatchVector;
+
+typedef std::vector<size_t>       SzVector;
+typedef std::vector<int>          IntVector;
+
+typedef std::vector<std::pair<int,int> > MatchPairs;
 
 } // namespace Position
 

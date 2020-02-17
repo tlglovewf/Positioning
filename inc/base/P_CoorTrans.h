@@ -28,7 +28,7 @@ class P_CoorTrans
 {
 public:
     //大地坐标->地心地固空间直角坐标系
-    static Point3d BLH_to_XYZ(const BLHCoordinate &blh, Datum dt = WGS84Datum)
+    static XYZCoordinate BLH_to_XYZ(const BLHCoordinate &blh, Datum dt = WGS84Datum)
     {
         double a = dt.r_max;
         double e = dt.e2; //sqrt(a * a - b * b) / a;
@@ -42,7 +42,7 @@ public:
         return {WGS84_X, WGS84_Y, WGS84_Z};
     }
     //地心地固坐标系->大地坐标系
-    static BLHCoordinate XYZ_to_BLH(const Point3d &pt, Datum dt = WGS84Datum)
+    static BLHCoordinate XYZ_to_BLH(const XYZCoordinate &pt, Datum dt = WGS84Datum)
     {
         double f, f1, f2;
         double p, zw, nnq;
