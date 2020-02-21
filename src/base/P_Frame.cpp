@@ -114,11 +114,14 @@ float FrameGrid::mfGridElementHeightInv  = 0.0;
 
 
     //构造函数
-    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature):mData(data),mFeature(pFeature)
+    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature,bool retainimg /* = false */):mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
         pFeature->detect(data,mKeypts,mDescript);
         mN = mKeypts.size();
+        //若不保存 释放图片资源
+        if(!retainimg)
+            mData._img.release();
     }
 }
 

@@ -12,6 +12,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
+#include <set>
 #include <memory>
 #include <string>
 #include <iterator>
@@ -148,33 +149,37 @@ struct FrameData {
 };
 
 
-typedef std::vector<PoseData>      PoseVector;
-typedef PoseVector::iterator       PoseVIter;
+typedef std::vector<PoseData>               PoseVector;
+typedef PoseVector::iterator                PoseVIter;
 
-typedef std::vector<ImuRawData>    IMURawVector;
-typedef IMURawVector::iterator     IMURawVIter;
+typedef std::vector<ImuRawData>             IMURawVector;
+typedef IMURawVector::iterator              IMURawVIter;
 
 
-typedef std::vector<ResultData>    RstVector;
-typedef RstVector::iterator        RstVIter;
+typedef std::vector<ResultData>             RstVector;
+typedef RstVector::iterator                 RstVIter;
 
-typedef std::vector<FrameData>     FrameDataVector;
-typedef FrameDataVector::iterator  FrameDataVIter;
+typedef std::vector<FrameData>              FrameDataVector;
+typedef FrameDataVector::iterator           FrameDataVIter;
 
-class IFrame;  
-typedef std::vector<IFrame*>       FrameVector;
-typedef FrameVector::iterator      FrameVIter;
+class IFrame;           
+typedef std::vector<IFrame*>                FrameVector;
+typedef FrameVector::iterator               FrameVIter;
 
-typedef std::vector<cv::KeyPoint> KeyPtVector;
+typedef std::vector<cv::KeyPoint>           KeyPtVector;
 
-typedef std::vector<cv::Point2f>  PtVector;
+typedef std::vector<cv::Point2f>            PtVector;
+typedef std::vector<cv::Point3f>            Pt3Vector;
 
-typedef std::vector<cv::DMatch>   MatchVector;
+typedef std::vector<cv::DMatch>             MatchVector;
 
-typedef std::vector<size_t>       SzVector;
-typedef std::vector<int>          IntVector;
+typedef std::vector<size_t>                 SzVector;
+typedef std::vector<int>                    IntVector;
+typedef std::vector<bool>                   BolVector;
 
-typedef std::vector<std::pair<int,int> > MatchPairs;
+typedef pair<int,int>                       MatchPair;
+typedef std::vector<MatchPair>              MatchPairs;
+
 
 } // namespace Position
 

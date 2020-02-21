@@ -90,20 +90,6 @@ namespace Position
         virtual TargetVector detect(const Mat &img) = 0;
     };
 
-    //定位算法
-    class IPositioning : public IBase
-    {
-    public:
-        //设置相机参数
-        virtual void setParams(const CameraParam &cam) = 0;
-        //添加单张
-        virtual void addFrame(IFrame *pframe) = 0;
-        //添加多张
-        virtual void addFrames(const FrameVector &framedatas) = 0;
-        //处理
-        virtual void position() = 0;
-    };
-
     //检查
     class IChecker : public IBase
     {
@@ -119,6 +105,7 @@ namespace Position
         //计算特征点
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript) = 0;
     };
+
     //特征跟踪接口
     class IFeatureMatcher : public IBase
     {
@@ -129,6 +116,31 @@ namespace Position
 
     };
 
+    //位姿推算
+    class IPoseEstimation
+    {
+    public:
+        //设置相机参数
+        virtual void setCamera(const CameraParam &cam) = 0;
+        //设置帧
+        virtual void setParams( IFrame *pre, IFrame *cur, const MatchVector &matches) = 0;
+        //推算位姿
+        virtual bool estimate(cv::Mat &R, cv::Mat &t) = 0;
+    };
+
+    //定位算法
+    class IPositioning : public IBase
+    {
+    public:
+        //设置相机参数
+        virtual void setParams(const CameraParam &cam) = 0;
+        //添加单张
+        virtual void addFrame(IFrame *pframe) = 0;
+        //添加多张
+        virtual void addFrames(const FrameVector &framedatas) = 0;
+        //处理
+        virtual void position() = 0;
+    };
 } // namespace Position
 
 #endif

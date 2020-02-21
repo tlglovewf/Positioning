@@ -6,6 +6,8 @@ namespace Position
 #define TH_LOW          50
 #define TH_HIGH         100
 
+#define SEARCHLEVEL     0
+
     //计算orb描述子的汉明距离
     static int DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
     {
@@ -87,7 +89,8 @@ namespace Position
         {
             cv::KeyPoint kp1 = preframe->getKeys()[i1];
             int level1 = kp1.octave;
-            if (level1 > 0)
+            //匹配搜索层数
+            if (level1 > SEARCHLEVEL)
                 continue;
 
             //根据范围在帧中搜索

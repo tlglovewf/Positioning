@@ -69,6 +69,8 @@ namespace Position
             while (!pstfile.eof() && (allimg || index++ <= edno))
             {
                 getline(pstfile, pststr);
+                if(pststr.empty())
+                    continue;
                 char filename[255] = {0};
                 FrameData framedata;
                 PoseData &pose = framedata._pos;

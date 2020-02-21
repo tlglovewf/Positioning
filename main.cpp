@@ -13,6 +13,8 @@
 #include "P_Config.h"
 #include "P_FeatureMatcher.h"
 #include "P_Frame.h"
+#include "P_PoseEstimation.h"
+#include "P_Data.h"
 
 using namespace std;
 using namespace cv;
@@ -39,16 +41,10 @@ int main(void)
     frame1._img = img1;
     frame2._img = img2;
 
-    std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::ORBFeature>(pCfg);
-    // Position::KeyPtVector keys1,keys2;
-    // Mat des1, des2;
-   
-    // pFeature->detect(frame1,keys1,des1);
-    // pFeature->detect(frame2,keys2,des2);
+    std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+    pData->loadDatas();
 
-    // Mat oimg1,oimg2;
-    // cv::drawKeypoints(frame1._img,keys1,oimg1);
-    // cv::drawKeypoints(frame2._img,keys2,oimg2);
+    std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::ORBFeature>(pCfg);
 
     Position::IFrame *preframe = new Position::PFrame(frame1,pFeature);
     Position::IFrame *curframe = new Position::PFrame(frame2,pFeature);
@@ -69,15 +65,29 @@ int main(void)
     else
     {
         std::cout << "matches size " << matches.size() << std::endl;
-        Mat oimg;
-        cv::drawMatches(frame1._img,preframe->getKeys(),frame2._img,curframe->getKeys(),matches,oimg);
+        // Mat oimg;
+        // cv::drawMatches(frame1._img,preframe->getKeys(),frame2._img,curframe->getKeys(),matches,oimg);
 
-        imwrite("/Users/TLG/Documents/Result/result.jpg",oimg);
+        // imwrite("/Users/TLG/Documents/Result/result.jpg",oimg);
 
-        cout << "write file successfully." << endl;
-    }
+        // cout << "write file successfully." << endl;
 
-    
+        std::unique_ptr<Position::IPoseEstimation> pPoseEst(new Position::CVPoseEstimation());// new Position::ORBPoseEstimation());
+
+        pPoseEst->setCamera(pData->getCamera());
+
+        pPoseEst->setParams(preframe,curframe,matches);
+        Mat R,t;
+        if(pPoseEst->estimate(R,t))
+        {
+            cout << "R " << R << endl;
+            cout << "t " << t << endl;
+        }
+        else
+        {
+            cout << "pose estimate failed." << endl;
+        }
+      }
 
     return 0;
 }

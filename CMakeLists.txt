@@ -87,7 +87,9 @@ src/base/P_Viewer.cpp
 src/base/P_Detector.cpp
 src/base/P_Checker.cpp
 src/base/P_CoorTrans.cpp
-src/base/P_DataManager.cpp
+#src/base/P_Map.cpp
+#src/base/P_Optimizer.cpp
+src/base/P_PoseEstimation.cpp
 src/base/P_Positioning.cpp
 src/base/P_Controller.cpp
 src/feature/P_Feature.cpp
@@ -101,8 +103,17 @@ target_link_libraries(${Positioning}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 #${Pangolin_LIBRARIES}
-#${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 )
+
+if(CMAKE_HOST_APPLE)
+target_link_libraries(${Positioning}
+${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.dylib
+)
+else()
+target_link_libraries(${Positioning}
+${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.so
+)
+endif()
 
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
