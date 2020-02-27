@@ -1,5 +1,5 @@
 #include "P_Frame.h"
-
+#include "P_MapPoint.h"
 namespace Position
 {
 #pragma region  FrameGrid
@@ -113,12 +113,18 @@ float FrameGrid::mfGridElementHeightInv  = 0.0;
 #pragma endregion
 
 
+u64 PFrame::s_nIndexCount = 0;
+
+
     //构造函数
-    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature,bool retainimg /* = false */):mData(data),mFeature(pFeature)
+    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature,bool retainimg /* = false */):
+        mbBad(false),mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
         pFeature->detect(data,mKeypts,mDescript);
         mN = mKeypts.size();
+        mPts.resize(mN);
+        mIndex = s_nIndexCount++;
         //若不保存 释放图片资源
         if(!retainimg)
             mData._img.release();

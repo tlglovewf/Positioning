@@ -8,7 +8,8 @@ SET(g2o_CXX_FLAGS)
 
 # default built type
 IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release)
+#  SET(CMAKE_BUILD_TYPE Release)
+  SET(CMAKE_BUILD_TYPE Debug)
 ENDIF()
 
 MESSAGE(STATUS "BUILD TYPE:" ${CMAKE_BUILD_TYPE})
@@ -85,8 +86,13 @@ ${g2o_SOURCE_DIR}/types
 ${g2o_SOURCE_DIR}/stuff 
 ${G2O_EIGEN3_INCLUDE})
 
+if(CMAKE_BUILD_TYPE EQUAL Release)
+  SET(G2O g2o)
+else()
+  SET(G2O g2od)
+endif()
 # Include the subdirectories
-ADD_LIBRARY(g2o ${G2O_LIB_TYPE}
+ADD_LIBRARY(${G2O} ${G2O_LIB_TYPE}
 #types
 g2o/types/types_sba.h
 g2o/types/types_six_dof_expmap.h

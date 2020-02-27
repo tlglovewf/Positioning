@@ -24,6 +24,12 @@ namespace Position
         {
             assert(NULL);
         }
+
+         //返回sigma参数(主要用于优化 信息矩阵)
+        virtual const FloatVector& getSigma2() const 
+        {
+            assert(NULL);
+        }
     protected:
         //初始化
         virtual void init() = 0;

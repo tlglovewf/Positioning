@@ -13,6 +13,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
 #include <set>
+#include <map>
 #include <memory>
 #include <string>
 #include <iterator>
@@ -23,8 +24,25 @@ using namespace cv;
 namespace Position
 {
 
+#define HIGHTPRE 1
+
+
+#if  HIGHTPRE  
+    #define MATTYPE   double     
+    #define MATCVTYPE CV_64F
+#else
+    #define MATTYPE   float     
+    #define MATCVTYPE CV_32F
+#endif
+
+
 #define WRONGDATA -1000 //错误值
 #define OUTPUTRESULT 1
+
+#define RELEASEPT(X)  if(X){delete X; X = NULL;}
+#define RELEASEPTS(X) if(X){delete [] X;X = NULL;}
+
+
 //经纬度
 struct BLHCoordinate
 {
@@ -34,7 +52,7 @@ struct BLHCoordinate
 
     double alt;
 
-    BLHCoordinate(double _lat, double _lon, double _alt) : lat(_lat), lon(_lon), alt(_alt) {}
+    BLHCoordinate(double _lat, double _lon, double _alt) : lon(_lon),lat(_lat), alt(_alt) {}
 
     BLHCoordinate() : alt(WRONGDATA) {}
 
@@ -148,6 +166,10 @@ struct FrameData {
     }
 };
 
+//base type define 
+typedef unsigned char u8;
+typedef unsigned int  u32;
+typedef unsigned long u64;
 
 typedef std::vector<PoseData>               PoseVector;
 typedef PoseVector::iterator                PoseVIter;
@@ -162,9 +184,21 @@ typedef RstVector::iterator                 RstVIter;
 typedef std::vector<FrameData>              FrameDataVector;
 typedef FrameDataVector::iterator           FrameDataVIter;
 
-class IFrame;           
+class   IFrame;           
 typedef std::vector<IFrame*>                FrameVector;
 typedef FrameVector::iterator               FrameVIter;
+
+typedef std::pair<IFrame*,int>              FramePair;
+typedef std::map<IFrame*,int>               FrameMap;
+typedef FrameMap::iterator                  FrameMapIter;
+
+typedef std::set<IFrame*>                   FrameSet;
+typedef FrameSet::iterator                  FrameSetIter;
+
+
+class IMapPoint;
+typedef std::vector<IMapPoint*>             MapPtVector;
+typedef MapPtVector::iterator               MapPtVIter;
 
 typedef std::vector<cv::KeyPoint>           KeyPtVector;
 
@@ -176,6 +210,7 @@ typedef std::vector<cv::DMatch>             MatchVector;
 typedef std::vector<size_t>                 SzVector;
 typedef std::vector<int>                    IntVector;
 typedef std::vector<bool>                   BolVector;
+typedef std::vector<float>                  FloatVector;
 
 typedef pair<int,int>                       MatchPair;
 typedef std::vector<MatchPair>              MatchPairs;

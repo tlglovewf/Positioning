@@ -19,6 +19,8 @@ namespace Position {
         ORBFeature(std::shared_ptr<IConfig> pcfg):PFeature(pcfg){}
         //计算特征点 以及 描述子
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
+         //返回sigma参数(主要用于优化 信息矩阵)
+        virtual const FloatVector& getSigma2() const;
     protected:
         //初始化
         virtual void init();
@@ -68,19 +70,19 @@ namespace Position {
         float inline GetScaleFactor(){
             return scaleFactor;}
 
-        std::vector<float> inline GetScaleFactors(){
+        inline const FloatVector&  GetScaleFactors()const {
             return mvScaleFactor;
         }
 
-        std::vector<float> inline GetInverseScaleFactors(){
+        inline const FloatVector& GetInverseScaleFactors()const{
             return mvInvScaleFactor;
         }
 
-        std::vector<float> inline GetScaleSigmaSquares(){
+        inline const FloatVector& GetScaleSigmaSquares()const{
             return mvLevelSigma2;
         }
 
-        std::vector<float> inline GetInverseScaleSigmaSquares(){
+        inline const FloatVector&  GetInverseScaleSigmaSquares()const{
             return mvInvLevelSigma2;
         }
 
@@ -102,14 +104,14 @@ namespace Position {
         int iniThFAST;
         int minThFAST;
 
-        std::vector<int> mnFeaturesPerLevel;
+        IntVector   mnFeaturesPerLevel;
 
-        std::vector<int> umax;
+        IntVector   umax;
 
-        std::vector<float> mvScaleFactor;
-        std::vector<float> mvInvScaleFactor;    
-        std::vector<float> mvLevelSigma2;
-        std::vector<float> mvInvLevelSigma2;
+        FloatVector mvScaleFactor;
+        FloatVector mvInvScaleFactor;    
+        FloatVector mvLevelSigma2;
+        FloatVector mvInvLevelSigma2;
     };
 #pragma endregiion
 } 

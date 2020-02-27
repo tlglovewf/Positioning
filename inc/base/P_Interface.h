@@ -9,12 +9,21 @@
 #include "P_Types.h"
 namespace Position
 {
+#define DISABLEDCP(X)  X(const X&); \
+                        X& operator=(const X&);
+
+#define DISABLEDC(X)   X();\
+                      ~X();
     // base class 
     class IBase
     {
     public:
         IBase(){}
         virtual ~IBase(){}
+        void release()
+        {
+            delete this;
+        }
     };
 
     //配置属性
@@ -38,6 +47,32 @@ namespace Position
         
     };
 
+    //地图点
+    class IMapPoint : public IBase
+    {
+    public:
+        //获取位置(世界坐标)
+        virtual const Mat getPose()const = 0;
+        //设置位置(世界坐标)
+        virtual void setPose(const cv::Mat &pose) = 0;
+        //获取序号
+        virtual u64 index()const = 0;
+        //观察点
+        virtual int observations()const = 0;
+        //添加观察者 index(特征点序号)
+        virtual void addObservation(IFrame *frame,int index) = 0;
+        //移除观察者
+        virtual void rmObservation(IFrame *frame) = 0;
+        //获取观察帧列表
+        virtual const FrameMap& getObservation()const = 0;
+        //是否在帧中
+        virtual bool isInFrame(IFrame *pFrame) = 0;
+        //设置坏点
+        virtual void setBadFlag() = 0;
+        //返回是否为坏点
+        virtual bool isBad()const = 0;
+
+    };
     //帧对象
     class IFrame : public IBase
     {
@@ -50,7 +85,25 @@ namespace Position
         virtual int getKeySize()const = 0;
         //获取描述子
         virtual const Mat& getDescript()const = 0;
-        
+        //获取位置(世界坐标)
+        virtual const Mat getPose()const = 0;
+        //设置位置(世界坐标)
+        virtual void setPose(const cv::Mat &pose) = 0;
+        //获取地图点
+        virtual const MapPtVector& getPoints() = 0;
+        //帧序号
+        virtual int index()const = 0;
+        //添加地图点
+        virtual void addMapPoint(IMapPoint *pt, int index) = 0;
+        //是否已有对应地图点
+        virtual bool hasMapPoint(int index) = 0;
+        //移除地图点
+        virtual void rmMapPoint(IMapPoint *pt) = 0;
+        virtual void rmMapPoint(int index) = 0;
+        //是否为坏点
+        virtual bool isBad()const = 0;
+        //设为坏帧
+        virtual void setBadFlag() = 0;
     };
 
     // data interface
@@ -104,6 +157,8 @@ namespace Position
     public:
         //计算特征点
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript) = 0;
+        //返回sigma参数(主要用于优化 信息矩阵)
+        virtual const FloatVector& getSigma2() const = 0;
     };
 
     //特征跟踪接口
@@ -123,9 +178,9 @@ namespace Position
         //设置相机参数
         virtual void setCamera(const CameraParam &cam) = 0;
         //设置帧
-        virtual void setParams( IFrame *pre, IFrame *cur, const MatchVector &matches) = 0;
+        virtual void setFrames( IFrame *pre, IFrame *cur) = 0;
         //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t) = 0;
+        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle) = 0;
     };
 
     //定位算法

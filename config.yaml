@@ -25,5 +25,5 @@ BsPath:    "/Users/TLG/Downloads/data/weiya/20191105/BS_0001_20191105.bs"
 #feature params
 FeatureCnt:   3000
 PyramidLevel: 8
-ScaleFactor:  1.2
+ScaleFactor:  1.3
 SearchScale:  500

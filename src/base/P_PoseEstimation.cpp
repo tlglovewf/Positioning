@@ -2,18 +2,6 @@
 #include <thread>
 namespace Position
 {
-
-#define HIGHTPRE 1
-
-
-#if  HIGHTPRE  
-    #define MATTYPE   double     
-    #define MATCVTYPE CV_64F
-#else
-    #define MATTYPE   float     
-    #define MATCVTYPE CV_32F
-#endif
-
     class Random
     {
     public:
@@ -347,9 +335,9 @@ namespace Position
 
 
 
-    int ORBPoseEstimation::CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::KeyPoint> &vKeys1, const vector<cv::KeyPoint> &vKeys2,
-                                    const vector<MatchPair> &vMatches12, vector<bool> &vbMatchesInliers,
-                                    const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, vector<bool> &vbGood, float &parallax)
+    int ORBPoseEstimation::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &vKeys1, const KeyPtVector &vKeys2,
+                                    const MatchPairs &vMatches12, BolVector &vbMatchesInliers,
+                                    const cv::Mat &K, Pt3Vector &vP3D, float th2, BolVector &vbGood, float &parallax)
     {
         // Calibration parameters
         const MATTYPE fx = K.at<MATTYPE>(0,0);
@@ -891,10 +879,10 @@ namespace Position
     }
 
     //估计
-    bool ORBPoseEstimation::estimate(cv::Mat &R, cv::Mat &t)
+    bool ORBPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle)
     {
         assert(mPre && mCur);
-
+        initParams(matches);
         // Launch threads to compute in parallel a fundamental matrix and a homography
         vector<bool> vbMatchesInliersH, vbMatchesInliersF;
         float SH, SF;
@@ -909,28 +897,44 @@ namespace Position
 
         // Compute ratio of scores
         float RH = SH/(SH+SF);
-        Pt3Vector vP3D;
-        BolVector vbTriangulated;
 
         const float minParallax = 0.0;//最小的时差角度
         const float minTriangle = 50; //最少需要多少个点 三角化
 
+        bool bol = false;
         // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
         if(RH>0.40)
-            return ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vP3D,vbTriangulated,minParallax,minTriangle);
+            bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
         else //if(pF_HF>0.6)
-            return ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vP3D,vbTriangulated,minParallax,minTriangle);
+            bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
-        return false;
+
+        MatchVector::iterator it = matches.begin();
+        MatchVector::iterator ed = matches.end();
+        for(;it != ed;)
+        {
+            if(!bTriangle[it->queryIdx] )
+            {
+                it = matches.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+
+        return bol;
     }
 
-#pragma unregion 
+#pragma endregion 
 
 #pragma region CVPoseEstimation
 
     //推算位姿
-    bool CVPoseEstimation::estimate(cv::Mat &R, cv::Mat &t)
+    bool CVPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle)
     {
+        initParams(matches);
         if(mPrePts.empty() || (mPrePts.size() != mCurPts.size()))
             return false;
 

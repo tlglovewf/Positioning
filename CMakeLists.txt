@@ -3,7 +3,8 @@ project(CV_Project)
 
 #set cmake build type
 IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Debug)
+   SET(CMAKE_BUILD_TYPE Debug)
+#   SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
 
 #print build type
@@ -14,8 +15,8 @@ MESSAGE("Build  type: " ${CMAKE_BUILD_TYPE})
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -O0 -g -march=native")
 
 #release compile setting
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
  
 
 # osx settting 
@@ -87,8 +88,10 @@ src/base/P_Viewer.cpp
 src/base/P_Detector.cpp
 src/base/P_Checker.cpp
 src/base/P_CoorTrans.cpp
-#src/base/P_Map.cpp
-#src/base/P_Optimizer.cpp
+src/base/P_Map.cpp
+src/base/P_MapPoint.cpp
+src/base/P_Converter.cpp
+src/base/P_Optimizer.cpp
 src/base/P_PoseEstimation.cpp
 src/base/P_Positioning.cpp
 src/base/P_Controller.cpp
@@ -106,13 +109,21 @@ ${EIGEN3_LIBS}
 )
 
 if(CMAKE_HOST_APPLE)
-target_link_libraries(${Positioning}
-${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.dylib
-)
+   if(CMAKE_BUILD_TYPE EQUAL Release)
+      target_link_libraries(${Positioning}
+         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.dylib)
+   else()
+      target_link_libraries(${Positioning}
+         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.dylib)
+   endif()
 else()
-target_link_libraries(${Positioning}
-${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.so
-)
+   if(CMAKE_BUILD_TYPE EQUAL Release)
+      target_link_libraries(${Positioning}
+         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.so)
+   else()
+      target_link_libraries(${Positioning}
+         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.so)
+   endif()
 endif()
 
 #set program running path 

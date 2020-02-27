@@ -21,15 +21,14 @@ namespace Position
             mCam = cam;
         }
         //设置帧
-        virtual void setParams( IFrame *pre, IFrame *cur, const MatchVector &matches) 
+        virtual void setFrames( IFrame *pre, IFrame *cur) 
         {
             assert(pre && cur);
             mPre = pre;
             mCur = cur;
-            initParams(matches);
         }
         //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t)
+        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches ,Pt3Vector &vPts, BolVector &bTriangle)
         {
             assert(NULL);
         }
@@ -51,7 +50,7 @@ namespace Position
     {
     public:
          //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t);
+        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle);
 
      protected:
         //初始化
@@ -70,7 +69,8 @@ namespace Position
         ORBPoseEstimation():mMaxIterations(200),mSigma(2.0),mSigma2(mSigma*mSigma){}
 
          //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t);
+        virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle);
+
 
         //计算单应矩阵
         void FindHomography (BolVector &vbInliers, float &score, cv::Mat &H21);
@@ -98,9 +98,9 @@ namespace Position
         void DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat &t);
 
         //检查R t
-        int CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::KeyPoint> &vKeys1, const vector<cv::KeyPoint> &vKeys2,
-                                    const vector<MatchPair> &vMatches12, vector<bool> &vbMatchesInliers,
-                                    const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, vector<bool> &vbGood, float &parallax);
+        int CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &vKeys1, const KeyPtVector &vKeys2,
+                                    const MatchPairs &vMatches12, BolVector &vbMatchesInliers,
+                                    const cv::Mat &K, Pt3Vector &vP3D, float th2, BolVector &vbGood, float &parallax);
 
         //归一化
         void Normalize(const vector<cv::KeyPoint> &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T);
@@ -110,9 +110,10 @@ namespace Position
         virtual void initParams(const MatchVector &matches);
 
     protected:
+        int                         mMaxIterations;
         float                       mSigma;
         float                       mSigma2;
-        int                         mMaxIterations;
+        
         vector< vector<size_t> >    mvSets;
     };
 

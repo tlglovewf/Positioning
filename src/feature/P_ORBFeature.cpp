@@ -27,7 +27,12 @@ const int EDGE_THRESHOLD = 19;
         (*mpExtractor)(frame._img,Mat(),keys,descript);
         return true;
     }
-
+     //返回sigma参数(主要用于优化 信息矩阵)
+    const FloatVector& ORBFeature::getSigma2() const 
+    {
+        assert(mpExtractor.get());
+        return mpExtractor->GetInverseScaleSigmaSquares();
+    }
 
 #pragma region ORBextractor
 
