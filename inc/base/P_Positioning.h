@@ -14,6 +14,12 @@ namespace Position
     class Positioning : public IPositioning
     {
     public:
+        //构造
+        Positioning():mCurrentFm(NULL)
+        {
+
+        }
+
          //设置相机参数
         virtual void setParams(const CameraParam &cam) 
         {
@@ -38,9 +44,15 @@ namespace Position
             //添加具体实现
             assert(NULL);
         }
+        //当前帧
+        virtual IFrame* currentFrame()const 
+        {
+            return mCurrentFm;
+        }
      protected:
         CameraParam   mCamera;
         FrameVector   mFrames;
+        IFrame*       mCurrentFm;
     };
 
     //单张图片定位

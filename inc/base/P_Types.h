@@ -188,6 +188,13 @@ class   IFrame;
 typedef std::vector<IFrame*>                FrameVector;
 typedef FrameVector::iterator               FrameVIter;
 
+class   IKeyFrame;
+typedef std::vector<IKeyFrame*>             KeyFrameVector;
+typedef KeyFrameVector::iterator            KeyFrameVter;
+
+typedef std::set<IKeyFrame*>                KeyFmSet;
+typedef KeyFmSet::iterator                  KeyFmSetIter;
+
 typedef std::pair<IFrame*,int>              FramePair;
 typedef std::map<IFrame*,int>               FrameMap;
 typedef FrameMap::iterator                  FrameMapIter;
@@ -199,6 +206,9 @@ typedef FrameSet::iterator                  FrameSetIter;
 class IMapPoint;
 typedef std::vector<IMapPoint*>             MapPtVector;
 typedef MapPtVector::iterator               MapPtVIter;
+
+typedef std::set<IMapPoint*>                MapPtSet;
+typedef MapPtSet::iterator                  MapPtSetIter;
 
 typedef std::vector<cv::KeyPoint>           KeyPtVector;
 

@@ -148,6 +148,13 @@ namespace Position
         StringConfigParam   PosPath;        //数据路径
         StringConfigParam   OutPath;        //输出路径
 
+        //可视化参数
+        IntConfigParam      ViewerW;        //可视窗口宽
+        IntConfigParam      ViewerH;        //可视窗口高
+        FloatConfigParam    ViewptX;
+        FloatConfigParam    ViewptY;
+        FloatConfigParam    ViewptZ;
+        FloatConfigParam    ViewptF;        //视距
         //add more ...
 
     };

@@ -27,3 +27,13 @@ FeatureCnt:   3000
 PyramidLevel: 8
 ScaleFactor:  1.3
 SearchScale:  500
+
+
+#Visualization
+ViewerW:   1080
+ViewerH:   768
+ViewptX:   0
+ViewptY:   -10
+ViewptZ:   -0.1
+ViewptF:   800
+

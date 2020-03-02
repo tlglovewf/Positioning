@@ -15,28 +15,28 @@
 namespace Position
 {
     //地图对象
-    class PMap
+    class PMap : public IMap
     {
     public:
-        typedef std::set<IMapPoint*>    MapPtSet;
-        typedef MapPtSet::iterator      MapPtSetIter;
-
-        typedef std::set<PKeyFrame*>    KeyFmSet;
-        typedef KeyFmSet::iterator      KeyFmSetIter;
-
         PMap(){}
         ~PMap()
         {
             clear();
         }
-
-        PKeyFrame* createKeyFrame(IFrame *frame)
+        //创建关键帧
+        IKeyFrame* createKeyFrame(IFrame *frame)
         {
-            PKeyFrame *pF = new PKeyFrame(frame,this);
+            IKeyFrame *pF = new PKeyFrame(frame,this);
             addKeyFrame(pF);
             return pF;
         }
-
+        //创建地图点
+        IMapPoint* createMapPoint(const cv::Mat &pose)
+        {
+            IMapPoint *pPt = new PMapPoint(pose,this);
+            addMapPoint(pPt);
+            return pPt;
+        }
         IMapPoint* createMapPoint(const cv::Point3f &pose)
         {
             IMapPoint *pPt = new PMapPoint(pose,this);
@@ -45,14 +45,14 @@ namespace Position
         }
 
         //加入/移除关键帧
-        void addKeyFrame(PKeyFrame *pKF)
+        void addKeyFrame(IKeyFrame *pKF)
         {
             if(NULL != pKF)
             {
                 mMapFms.insert(pKF);
             }
         }
-        void rmKeyFrame(PKeyFrame *pKF)
+        void rmKeyFrame(IKeyFrame *pKF)
         {
             if(NULL != pKF)
             {

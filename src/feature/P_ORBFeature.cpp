@@ -9,9 +9,9 @@ const int EDGE_THRESHOLD = 19;
     //初始化
     void ORBFeature::init()
     {
-        int nfeatures = GETCFGVALUE((*mCfg)["FeatureCnt"],int);
-        int nlevel    = GETCFGVALUE((*mCfg)["PyramidLevel"],int);
-        float scale   = GETCFGVALUE((*mCfg)["ScaleFactor"],float);
+        int nfeatures = GETCFGVALUE(mCfg,FeatureCnt,int);
+        int nlevel    = GETCFGVALUE(mCfg,PyramidLevel,int);
+        float scale   = GETCFGVALUE(mCfg,ScaleFactor,float);
         
         mpExtractor = std::unique_ptr<ORBextractor>(new ORBextractor(nfeatures,scale,nlevel,20,7));
     }

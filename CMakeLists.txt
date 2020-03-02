@@ -48,10 +48,10 @@ endif()
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 #ex find opencv 
-find_package(OpenCV 3.0 QUIET)
+find_package(OpenCV 3.0 REQUIRED)
 if(NOT OpenCV_FOUND)
    message(FATAL_ERROR "OpenCV 3.0 not found.")
-   find_package(OpenCV 2.4.3 QUIET)
+   find_package(OpenCV 2.4.3 REQUIRED)
    if(NOT OpenCV_FOUND)
       message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
    endif()
@@ -60,7 +60,12 @@ else()
 endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
-#find_package(Pangolin REQUIRED)
+find_package(Pangolin REQUIRED)
+if(NOT Pangolin_FOUND)
+   message(FATAL_ERROR "Pangolin not found.")
+else()
+   message("pangolin path : " ${Pangolin_INCLUDE_DIRS})
+endif()
 
 #set include file search path
 include_directories(
@@ -68,8 +73,9 @@ ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/inc
 ${PROJECT_SOURCE_DIR}/inc/base
 ${PROJECT_SOURCE_DIR}/inc/feature
+${PROJECT_SOURCE_DIR}/inc/viewer
 ${EIGEN3_INCLUDE_DIR}
-#${Pangolin_INCLUDE_DIRS}
+${Pangolin_INCLUDE_DIRS}
 )
 
 #set lib link path 
@@ -84,7 +90,6 @@ src/base/P_Config.cpp
 src/base/P_Frame.cpp
 src/base/P_Data.cpp
 src/base/P_Writer.cpp
-src/base/P_Viewer.cpp
 src/base/P_Detector.cpp
 src/base/P_Checker.cpp
 src/base/P_CoorTrans.cpp
@@ -98,6 +103,7 @@ src/base/P_Controller.cpp
 src/feature/P_Feature.cpp
 src/feature/P_ORBFeature.cpp
 src/feature/P_FeatureMatcher.cpp
+src/viewer/Pangolin_Viewer.cpp
 #src/P_Factory.cpp
 )
 
@@ -105,7 +111,7 @@ src/feature/P_FeatureMatcher.cpp
 target_link_libraries(${Positioning}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
-#${Pangolin_LIBRARIES}
+${Pangolin_LIBRARIES}
 )
 
 if(CMAKE_HOST_APPLE)

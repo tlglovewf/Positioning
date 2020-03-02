@@ -18,6 +18,8 @@
 #include "P_Data.h"
 #include "P_MapPoint.h"
 #include "P_Map.h"
+#include "Pangolin_Viewer.h"
+#include "P_Positioning.h"
 
 using namespace std;
 using namespace cv;
@@ -35,7 +37,7 @@ int main(void)
     pCfg->load("../config.yaml");
     
 
-    const string imgpath = GETCFGVALUE( (*pCfg)["ImgPath"] ,string);//
+    const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string);//
     Mat img1 = imread(imgpath + "/20191107-072927356003-0000000300_L.jpg",IMREAD_UNCHANGED);
     Mat img2 = imread(imgpath + "/20191107-072928328188-0000000301_L.jpg",IMREAD_UNCHANGED);
     Mat img3 = imread(imgpath + "/20191107-072928863666-0000000302_L.jpg",IMREAD_UNCHANGED);
@@ -47,8 +49,9 @@ int main(void)
     frame2._img = img2;
     frame3._img = img3;
 
-    std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
-    pData->loadDatas();
+    std::shared_ptr<Position::IMap> map(new Position::PMap);
+
+    std::shared_ptr<Position::IPositioning> position(new Position::Positioning());
 
     std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::ORBFeature>(pCfg);
 
@@ -62,11 +65,14 @@ int main(void)
     Position::FrameGrid::assignFeaturesToGrid(othframe);
     
 
+    std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+    pData->loadDatas();
+
     Ptr<Position::IFeatureMatcher> pMatcher = new Position::PFeatureMatcher(0.9);
 
-    Position::MatchVector matches = pMatcher->match(preframe,curframe,GETCFGVALUE((*pCfg)["SearchScale"],int));
+    Position::MatchVector matches = pMatcher->match(preframe,curframe,GETCFGVALUE(pCfg,SearchScale,int));
 
-    Position::MatchVector others  = pMatcher->match(curframe,othframe,GETCFGVALUE((*pCfg)["SearchScale"],int));
+    Position::MatchVector others  = pMatcher->match(curframe,othframe,GETCFGVALUE(pCfg,SearchScale,int));
 
     if(matches.empty())
     {
@@ -102,30 +108,45 @@ int main(void)
 
             preframe->setPose(cv::Mat::eye(4,4,CV_64F));
             curframe->setPose(pose);
-            Position::PMap map;
+            
             for(auto item : matches)
             {
-                Position::IMapPoint *mppt = map.createMapPoint(pts[item.queryIdx]); 
+                Position::IMapPoint *mppt = map->createMapPoint(pts[item.queryIdx]); 
                 preframe->addMapPoint(mppt,item.queryIdx);
                 curframe->addMapPoint(mppt,item.trainIdx);
             }
-
-            for(auto item : others)
-            {
-                if(curframe->hasMapPoint(item.queryIdx))
+            pPoseEst->setFrames(curframe,othframe);
+        
+           if(pPoseEst->estimate(R,t, others,pts, bols))
+           {
+                for(auto item : others)
                 {
-
+                    if(curframe->hasMapPoint(item.queryIdx))
+                    {
+                        othframe->addMapPoint(curframe->getPoints()[item.queryIdx],item.trainIdx);
+                    }
+                    else
+                    {
+                        const Point3f &ppt = pts[item.queryIdx];
+                        Mat temp = (Mat_<double>(4,1) << ppt.x , ppt.x,ppt.z,1);
+                         
+                        Position::IMapPoint *mppt = map->createMapPoint(pose.inv() * temp); 
+                        preframe->addMapPoint(mppt,item.queryIdx);
+                        curframe->addMapPoint(mppt,item.trainIdx);
+                    }
                 }
-                else
-                {
-                    
-                }
-                
-            }
+           }    
 
-            map.createKeyFrame(preframe);
-            map.createKeyFrame(curframe);
-            map.createKeyFrame(othframe);
+           R.copyTo(pose.rowRange(0,3).colRange(0,3));
+           t.copyTo(pose.rowRange(0,3).col(3));
+            
+            Mat tpose = pose * curframe->getPose();
+            othframe->setPose(tpose);
+
+            //创建关键帧
+            map->createKeyFrame(preframe);
+            map->createKeyFrame(curframe);
+            map->createKeyFrame(othframe);
 
             Position::IOptimizer *pOp = Position::IOptimizer::getSingleton();
             pOp->setCamera(pData->getCamera());
@@ -134,11 +155,12 @@ int main(void)
             pOp->frameOptimization(preframe,pFeature->getSigma2());
             pOp->frameOptimization(curframe,pFeature->getSigma2());
             cout << "frame after optimize pose " << endl << curframe->getPose() << endl;
-            Position::KeyFrameVector keyframes(map.getAllFrames());
-            Position::MapPtVector    mappts(map.getAllMapPts());
+            Position::KeyFrameVector keyframes(map->getAllFrames());
+            Position::MapPtVector    mappts(map->getAllMapPts());
             bool pBstop = false;
             pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
 
+            
             cout << "bundleadjust optimize pose " << endl << curframe->getPose() << endl;
         }
         else
@@ -146,6 +168,8 @@ int main(void)
             cout << "pose estimate failed." << endl;
         }
       }
+    Position::Pangolin_Viwer *pv = new Position::Pangolin_Viwer(pCfg,map,position);
+    pv->render();
 
     return 0;
 }

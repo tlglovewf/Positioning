@@ -33,7 +33,8 @@ namespace Position
         // 获取值
         virtual void* data() = 0; 
     };
-#define GETCFGVALUE(v,type) (*reinterpret_cast<type*>(v->data()))
+#define CFGVALUE(v,type) (*reinterpret_cast<type*>(v->data()))
+#define GETCFGVALUE(v,str,type) CFGVALUE((*v)[#str],type)
 #define SETCFGVALUE(v,d)    (GETVALUE(v,decltype(d))) = d
     // config interface
     class IConfig : public IBase
@@ -86,7 +87,7 @@ namespace Position
         //获取描述子
         virtual const Mat& getDescript()const = 0;
         //获取位置(世界坐标)
-        virtual const Mat getPose()const = 0;
+        virtual const Mat& getPose()const = 0;
         //设置位置(世界坐标)
         virtual void setPose(const cv::Mat &pose) = 0;
         //获取地图点
@@ -106,6 +107,37 @@ namespace Position
         virtual void setBadFlag() = 0;
     };
 
+    //关键帧
+    class IKeyFrame : public IFrame
+    {
+    public:
+        //强制类型转换
+        virtual operator IFrame*()const = 0;
+    };
+    //地图
+    class IMap : public IBase
+    {
+    public:
+        //创建关键帧
+        virtual IKeyFrame* createKeyFrame(IFrame *frame) = 0;
+        //创建地图点
+        virtual IMapPoint* createMapPoint(const cv::Mat &pose) = 0;
+        virtual IMapPoint* createMapPoint(const cv::Point3f &pose) = 0;
+        //加入/移除关键帧
+        virtual void addKeyFrame(IKeyFrame *pKF) = 0;
+        virtual void rmKeyFrame(IKeyFrame *pKF) = 0;
+        //加入/移除地图点
+        virtual void addMapPoint(IMapPoint *pMp) = 0;
+        virtual void rmMapPoint(IMapPoint *pMp) = 0;
+        //清空
+        virtual void clear() = 0;
+
+        //获取所有地图点
+        virtual MapPtVector getAllMapPts()const = 0;
+
+        //获取所有帧
+        virtual KeyFrameVector getAllFrames()const = 0;
+    };
     // data interface
     class IData : public IBase
     {
@@ -193,8 +225,11 @@ namespace Position
         virtual void addFrame(IFrame *pframe) = 0;
         //添加多张
         virtual void addFrames(const FrameVector &framedatas) = 0;
+        //当前帧
+        virtual IFrame* currentFrame()const = 0;
         //处理
         virtual void position() = 0;
+        
     };
 } // namespace Position
 

@@ -12,8 +12,8 @@ namespace Position
  
     WeiyaData::WeiyaData(std::shared_ptr<IConfig> pcfg):PData(pcfg)
     {
-        const std::string expath = GETCFGVALUE((*pcfg)["ExtriPath"],string);
-        const std::string bspath = GETCFGVALUE((*pcfg)["BsPath"],string);
+        const std::string expath = GETCFGVALUE(pcfg,ExtriPath,string);
+        const std::string bspath = GETCFGVALUE(pcfg,BsPath,string);
 
 		FileStorage intr(expath, FileStorage::READ);
 		FileStorage bs  (bspath, FileStorage::READ);
@@ -42,10 +42,10 @@ namespace Position
     //处理数据
     bool WeiyaData::loadDatas()
     {
-        const std::string imgpath = GETCFGVALUE((*mpCfg)["ImgPath"],string);
-        const std::string pstpath = GETCFGVALUE((*mpCfg)["PosPath"],string);
-        const int         stno    = max(0,GETCFGVALUE((*mpCfg)["StNo"],int));
-        const int         edno    = max(stno,GETCFGVALUE((*mpCfg)["EdNo"],int));
+        const std::string imgpath = GETCFGVALUE(mpCfg,ImgPath,string);
+        const std::string pstpath = GETCFGVALUE(mpCfg,PosPath,string);
+        const int         stno    = max(0,GETCFGVALUE(mpCfg,StNo,int));
+        const int         edno    = max(stno,GETCFGVALUE(mpCfg,EdNo,int));
 
         if(imgpath.empty() || pstpath.empty())
             return false;

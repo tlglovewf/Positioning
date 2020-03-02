@@ -17,7 +17,13 @@ namespace Position
                       SearchScale(200),
                       ImgPath(""),
                       PosPath(""),
-                      OutPath("")
+                      OutPath(""),
+                      ViewerW(0),
+                      ViewerH(0),
+                      ViewptX(0),
+                      ViewptY(0),
+                      ViewptZ(0),
+                      ViewptF(0)
     {
         PUSH_MAP(StNo);
         PUSH_MAP(EdNo);
@@ -30,6 +36,12 @@ namespace Position
         PUSH_MAP(ImgPath);
         PUSH_MAP(PosPath);
         PUSH_MAP(OutPath);
+        PUSH_MAP(ViewerW);
+        PUSH_MAP(ViewerH);
+        PUSH_MAP(ViewptX);
+        PUSH_MAP(ViewptY);
+        PUSH_MAP(ViewptZ);
+        PUSH_MAP(ViewptF);
     }
 
     //析构
@@ -67,7 +79,12 @@ namespace Position
             READ_VALUE(ImgPath);
             READ_VALUE(PosPath);
             READ_VALUE(OutPath);
-           
+            READ_VALUE(ViewerW);
+            READ_VALUE(ViewerH);
+            READ_VALUE(ViewptX);
+            READ_VALUE(ViewptY);
+            READ_VALUE(ViewptZ);
+            READ_VALUE(ViewptF);
             //其他信息加载
             loadmore();
         }

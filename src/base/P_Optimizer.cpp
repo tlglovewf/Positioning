@@ -177,7 +177,7 @@ namespace Position
 
         for(size_t i = 0; i < keyframes.size();++i)
         {
-            PKeyFrame *pKF = keyframes[i];
+            IKeyFrame *pKF = keyframes[i];
              if(pKF->isBad())
                  continue;
             g2o::VertexSE3Expmap *vSE3 = new g2o::VertexSE3Expmap();
@@ -269,7 +269,7 @@ namespace Position
         //Keyframes
         for(size_t i = 0; i < keyframes.size(); ++i)
         {
-            PKeyFrame *pKF = keyframes[i];
+            IKeyFrame *pKF = keyframes[i];
             if(pKF->isBad())
                 continue;
 

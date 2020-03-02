@@ -908,21 +908,22 @@ namespace Position
         else //if(pF_HF>0.6)
             bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
-
-        MatchVector::iterator it = matches.begin();
-        MatchVector::iterator ed = matches.end();
-        for(;it != ed;)
+        if(bol)
         {
-            if(!bTriangle[it->queryIdx] )
+            MatchVector::iterator it = matches.begin();
+            MatchVector::iterator ed = matches.end();
+            for(;it != ed;)
             {
-                it = matches.erase(it);
-            }
-            else
-            {
-                ++it;
+                if(!bTriangle[it->queryIdx] )
+                {
+                    it = matches.erase(it);
+                }
+                else
+                {
+                    ++it;
+                }
             }
         }
-
 
         return bol;
     }

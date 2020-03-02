@@ -43,7 +43,7 @@ namespace Position
         }
         
         //获取位置(世界坐标)
-        virtual const Mat getPose()const 
+        virtual const Mat& getPose()const 
         {
             return mPose;
         }
@@ -132,25 +132,24 @@ namespace Position
     };
     
       //关键帧
-    class PKeyFrame : public IBase
+    class PKeyFrame : public IKeyFrame
     {
     public:
         //构造
-        PKeyFrame(IFrame *pframe,PMap *pMap):mpFrame(pframe),mpMap(pMap){}
-           //设置位置
-        inline void setPose(const cv::Mat &pose)
+        PKeyFrame(IFrame *pframe,PMap *pMap):mpFrame(pframe),mpMap(pMap){assert(pframe);}
+
+        //设置位置
+        virtual void setPose(const cv::Mat &pose)
         {
-            assert(mpFrame);
             mpFrame->setPose(pose);
         }
-        //获取位置
-        inline cv::Mat getPose()const
+        //获取位置(世界坐标)
+        virtual const Mat& getPose()const
         {
-            assert(mpFrame);
             return mpFrame->getPose();
         }
         //重载强转
-        operator IFrame*()const
+        virtual operator IFrame*()const
         {
             return mpFrame;
         }
@@ -170,6 +169,53 @@ namespace Position
             assert(mpFrame);
             return mpFrame->index();
         }
+
+         //获取数据
+        virtual FrameData getData()const 
+        {
+            return mpFrame->getData();
+        }
+        //获取关键点
+        virtual const KeyPtVector& getKeys()const 
+        {
+            return mpFrame->getKeys();
+        }
+        //获取特征点数量
+        virtual int getKeySize()const 
+        {
+            return mpFrame->getKeySize();
+        }
+        //获取描述子
+        virtual const Mat& getDescript()const 
+        {
+            return mpFrame->getDescript();
+        }
+        //获取地图点
+        virtual const MapPtVector& getPoints() 
+        {
+            return mpFrame->getPoints();
+        }
+        //添加地图点
+        virtual void addMapPoint(IMapPoint *pt, int index) 
+        {
+            mpFrame->addMapPoint(pt,index);
+        }
+        //是否已有对应地图点
+        virtual bool hasMapPoint(int index) 
+        {
+           return mpFrame->hasMapPoint(index);
+        }
+        //移除地图点
+        virtual void rmMapPoint(IMapPoint *pt) 
+        {
+            mpFrame->rmMapPoint(pt);
+        }
+        virtual void rmMapPoint(int index) 
+        {
+            mpFrame->rmMapPoint(index);
+        }
+
+
     protected:
         IFrame *mpFrame;
         PMap   *mpMap;
@@ -179,9 +225,6 @@ namespace Position
     };
 
 #define FRAMEPT(K)（(IFrame*)*K)
-
-typedef std::vector<PKeyFrame*>     KeyFrameVector;
-typedef KeyFrameVector::iterator    KeyFrameVter;
 
     //frame grid 划分
     class FrameGrid
