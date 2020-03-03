@@ -28,7 +28,7 @@ namespace Position
             mCur = cur;
         }
         //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches ,Pt3Vector &vPts, BolVector &bTriangle)
+        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches ,Pt3Vector &vPts)
         {
             assert(NULL);
         }
@@ -50,7 +50,7 @@ namespace Position
     {
     public:
          //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle);
+        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts);
 
      protected:
         //初始化
@@ -69,7 +69,7 @@ namespace Position
         ORBPoseEstimation():mMaxIterations(200),mSigma(2.0),mSigma2(mSigma*mSigma){}
 
          //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle);
+        virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts);
 
 
         //计算单应矩阵

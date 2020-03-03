@@ -99,13 +99,13 @@ src/base/P_Converter.cpp
 src/base/P_Optimizer.cpp
 src/base/P_PoseEstimation.cpp
 src/base/P_Positioning.cpp
-src/base/P_Controller.cpp
 src/feature/P_Feature.cpp
 src/feature/P_ORBFeature.cpp
 src/feature/P_FeatureMatcher.cpp
 src/feature/P_BlockMatcher.cpp
 src/viewer/Pangolin_Viewer.cpp
 src/P_Factory.cpp
+src/P_Controller.cpp
 )
 
 #link libs

@@ -149,6 +149,8 @@ namespace Position
         //获取所有帧
         virtual KeyFrameVector getAllFrames()const = 0;
     };
+
+    
     // data interface
     class IData : public IBase
     {
@@ -217,6 +219,27 @@ namespace Position
 
     };
 
+     //优化基类
+    class IOptimizer : public IBase
+    {
+    public:
+        //单例
+        static IOptimizer* getSingleton();
+        
+        //单张位姿优化
+        virtual int frameOptimization(IFrame *pFrame, const FloatVector &sigma2) = 0;
+        
+        //ba 优化
+        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,
+                                        bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true) = 0;
+
+        //设置相机参数
+        virtual void setCamera(const CameraParam &mCam) = 0;
+
+        //设置特征提取类
+        virtual void setFeature( std::shared_ptr<IFeature> feature) = 0;
+    };
+
     //块匹配接口
     class IBlockMatcher : public IBase
     {
@@ -239,7 +262,7 @@ namespace Position
         //设置帧
         virtual void setFrames( IFrame *pre, IFrame *cur) = 0;
         //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle) = 0;
+        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts) = 0;
     };
 
     //定位算法

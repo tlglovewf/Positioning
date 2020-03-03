@@ -10,27 +10,61 @@
 
 namespace Position
 {   
+#define DEFINEENUM(ENUM)  enum e##ENUM##Type
+#define DEFINEFUNC(FUNC)  static I##FUNC* Create##FUNC(e##FUNC##Type type); 
     /*
      * 块匹配算法
      */
-    enum eBlockMatcherType
+    DEFINEENUM(BlockMatcher)
     {
-        eNCC,
-        eSAD,
-        eSSD
+        eBMNCC,
+        eBMSAD,
+        eBMSSD
     }; 
 
     /*
      * 特征提取类型
      */
-    enum eFeatureType
+    DEFINEENUM(Feature)
     {
-        eOrbFeature
+        eFeatureOrb
     };
 
+    DEFINEENUM(FeatureMatcher)
+    {
+        eFMDefault
+    };
 
-#define DEFINEFUNC(FUNC)  static I##FUNC* Create##FUNC(e##FUNC##Type type); 
+    /*
+     * 位姿估算
+     */
+    DEFINEENUM(PoseEstimation)
+    {
+        ePoseEstOrb,
+        ePoseEstCV
+    };
 
+    /*
+     * 优化类型
+     */
+    DEFINEENUM(Optimizer)
+    {
+        eOpG2o
+    };
+
+    /*
+     * 定位类型
+     */
+    DEFINEENUM(Positioning)
+    {
+        ePSingleImage,
+        ePMultiImage,
+        ePDepthImage
+    };
+
+    
+
+    class IOptimizer;
     //工厂对象
     class PFactory
     {
@@ -45,7 +79,27 @@ namespace Position
          * 特征点
          */
         static IFeature* CreateFeature(eFeatureType type, std::shared_ptr<IConfig> pcfg);
+
+        /*
+         * 创建特征匹配对象
+         */
+        static IFeatureMatcher* CreateFeatureMatcher(eFeatureMatcherType type, float ratio, bool bcheckori = true);
+
+        /*
+         * 创建定位对象
+         */
+        static IPositioning* CreatePositioning(ePositioningType type, const CameraParam  &pcfg);
         
+        /*
+         * 位姿推算
+         */
+        DEFINEFUNC(PoseEstimation)
+
+        /*
+         * 优化
+         */
+        DEFINEFUNC(Optimizer)
+
     };
 }
 

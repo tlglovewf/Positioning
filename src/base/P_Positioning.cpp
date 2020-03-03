@@ -79,7 +79,7 @@ namespace Position
             ed_x = bg.x;
         }
         
-        Ptr<IBlockMatcher> pBlock(PFactory::CreateBlockMatcher(eNCC,preframe._img, pt));
+        Ptr<IBlockMatcher> pBlock(PFactory::CreateBlockMatcher(eBMNCC,preframe._img, pt));
         Time_Interval timer;
         timer.start();
         for(int i = st_x; i < ed_x; i += space)
@@ -159,13 +159,14 @@ namespace Position
         return pt;
     }
 
+    //计算速度
     static inline cv::Mat computeVelocity(const cv::Mat &prepose, const cv::Mat &curpose)
     {
        return curpose * prepose.inv();
     }
 
     //定位
-    void Positioning::position(IKeyFrame *frame)
+    void MultiImgPositioning::position(IKeyFrame *frame)
     {
         assert(frame);
         IKeyFrame *pnxt = frame->getNext();
@@ -194,7 +195,7 @@ namespace Position
         R.copyTo(P2.rowRange(0,3).colRange(0,3));
         t.copyTo(P2.rowRange(0,3).col(3));
         P2 = mCamera.K * P2;
-
+        // calculate world trans matrix
         Mat trans = PUtils::CalcTransBLH(frame->getData()._pos,
                                          pnxt->getData()._pos);
         //遍历目标
@@ -226,14 +227,6 @@ namespace Position
             data._pos =  PCoorTrans::XYZ_to_BLH(XYZCoordinate(wdpt.at<MATTYPE>(0),
                                                               wdpt.at<MATTYPE>(1),
                                                               wdpt.at<MATTYPE>(2)));
-            
         }
-    }
-
-    //定位
-    void Positioning::position(IKeyFrame *frame, const Point2f &pt)
-    {
-        assert(NULL);
-        //add more 
     }
 }

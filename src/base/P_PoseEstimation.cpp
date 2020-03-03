@@ -864,7 +864,7 @@ namespace Position
     }
 
     //估计
-    bool ORBPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle)
+    bool ORBPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
     {
         assert(mPre && mCur);
         initParams(matches);
@@ -887,6 +887,7 @@ namespace Position
         const float minTriangle = 50; //最少需要多少个点 三角化
 
         bool bol = false;
+        BolVector bTriangle;
         // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
         if(RH>0.40)
             bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
@@ -894,7 +895,7 @@ namespace Position
             bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
         if(bol)
-        {
+        {//剔除三角化失败的点
             MatchVector::iterator it = matches.begin();
             MatchVector::iterator ed = matches.end();
             for(;it != ed;)
@@ -918,7 +919,7 @@ namespace Position
 #pragma region CVPoseEstimation
 
     //推算位姿
-    bool CVPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts, BolVector &bTriangle)
+    bool CVPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
     {
         initParams(matches);
         if(mPrePts.empty() || (mPrePts.size() != mCurPts.size()))

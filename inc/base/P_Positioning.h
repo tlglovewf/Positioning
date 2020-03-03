@@ -20,10 +20,16 @@ namespace Position
 
         }
         //定位关键帧中目标
-        virtual void position(IKeyFrame *frame);
+        virtual void position(IKeyFrame *frame)
+        {
+            assert(NULL);
+        }
 
         //定位关键点
-        virtual void position(IKeyFrame *frame,const Point2f &prept);
+        virtual void position(IKeyFrame *frame,const Point2f &prept)
+        {
+            assert(NULL);
+        }
 
         //获取极线
         virtual EpLine computeEpLine(const cv::Mat &R, const cv::Mat &t,const cv::Point2f &pt) ;
@@ -44,14 +50,20 @@ namespace Position
     class SingleImgPositioning : public Positioning
     {
     public:
+        SingleImgPositioning(const CameraParam &cam):Positioning(cam){}
+
          //定位关键帧中目标
-        virtual void position(IKeyFrame *frame);
+        virtual void position(IKeyFrame *frame)
+        {
+            assert(NULL);
+        }
     };
 
     //多图片定位
     class MultiImgPositioning : public Positioning
     {
     public:
+        MultiImgPositioning(const CameraParam &cam):Positioning(cam){}
         //定位关键帧中目标
         virtual void position(IKeyFrame *frame);
     };
@@ -60,10 +72,10 @@ namespace Position
     class DepthLImgPositioning : public Positioning
     {
     public:
-        //处理
-        virtual void position() 
+        DepthLImgPositioning(const CameraParam &cam):Positioning(cam){}
+        //定位关键帧中目标
+        virtual void position(IKeyFrame *frame)
         {
-            //添加具体实现
             assert(NULL);
         }
     };

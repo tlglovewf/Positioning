@@ -13,20 +13,24 @@
 namespace Position
 {
     //优化基类
-    class IOptimizer : public IBase
+    class POptimizer : public IOptimizer
     {
     public:
-        //单例
-        static IOptimizer* getSingleton();
         //单张位姿优化
-        virtual int frameOptimization(IFrame *pFrame, const FloatVector &sigma2) = 0;
+        virtual int frameOptimization(IFrame *pFrame, const FloatVector &sigma2) 
+        {
+            assert(NULL);
+        }
         
         //ba 优化
         virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,
-                                        bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true) = 0;
+                                        bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true) 
+                                        {
+                                            assert(NULL);
+                                        }
 
         //设置相机参数
-        inline void setCamera(const CameraParam &mCam)
+        virtual void setCamera(const CameraParam &mCam)
         {
             assert(!mCam.K.empty());
 
@@ -36,7 +40,7 @@ namespace Position
             mCy = mCam.K.at<double>(1,2);
         }
         //设置特征提取类
-        inline void setFeature( std::shared_ptr<IFeature> feature)
+        virtual void setFeature( std::shared_ptr<IFeature> feature)
         {
             mpFeature = feature;
         }
@@ -49,7 +53,7 @@ namespace Position
     };
 
     //g2o 优化类
-    class G2oOptimizer : public IOptimizer
+    class G2oOptimizer : public POptimizer
     {
     public:
         //单张位姿优化

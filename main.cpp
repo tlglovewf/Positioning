@@ -9,17 +9,13 @@
 
 #include "P_Controller.h"
 
-#include "P_ORBFeature.h"
-#include "P_Config.h"
-#include "P_FeatureMatcher.h"
 #include "P_Frame.h"
-#include "P_PoseEstimation.h"
-#include "P_Optimizer.h"
-#include "P_Data.h"
 #include "P_MapPoint.h"
 #include "P_Map.h"
 #include "Pangolin_Viewer.h"
-#include "P_Positioning.h"
+#include "P_Factory.h"
+#include "P_Config.h"
+#include "P_Data.h"
 
 using namespace std;
 using namespace cv;
@@ -54,9 +50,9 @@ int main(void)
     std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
     pData->loadDatas();
 
-    std::shared_ptr<Position::IPositioning> position(new Position::Positioning(pData->getCamera()));
+    std::shared_ptr<Position::IPositioning> position(Position::PFactory::CreatePositioning(Position::ePSingleImage, pData->getCamera()));
 
-    std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::ORBFeature>(pCfg);
+    std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
 
     Position::IFrame *preframe = new Position::PFrame(frame1,pFeature);
     Position::IFrame *curframe = new Position::PFrame(frame2,pFeature);
@@ -68,7 +64,7 @@ int main(void)
     Position::FrameGrid::assignFeaturesToGrid(othframe);
     
 
-    Ptr<Position::IFeatureMatcher> pMatcher = new Position::PFeatureMatcher(0.9);
+    Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.9);
 
     Position::MatchVector matches = pMatcher->match(preframe,curframe,GETCFGVALUE(pCfg,SearchScale,int));
 
@@ -88,15 +84,14 @@ int main(void)
 
         // cout << "write file successfully." << endl;
 
-        std::unique_ptr<Position::IPoseEstimation> pPoseEst(new Position::ORBPoseEstimation());
+        std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
 
         pPoseEst->setCamera(pData->getCamera());
 
         pPoseEst->setFrames(preframe,curframe);
         Mat R,t;
-        Position::BolVector bols;
         Position::Pt3Vector pts;
-        if(pPoseEst->estimate(R,t, matches,pts, bols))
+        if(pPoseEst->estimate(R,t, matches,pts))
         {
             cout << "R " << R << endl;
             cout << "t " << t << endl;
@@ -117,7 +112,7 @@ int main(void)
             }
             pPoseEst->setFrames(curframe,othframe);
         
-           if(pPoseEst->estimate(R,t, others,pts, bols))
+           if(pPoseEst->estimate(R,t, others,pts))
            {
                 for(auto item : others)
                 {
