@@ -15,9 +15,12 @@
 
 namespace Position
 {
+    //坐标转换
     class PConverter
     {
     public:
+
+       //cv/eigen data convert
        static std::vector<cv::Mat> toDescriptorVector(const cv::Mat &Descriptors);
 
        static g2o::SE3Quat toSE3Quat(const cv::Mat &cvT);
@@ -35,8 +38,7 @@ namespace Position
        static Eigen::Matrix<double,3,3> toMatrix3d(const cv::Mat &cvMat3);
 
        static FloatVector toQuaternion(const cv::Mat &M);
-    }
-    ;
+    };
 }
 
 

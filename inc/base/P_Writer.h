@@ -36,21 +36,38 @@ public:
         return true;
     }
     
+    
     /* print console info.
     */
     static void Promt(const std::string &str)
     {
         cout << str.c_str() << endl;
     }
-    template<typename T>
-    static void Promt(const std::string &str,T t)
+    template<typename... Args>
+    static void Promt(const std::string &str,Args ...args)
     {
-        cout << str.c_str() << " : " << t << endl;
+        cout << str.c_str() << " : ";
+        promt_vs(args...);
     }
-};
+protected:
+    static void promt_vs()
+    {
+        cout << endl;
+    }
+    template<typename V,typename... Args>
+    static void promt_vs(V v,Args ...args)
+    {
+        cout << v << " ";
+        promt_vs();
+    }
+  };
 } // namespace Position
 
+
+
+
+
 #define PROMT_S(X)   Position::PWriter::Promt(X);
-#define PROMT_V(X,V) Position::PWriter::Promt(X,V);
+#define PROMT_V(X,...) Position::PWriter::Promt(X,__VA_ARGS__);
 
 #endif

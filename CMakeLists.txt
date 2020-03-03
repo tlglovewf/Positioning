@@ -103,8 +103,9 @@ src/base/P_Controller.cpp
 src/feature/P_Feature.cpp
 src/feature/P_ORBFeature.cpp
 src/feature/P_FeatureMatcher.cpp
+src/feature/P_BlockMatcher.cpp
 src/viewer/Pangolin_Viewer.cpp
-#src/P_Factory.cpp
+src/P_Factory.cpp
 )
 
 #link libs

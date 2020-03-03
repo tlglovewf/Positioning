@@ -51,7 +51,10 @@ int main(void)
 
     std::shared_ptr<Position::IMap> map(new Position::PMap);
 
-    std::shared_ptr<Position::IPositioning> position(new Position::Positioning());
+    std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+    pData->loadDatas();
+
+    std::shared_ptr<Position::IPositioning> position(new Position::Positioning(pData->getCamera()));
 
     std::shared_ptr<Position::IFeature> pFeature = std::make_shared<Position::ORBFeature>(pCfg);
 
@@ -64,9 +67,6 @@ int main(void)
     Position::FrameGrid::assignFeaturesToGrid(curframe);
     Position::FrameGrid::assignFeaturesToGrid(othframe);
     
-
-    std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
-    pData->loadDatas();
 
     Ptr<Position::IFeatureMatcher> pMatcher = new Position::PFeatureMatcher(0.9);
 

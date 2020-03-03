@@ -24,7 +24,7 @@ struct Datum
 extern Datum WGS84Datum;
 
 //坐标转换类(静态类)
-class P_CoorTrans
+class PCoorTrans
 {
 public:
     //大地坐标->地心地固空间直角坐标系

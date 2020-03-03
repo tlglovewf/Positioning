@@ -1,4 +1,5 @@
 #include "P_PoseEstimation.h"
+#include "P_Utils.h"
 #include <thread>
 namespace Position
 {
@@ -376,7 +377,7 @@ namespace Position
             const cv::KeyPoint &kp2 = vKeys2[vMatches12[i].second];
             cv::Mat p3dC1;
 
-            Triangulate(kp1,kp2,P1,P2,p3dC1);
+            PUtils::Triangulate(kp1.pt,kp2.pt,P1,P2,p3dC1);
 
             if(!isfinite(p3dC1.at<MATTYPE>(0)) || !isfinite(p3dC1.at<MATTYPE>(1)) || !isfinite(p3dC1.at<MATTYPE>(2)))
             {
@@ -813,22 +814,6 @@ namespace Position
         R2 = u*W.t()*vt;
         if(cv::determinant(R2)<0)
             R2=-R2;
-    }
-
-    //三角化 P1 P2 3x4 matrix  mat 3x3
-    void ORBPoseEstimation::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, const cv::Mat &P1, const cv::Mat &P2, cv::Mat &x3D)
-    {
-        cv::Mat A(4,4,MATCVTYPE);
-
-        A.row(0) = kp1.pt.x*P1.row(2)-P1.row(0);
-        A.row(1) = kp1.pt.y*P1.row(2)-P1.row(1);
-        A.row(2) = kp2.pt.x*P2.row(2)-P2.row(0);
-        A.row(3) = kp2.pt.y*P2.row(2)-P2.row(1);
-
-        cv::Mat u,w,vt;
-        cv::SVD::compute(A,w,u,vt,cv::SVD::MODIFY_A| cv::SVD::FULL_UV);
-        x3D = vt.row(3).t();
-        x3D = x3D.rowRange(0,3)/x3D.at<MATTYPE>(3);
     } 
 
     void ORBPoseEstimation::initParams(const MatchVector &matches)

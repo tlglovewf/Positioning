@@ -4,8 +4,8 @@
  *   add by tu li gen   2020.2.7
  * 
  */
-#ifndef __UTILS_H_H_
-#define __UTILS_H_H_
+#ifndef __PUTILS_H_H_
+#define __PUTILS_H_H_
 
 #include <ctime>
 
@@ -17,7 +17,7 @@ namespace Position
 
 #define GPS_LEAP_TIME 18.0 //GPS 闰秒
 //工具类
-class P_Untils
+class PUtils
 {
 public:
     /****************************************************
@@ -48,23 +48,6 @@ public:
         double daysec = h * 3600 + m * 60 + s + z / 1.0e6 + GPS_LEAP_TIME;
 
         return daysec;
-    }
-
-    /* 时间转换
-     * 根据解算后图片名 转天秒
-     */
-    static inline double GetDayTimeFromPicName(const std::string &pic)
-    {
-        size_t n = pic.find_last_of('/');
-        if (n == string::npos)
-        {
-            return HMS2DaySec(pic.substr(9, 12));
-        }
-        else
-        {
-            string date = pic.substr(++n).substr(9, 12);
-            return HMS2DaySec(date);
-        }
     }
 
     /* 周秒 -> 天秒
@@ -137,12 +120,12 @@ public:
         const BLHCoordinate &blht2 = curdata.pos;
 
         //计算imu到enu 转换矩阵
-        cv::Mat Rimu2Enu1 = P_CoorTrans::IMU_to_ENU(-predata._yaw, predata._pitch, predata._roll);
-        cv::Mat Rimu2Enu2 = P_CoorTrans::IMU_to_ENU(-curdata._yaw, curdata._pitch, curdata._roll);
+        cv::Mat Rimu2Enu1 = PCoorTrans::IMU_to_ENU(-predata._yaw, predata._pitch, predata._roll);
+        cv::Mat Rimu2Enu2 = PCoorTrans::IMU_to_ENU(-curdata._yaw, curdata._pitch, curdata._roll);
 
         //计算xyz转到enu 转换矩阵
-        cv::Mat XYZ2Enu1 = P_CoorTrans::XYZ_to_ENU(blht1.lat, blht1.lon);
-        cv::Mat XYZ2Enu2 = P_CoorTrans::XYZ_to_ENU(blht2.lat, blht2.lon);
+        cv::Mat XYZ2Enu1 = PCoorTrans::XYZ_to_ENU(blht1.lat, blht1.lon);
+        cv::Mat XYZ2Enu2 = PCoorTrans::XYZ_to_ENU(blht2.lat, blht2.lon);
 
         //imu到 xyz转换矩阵
         cv::Mat Rimu2xyzt1 = XYZ2Enu1.t() * Rimu2Enu1;
@@ -151,14 +134,12 @@ public:
         Point3d xyzt1;
         Point3d xyzt2;
         //获取xyz坐标
-        xyzt1 = P_CoorTrans::BLH_to_XYZ(blht1);
-        xyzt2 = P_CoorTrans::BLH_to_XYZ(blht2);
+        xyzt1 = PCoorTrans::BLH_to_XYZ(blht1);
+        xyzt2 = PCoorTrans::BLH_to_XYZ(blht2);
         cv::Mat pt1 = (cv::Mat_<double>(3, 1) << xyzt1.x, xyzt1.y, xyzt1.z);
         cv::Mat pt2 = (cv::Mat_<double>(3, 1) << xyzt2.x, xyzt2.y, xyzt2.z);
 
         //相对旋转矩阵
-
-        // R =  cam2imuR.t() * Rimu2xyzt2.t() * Rimu2xyzt1 * cam2imuR;//R
         R = cam2imuR.t() * Rimu2xyzt2.t() * Rimu2xyzt1 * cam2imuR;
 
         //计算cur相机在xyz坐标系中坐标
@@ -169,7 +150,7 @@ public:
         cv::Mat camt1Pcam = cam2imuR.t() * imut1Pcam - cam2imuR.t() * cam2imuT;
 
         //以cam2的位置 反推t  这里r * cam2 只是计算方向
-        t = -R * camt1Pcam; //t
+        t = -R * camt1Pcam; 
     }
 
     /* 通过帧间R、t推算绝对坐标
@@ -180,17 +161,17 @@ public:
                                const Mat &cam2imuR,
                                const Mat &cam2imuT,
                                BLHCoordinate &blh,
-                               const PoseData &realdst = {0})
+                               const PoseData &realdst)
     {
         const BLHCoordinate &ogngps = origin.pos;
 
-        const Point3d xyz = P_CoorTrans::BLH_to_XYZ(ogngps);
+        const Point3d xyz = PCoorTrans::BLH_to_XYZ(ogngps);
 
         const Mat m_xyz = (Mat_<double>(3, 1) << xyz.x, xyz.y, xyz.z);
 
-        Mat imu2enu = P_CoorTrans::IMU_to_ENU(-origin._yaw, origin._pitch, origin._roll);
+        Mat imu2enu = PCoorTrans::IMU_to_ENU(-origin._yaw, origin._pitch, origin._roll);
 
-        const Mat xyz2enu = P_CoorTrans::XYZ_to_ENU(ogngps.latitude, ogngps.longitude);
+        const Mat xyz2enu = PCoorTrans::XYZ_to_ENU(ogngps.lat, ogngps.lon);
 
         //imu坐标系->xyz坐标系旋转矩阵
         Mat imu2xyz = xyz2enu.inv() * imu2enu;
@@ -207,12 +188,12 @@ public:
                        dstxyzpt.at<double>(1, 0),
                        dstxyzpt.at<double>(2, 0));
 
-        blh = P_CoorTrans::XYZ_to_BLH(dstxyz);
+        blh = PCoorTrans::XYZ_to_BLH(dstxyz);
 
         if (realdst._t > 0)
         {
-            Point3d orngauss = P_CoorTrans::BLH_to_GaussPrj(realdst.pos);
-            Point3d dstgauss = P_CoorTrans::BLH_to_GaussPrj(blh);
+            Point3d orngauss = PCoorTrans::BLH_to_GaussPrj(realdst.pos);
+            Point3d dstgauss = PCoorTrans::BLH_to_GaussPrj(blh);
 
             cout << "dif: "
                  << orngauss.x - dstgauss.x << " "
@@ -238,10 +219,39 @@ public:
     {
         return antisymMat(T) * R;
     }
-    //计算基础矩阵
+    //计算基础矩阵K1 K2 两个相机的内参矩阵  单目K1=K2
     static inline cv::Mat ComputeFundamentalMat(const cv::Mat &E12, const cv::Mat &K1, const cv::Mat &K2)
     {
         return (K2.inv()).t() * E12 * K1.inv();
+    }
+     //三角化 P1 K[I|0] P2 K[R|t]    x3D 4x1
+    static void Triangulate(const cv::Point2f &kp1, const cv::Point2f &kp2, const cv::Mat &P1, const cv::Mat &P2, cv::Mat &x3D)
+    {
+        cv::Mat A(4,4,MATCVTYPE);
+
+        A.row(0) = kp1.x*P1.row(2)-P1.row(0);
+        A.row(1) = kp1.y*P1.row(2)-P1.row(1);
+        A.row(2) = kp2.x*P2.row(2)-P2.row(0);
+        A.row(3) = kp2.y*P2.row(2)-P2.row(1);
+
+        cv::Mat u,w,vt;
+        cv::SVD::compute(A,w,u,vt,cv::SVD::MODIFY_A| cv::SVD::FULL_UV);
+        x3D = vt.row(3).t();
+        x3D = x3D.rowRange(0,3)/x3D.at<MATTYPE>(3);
+    }
+    //从位置矩阵总取R和t
+    static void GetRTFromFramePose(const cv::Mat &pose, cv::Mat &R, cv::Mat &t)
+    {
+        if(pose.empty())
+            return;
+        R = pose.rowRange(0,3).colRange(0,3).clone();
+        t = pose.rowRange(0,3).col(3);
+    }
+    //单目 从R t中反推F
+    static inline cv::Mat ComputeFFromRT(const cv::Mat &R,const cv::Mat &t,const cv::Mat &K)
+    {
+        cv::Mat E = ComputeEssentialMat(R,t);
+        return ComputeFundamentalMat(E,K,K);
     }
     //根据基础矩阵 创建 ax + by + c = 0 极线
     static void CreateEpiline(const cv::Mat &F, cv::Point2f pt, double &a, double &b, double &c)
@@ -353,7 +363,7 @@ public:
     */
     static inline cv::Point3d CalcGaussErr(const BLHCoordinate &lf, const BLHCoordinate &rg)
     {
-        return P_CoorTrans::BLH_to_GaussPrj(rg) - P_CoorTrans::BLH_to_GaussPrj(lf);
+        return PCoorTrans::BLH_to_GaussPrj(rg) - PCoorTrans::BLH_to_GaussPrj(lf);
     }
 
     /* normalize vector
@@ -365,15 +375,10 @@ public:
 
     /* get item BLH from two frame gps 
     */
-    static void CalcTransBLH(const PoseData &lft, const PoseData &rgt, const Mat &R, const Mat &t, BLHCoordinate &blh)
-    {
-        Point3d lft_xyz = P_CoorTrans::BLH_to_XYZ(lft.pos);
-        Point3d rgt_xyz = P_CoorTrans::BLH_to_XYZ(rgt.pos);
-
-        Mat pt = -R.t() * t;
-        pt.resize(4);
-        pt.at<double>(3) = 1.0;
-        Point3d ppt(pt.at<double>(0), pt.at<double>(1), pt.at<double>(2));
+     static cv::Mat CalcTransBLH(const PoseData &lft, const PoseData &rgt)
+     {
+        Point3d lft_xyz = PCoorTrans::BLH_to_XYZ(lft.pos);
+        Point3d rgt_xyz = PCoorTrans::BLH_to_XYZ(rgt.pos);
 
         Point3d yaw = rgt_xyz - lft_xyz;
 
@@ -386,14 +391,16 @@ public:
         up = yaw.cross(pitch);
 
         up = Normalize(up);
-        double tx = pitch.x * pt.at<double>(0) + up.x * pt.at<double>(1) + yaw.x * pt.at<double>(2);
-        double ty = pitch.y * pt.at<double>(0) + up.y * pt.at<double>(1) + yaw.y * pt.at<double>(2);
-        double tz = pitch.z * pt.at<double>(0) + up.z * pt.at<double>(1) + yaw.z * pt.at<double>(2);
 
-        Point3d rst(lft_xyz.x + tx, lft_xyz.y + ty, lft_xyz.z + tz);
+        cv::Mat trans = (Mat_<double>(4,4) << pitch.x,up.x,yaw.x,lft_xyz.x,
+                                              pitch.y,up.y,yaw.y,lft_xyz.y,
+                                              pitch.z,up.z,yaw.z,lft_xyz.z,
+                                              0,0,0,1);
 
-        blh = P_CoorTrans::XYZ_to_BLH(rst);
-    }
+
+        return trans;
+     }
+     
 };
 
 //及时

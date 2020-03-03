@@ -109,7 +109,6 @@ namespace Position
         {
             mbBad = true;
         }
-
     protected:
         int                         mN;
         bool                        mbBad;
@@ -136,7 +135,8 @@ namespace Position
     {
     public:
         //构造
-        PKeyFrame(IFrame *pframe,PMap *pMap):mpFrame(pframe),mpMap(pMap){assert(pframe);}
+        PKeyFrame(IFrame *pframe,PMap *pMap):
+        mpFrame(pframe),mpNext(NULL),mpPre(NULL),mpMap(pMap){assert(pframe);}
 
         //设置位置
         virtual void setPose(const cv::Mat &pose)
@@ -214,11 +214,40 @@ namespace Position
         {
             mpFrame->rmMapPoint(index);
         }
+         //帧目标
+        virtual TargetVector& getTargets() 
+        {
+            return mTargets;
+        }
+         //更新下一帧
+        virtual void updateNext(IKeyFrame *next) 
+        {
+            mpNext = next;
+        }
+        //更新上一帧
+        virtual void updatePre(IKeyFrame *pre) 
+        {
+            mpPre = pre;
+        }
+         //获取到下一帧
+        virtual IKeyFrame* getNext() 
+        {
+            return mpNext;
+        }
 
-
+        //获取上一帧
+        virtual IKeyFrame* getPre() 
+        {
+            return mpPre;
+        }
     protected:
-        IFrame *mpFrame;
+        IFrame      *mpFrame;
+        IKeyFrame   *mpNext;
+        IKeyFrame   *mpPre;
         PMap   *mpMap;
+        
+
+        TargetVector                mTargets;
 
     private:
         DISABLEDCP(PKeyFrame)

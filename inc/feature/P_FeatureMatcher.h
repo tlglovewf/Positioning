@@ -18,7 +18,7 @@ namespace Position
         PFeatureMatcher(float fratio,bool bcheckori = true):mbCheckOrientation(true),mfNNratio(fratio){}
         //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
-
+        
     protected:
         bool    mbCheckOrientation;
         float   mfNNratio;

@@ -113,6 +113,17 @@ namespace Position
     public:
         //强制类型转换
         virtual operator IFrame*()const = 0;
+
+        //帧目标
+        virtual TargetVector& getTargets() = 0;
+        //更新下一帧
+        virtual void updateNext(IKeyFrame *next) = 0;
+        //更新上一帧
+        virtual void updatePre(IKeyFrame *pre) = 0;
+        //获取到下一帧
+        virtual IKeyFrame* getNext() = 0;
+        //获取上一帧
+        virtual IKeyFrame* getPre() = 0;
     };
     //地图
     class IMap : public IBase
@@ -153,6 +164,9 @@ namespace Position
 
         // 获取相机参数 default(0)  left    1 right 
         virtual CameraParam getCamera(int index = 0) = 0;
+
+        //根据图像名取时间(天秒)
+        virtual double getTimeFromName(const std::string &name) = 0;
     };
 
     // serialization interface
@@ -203,6 +217,19 @@ namespace Position
 
     };
 
+    //块匹配接口
+    class IBlockMatcher : public IBase
+    {
+    public:
+         /*
+         * 块评分
+         * @param cur 当前帧
+         * @param pt  像素点
+         * @return    评分
+         */
+        virtual double score(const Mat &cur,const Point2f &pt) = 0;
+    };
+
     //位姿推算
     class IPoseEstimation
     {
@@ -219,17 +246,19 @@ namespace Position
     class IPositioning : public IBase
     {
     public:
-        //设置相机参数
-        virtual void setParams(const CameraParam &cam) = 0;
-        //添加单张
-        virtual void addFrame(IFrame *pframe) = 0;
-        //添加多张
-        virtual void addFrames(const FrameVector &framedatas) = 0;
-        //当前帧
-        virtual IFrame* currentFrame()const = 0;
-        //处理
-        virtual void position() = 0;
-        
+        //定位关键帧中目标
+        virtual void position(IKeyFrame *frame) = 0;
+        //定位关键点
+        virtual void position(IKeyFrame *frame, const Point2f &prept) = 0;
+        //获取极线
+        virtual EpLine computeEpLine(const cv::Mat &R, const cv::Mat &t,const cv::Point2f &pt) = 0;
+        //极线匹配(基于目标包围盒)
+        virtual TargetData eplineMatch(const EpLine &epline,const TargetData &item, const TargetVector &targets) = 0;
+        //极线匹配(基于块)
+        virtual cv::Point2f eplineMatch(const EpLine &epline, const FrameData &preframe, const FrameData &curframe,const cv::Point2f &pt) = 0;
+        //反投
+        virtual cv::Point2f backProject(const FrameData &frame,const BLHCoordinate &blh, cv::Mat &outimg) = 0;
+
     };
 } // namespace Position
 

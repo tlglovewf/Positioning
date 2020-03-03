@@ -39,6 +39,12 @@ namespace Position
         {
             return mCamera;
         }
+
+        //根据图像名取时间(天秒)
+        virtual double getTimeFromName(const std::string &name) 
+        {
+            assert(NULL);
+        }
     protected:
         //清理
         void clear()
@@ -61,6 +67,9 @@ namespace Position
         WeiyaData(std::shared_ptr<IConfig> pcfg);
         //预处理数据
         virtual bool loadDatas();
+
+        //根据图像名取时间(天秒)
+        virtual double getTimeFromName(const std::string &name);
 
     protected:
     };

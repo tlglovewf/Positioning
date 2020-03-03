@@ -1,7 +1,7 @@
 #include "P_Data.h"
 #include "P_Checker.h"
 #include "P_Writer.h"
-
+#include "P_Utils.h" 
 namespace Position
 {
 
@@ -37,6 +37,28 @@ namespace Position
 		{
 			cout << "Read config failed!!!" << endl;
 		}
+    }
+
+    //根据图像名取时间(天秒)
+    double WeiyaData::getTimeFromName(const std::string &name) 
+    {
+        if(name.empty())
+        {
+            return 0;
+        }
+        else
+        {
+            size_t n = name.find_last_of('/');
+            if (n == string::npos)
+            {
+                return PUtils::HMS2DaySec(name.substr(9, 12));
+            }
+            else
+            {
+                string date = name.substr(++n).substr(9, 12);
+                return PUtils::HMS2DaySec(date);
+            }
+        }
     }
 
     //处理数据

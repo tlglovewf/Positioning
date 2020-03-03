@@ -147,7 +147,8 @@ struct ResultData
 
 typedef std::vector<TargetData> TargetVector;
 typedef TargetVector::iterator  TargetVIter;
-
+typedef std::vector<ResultData> ResultVector;
+typedef ResultVector::iterator  ResultVIter;
 //帧数据
 struct FrameData {
 
@@ -166,6 +167,15 @@ struct FrameData {
     }
 };
 
+//ax + by + c = 0
+struct EpLine
+{
+    double a;
+    double b;
+    double c;
+    EpLine():a(0),b(0),c(0){}
+    EpLine(double _a,double _b,double _c):a(_a),b(_b),c(_c){}
+};
 //base type define 
 typedef unsigned char u8;
 typedef unsigned int  u32;

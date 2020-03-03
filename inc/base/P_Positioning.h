@@ -15,60 +15,45 @@ namespace Position
     {
     public:
         //构造
-        Positioning():mCurrentFm(NULL)
+        Positioning(const CameraParam &cam):mCamera(cam)
         {
 
         }
+        //定位关键帧中目标
+        virtual void position(IKeyFrame *frame);
 
-         //设置相机参数
-        virtual void setParams(const CameraParam &cam) 
-        {
-            mCamera = std::move(cam);
-        }
-        //添加单张
-        virtual void addFrame(IFrame *pframe) 
-        {
-            mFrames.push_back(pframe);
-        }
-        //添加多张
-        virtual void addFrames(const FrameVector &framedatas) 
-        {
-            //插入数据
-            if(!framedatas.empty())
-                std::copy(framedatas.begin(), framedatas.end(), 
-                          std::back_inserter(mFrames));
-        }
-        //处理
-        virtual void position() 
-        {
-            //添加具体实现
-            assert(NULL);
-        }
-        //当前帧
-        virtual IFrame* currentFrame()const 
-        {
-            return mCurrentFm;
-        }
+        //定位关键点
+        virtual void position(IKeyFrame *frame,const Point2f &prept);
+
+        //获取极线
+        virtual EpLine computeEpLine(const cv::Mat &R, const cv::Mat &t,const cv::Point2f &pt) ;
+
+        //极线匹配(基于目标包围盒)
+        virtual TargetData eplineMatch(const EpLine &epline,const TargetData &item, const TargetVector &targets);
+        
+        //极线匹配(基于块)
+        virtual Point2f eplineMatch(const EpLine &epline, const FrameData &preframe, const FrameData &curframe,const Point2f &pt);
+
+        //反投
+        virtual cv::Point2f backProject(const FrameData &frame,const BLHCoordinate &blh, cv::Mat &outimg);
      protected:
         CameraParam   mCamera;
-        FrameVector   mFrames;
-        IFrame*       mCurrentFm;
     };
 
     //单张图片定位
     class SingleImgPositioning : public Positioning
     {
     public:
-        //处理
-        virtual void position();
+         //定位关键帧中目标
+        virtual void position(IKeyFrame *frame);
     };
 
     //多图片定位
     class MultiImgPositioning : public Positioning
     {
     public:
-        //处理
-        virtual void position();
+        //定位关键帧中目标
+        virtual void position(IKeyFrame *frame);
     };
 
     //深度估计定位
