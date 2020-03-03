@@ -18,7 +18,7 @@ namespace Position
     class PMap : public IMap
     {
     public:
-        PMap(){}
+        PMap():mpCurrent(NULL){}
         ~PMap()
         {
             clear();
@@ -26,7 +26,7 @@ namespace Position
         //创建关键帧
         IKeyFrame* createKeyFrame(IFrame *frame)
         {
-            IKeyFrame *pF = new PKeyFrame(frame,this);
+            IKeyFrame *pF = new PKeyFrame(frame,mpCurrent,this);
             addKeyFrame(pF);
             return pF;
         }
@@ -47,31 +47,35 @@ namespace Position
         //加入/移除关键帧
         void addKeyFrame(IKeyFrame *pKF)
         {
-            if(NULL != pKF)
-            {
-                mMapFms.insert(pKF);
-            }
+            assert(NULL != pKF);
+            if(NULL != mpCurrent)mpCurrent->updateNext(pKF);
+            mpCurrent = pKF;
+            mMapFms.insert(pKF);
         }
         void rmKeyFrame(IKeyFrame *pKF)
         {
             if(NULL != pKF)
-            {
+            { //重新建立链接
+                IKeyFrame *pre = pKF->getPre();
+                IKeyFrame *nxt = pKF->getNext();
+                if(pre)pre->updateNext(nxt);
+                if(nxt)nxt->updatePre(pre);
                 mMapFms.erase(pKF);
+                pKF->release();
             }
         }
         //加入/移除地图点
         void addMapPoint(IMapPoint *pMp)
         {
-            if(NULL != pMp)
-            {
-                mMapPts.insert(pMp);
-            }
+            assert(NULL != pMp);
+            mMapPts.insert(pMp);
         }
         void rmMapPoint(IMapPoint *pMp)
         {
             if(NULL != pMp)
             {
                 mMapPts.erase(pMp);
+                pMp->release();
             }
         }
         //清空
@@ -91,7 +95,7 @@ namespace Position
     protected:
         MapPtSet    mMapPts;
         KeyFmSet    mMapFms;
-
+        IKeyFrame  *mpCurrent;
     private:
         DISABLEDCP(PMap)
     };

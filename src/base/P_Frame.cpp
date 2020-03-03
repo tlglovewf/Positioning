@@ -129,5 +129,17 @@ u64 PFrame::s_nIndexCount = 0;
         if(!retainimg)
             mData._img.release();
     }
+    //析构
+    PKeyFrame::~PKeyFrame()
+    {
+        if(NULL != mpFrame)
+        {
+            for(auto item : mpFrame->getPoints())
+            {
+                item->rmObservation(mpFrame);
+            }
+            mpFrame->release();
+        }   
+    }
 }
 

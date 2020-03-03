@@ -18,6 +18,7 @@ namespace Position
     {
     public:
         friend class FrameGrid;
+
         //构造函数 retainimg(是否保存图片资源 默认释放)
         PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature,bool retainimg = false);
         
@@ -133,10 +134,16 @@ namespace Position
       //关键帧
     class PKeyFrame : public IKeyFrame
     {
-    public:
-        //构造
-        PKeyFrame(IFrame *pframe,PMap *pMap):
+
+    protected:
+          //构造
+        PKeyFrame(IFrame *pframe,IKeyFrame *prev,PMap *pMap):
         mpFrame(pframe),mpNext(NULL),mpPre(NULL),mpMap(pMap){assert(pframe);}
+        ~PKeyFrame();
+
+    public:
+      
+        friend class PMap;
 
         //设置位置
         virtual void setPose(const cv::Mat &pose)

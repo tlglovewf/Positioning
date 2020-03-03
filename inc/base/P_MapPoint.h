@@ -16,10 +16,13 @@ namespace Position
      //地图点
     class PMapPoint : public IMapPoint
     {
-    public:
-        //构造
+    protected:
+         //构造
         PMapPoint(const cv::Mat &pose, PMap *pMap);
         PMapPoint(const cv::Point3f &pt, PMap *pMap);
+    public:
+        friend class PMap;
+
         //获取位置(世界坐标)
         virtual const Mat getPose()const 
         {
