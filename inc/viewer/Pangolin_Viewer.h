@@ -48,7 +48,7 @@ namespace Position
     {
     public:
         //构造函数
-        Pangolin_Viwer( std::shared_ptr<IConfig> pCfg , std::shared_ptr<IMap> pMap, std::shared_ptr<IPositioning> pPos);
+        Pangolin_Viwer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap);
 
         //初始化
         virtual void init();
@@ -66,10 +66,8 @@ namespace Position
     protected:
         std::shared_ptr<IConfig>        mCfg;
         std::shared_ptr<IMap>           mMap;
-        std::shared_ptr<IPositioning>   mPosition;
 
         std::unique_ptr<IFrameDrawer>   mFDrawer;
-         
 
         bool                            mbInit;
         int                             mWinW;

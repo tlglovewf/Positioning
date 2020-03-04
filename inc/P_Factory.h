@@ -62,7 +62,29 @@ namespace Position
         ePDepthImage
     };
 
-    
+    /*
+     * 可视化类型
+     */
+    DEFINEENUM(Viewer)
+    {
+        eVPangolin
+    };
+
+    /*
+     * 跟踪类型
+     */
+    DEFINEENUM(Tracker)
+    {
+        eUniformSpeed
+    };
+
+    /*
+     * 检查类型
+     */
+    DEFINEENUM(Checker)
+    {
+        eNormalChecker
+    };
 
     class IOptimizer;
     //工厂对象
@@ -78,7 +100,7 @@ namespace Position
         /*
          * 特征点
          */
-        static IFeature* CreateFeature(eFeatureType type, std::shared_ptr<IConfig> pcfg);
+        static IFeature* CreateFeature(eFeatureType type,const std::shared_ptr<IConfig> &pcfg);
 
         /*
          * 创建特征匹配对象
@@ -91,6 +113,16 @@ namespace Position
         static IPositioning* CreatePositioning(ePositioningType type, const CameraParam  &pcfg);
         
         /*
+         * 创建可视化
+         */
+        static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg,const std::shared_ptr<IMap> &pmap);
+
+        /*
+         * 创建跟踪对象
+         */
+        static ITracker* CreateTracker(eTrackerType type, const std::shared_ptr<IMap> &pmap);
+
+        /*
          * 位姿推算
          */
         DEFINEFUNC(PoseEstimation)
@@ -99,6 +131,11 @@ namespace Position
          * 优化
          */
         DEFINEFUNC(Optimizer)
+
+        /*
+         * 检查
+         */
+        DEFINEFUNC(Checker)
 
     };
 }

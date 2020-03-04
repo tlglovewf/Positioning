@@ -17,6 +17,13 @@ namespace Position
     {
     public:
 
+        //初始化
+        virtual bool init() 
+        {
+            //add more .
+            return true;
+        }
+        
         //识别
         virtual TargetVector detect(const Mat &img);
 

@@ -11,6 +11,7 @@ namespace Position
                       EdNo(0),
                       ImgWd(0),  
                       ImgHg(0),
+                      ImgFps(1),
                       FeatureCnt(2000),
                       PyramidLevel(8),
                       ScaleFactor(1.2),
@@ -18,6 +19,7 @@ namespace Position
                       ImgPath(""),
                       PosPath(""),
                       OutPath(""),
+                      ViewEnable(1),
                       ViewerW(0),
                       ViewerH(0),
                       ViewptX(0),
@@ -29,6 +31,7 @@ namespace Position
         PUSH_MAP(EdNo);
         PUSH_MAP(ImgWd);
         PUSH_MAP(ImgHg);
+        PUSH_MAP(ImgFps);
         PUSH_MAP(FeatureCnt);
         PUSH_MAP(PyramidLevel);
         PUSH_MAP(SearchScale);
@@ -36,6 +39,7 @@ namespace Position
         PUSH_MAP(ImgPath);
         PUSH_MAP(PosPath);
         PUSH_MAP(OutPath);
+        PUSH_MAP(ViewEnable);
         PUSH_MAP(ViewerW);
         PUSH_MAP(ViewerH);
         PUSH_MAP(ViewptX);
@@ -72,6 +76,7 @@ namespace Position
             READ_VALUE(EdNo);
             READ_VALUE(ImgWd);
             READ_VALUE(ImgHg);
+            READ_VALUE(ImgFps);
             READ_VALUE(FeatureCnt);
             READ_VALUE(PyramidLevel);
             READ_VALUE(SearchScale);
@@ -79,6 +84,7 @@ namespace Position
             READ_VALUE(ImgPath);
             READ_VALUE(PosPath);
             READ_VALUE(OutPath);
+            READ_VALUE(ViewEnable);
             READ_VALUE(ViewerW);
             READ_VALUE(ViewerH);
             READ_VALUE(ViewptX);
@@ -90,12 +96,15 @@ namespace Position
         }
     }
 
-    WeiyaConfig::WeiyaConfig():PConfig(),
+    WeiyaConfig::WeiyaConfig(const std::string &path):
                                ExtriPath(""),
                                BsPath("")
     {
         PUSH_MAP(ExtriPath);
         PUSH_MAP(BsPath);
+
+
+        load(path);
     }
 
     void WeiyaConfig::loadmore()

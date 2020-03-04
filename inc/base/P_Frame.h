@@ -20,8 +20,8 @@ namespace Position
         friend class FrameGrid;
 
         //构造函数 retainimg(是否保存图片资源 默认释放)
-        PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature,bool retainimg = false);
-        
+        PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,bool retainimg = false);
+        ~PFrame();
          //获取数据
         virtual FrameData getData()const 
         {

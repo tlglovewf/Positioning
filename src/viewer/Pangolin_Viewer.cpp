@@ -17,8 +17,8 @@ namespace Position
     }
 
      //构造函数
-    Pangolin_Viwer::Pangolin_Viwer( std::shared_ptr<IConfig> pCfg , std::shared_ptr<IMap> pMap, std::shared_ptr<IPositioning> pPos):
-    mCfg(pCfg),mMap(pMap),mPosition(pPos), mFDrawer(new CVFrameDrawer()), mbInit(false)
+    Pangolin_Viwer::Pangolin_Viwer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap):
+    mCfg(pCfg),mMap(pMap), mFDrawer(new CVFrameDrawer()), mbInit(false)
     {
         mWinW = GETCFGVALUE(mCfg,ViewerW,int);
         mWinH = GETCFGVALUE(mCfg,ViewerH,int);

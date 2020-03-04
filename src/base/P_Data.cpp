@@ -5,12 +5,12 @@
 namespace Position
 {
 
-    PData::PData(std::shared_ptr<IConfig> pcfg):mpCfg(pcfg)
+    PData::PData(const std::shared_ptr<IConfig> &pcfg):mpCfg(pcfg)
     {
         mpChecker = std::unique_ptr<IChecker>(new PChecker());
     }
  
-    WeiyaData::WeiyaData(std::shared_ptr<IConfig> pcfg):PData(pcfg)
+    WeiyaData::WeiyaData(const std::shared_ptr<IConfig> &pcfg):PData(pcfg)
     {
         const std::string expath = GETCFGVALUE(pcfg,ExtriPath,string);
         const std::string bspath = GETCFGVALUE(pcfg,BsPath,string);

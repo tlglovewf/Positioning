@@ -15,7 +15,7 @@ namespace Position
     class PData : public IData
     {
     public:
-        PData(std::shared_ptr<IConfig> pcfg);
+        PData(const std::shared_ptr<IConfig> &pcfg);
         //预处理数据
         virtual bool loadDatas()
         {
@@ -64,7 +64,7 @@ namespace Position
     class WeiyaData : public PData
     {
     public:
-        WeiyaData(std::shared_ptr<IConfig> pcfg);
+        WeiyaData(const std::shared_ptr<IConfig> &pcfg);
         //预处理数据
         virtual bool loadDatas();
 

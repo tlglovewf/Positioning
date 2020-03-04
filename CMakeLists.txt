@@ -98,6 +98,7 @@ src/base/P_MapPoint.cpp
 src/base/P_Converter.cpp
 src/base/P_Optimizer.cpp
 src/base/P_PoseEstimation.cpp
+src/base/P_Tracker.cpp
 src/base/P_Positioning.cpp
 src/feature/P_Feature.cpp
 src/feature/P_ORBFeature.cpp

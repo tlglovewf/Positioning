@@ -16,23 +16,24 @@
 #include "P_Factory.h"
 #include "P_Config.h"
 #include "P_Data.h"
+#include "P_Detector.h"
 
 using namespace std;
 using namespace cv;
 
 int main(void)
-{   
-    // PositionController pcontroller("../config.yaml",PositionController::eWeiyaType);
+{  
 
-    // //初始化信息
-    // if(pcontroller.init())
-    // {
-    // }
 
-    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>(); 
-    pCfg->load("../config.yaml");
-    
+    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config.yaml"); 
+    std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+    std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
+    std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
+    system->run();
+
+    return 0;
+    pData->loadDatas();
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string);//
     Mat img1 = imread(imgpath + "/20191107-072927356003-0000000300_L.jpg",IMREAD_UNCHANGED);
     Mat img2 = imread(imgpath + "/20191107-072928328188-0000000301_L.jpg",IMREAD_UNCHANGED);
@@ -47,8 +48,7 @@ int main(void)
 
     std::shared_ptr<Position::IMap> map(new Position::PMap);
 
-    std::unique_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
-    pData->loadDatas();
+    
 
     std::shared_ptr<Position::IPositioning> position(Position::PFactory::CreatePositioning(Position::ePSingleImage, pData->getCamera()));
 
@@ -163,7 +163,7 @@ int main(void)
             cout << "pose estimate failed." << endl;
         }
       }
-    Position::Pangolin_Viwer *pv = new Position::Pangolin_Viwer(pCfg,map,position);
+    Position::Pangolin_Viwer *pv = new Position::Pangolin_Viwer(pCfg,map);
     pv->render();
 
     return 0;

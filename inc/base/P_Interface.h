@@ -187,6 +187,8 @@ namespace Position
     class IDetector : public IBase
     {
     public:
+        //初始化
+        virtual bool init() = 0;
         //识别
         virtual TargetVector detect(const Mat &img) = 0;
     };
@@ -219,6 +221,14 @@ namespace Position
 
     };
 
+    //帧跟踪接口
+    class ITracker : public IBase
+    {
+    public:
+        //跟踪
+        virtual cv::Mat track(const FrameData &data) = 0;
+    };
+
      //优化基类
     class IOptimizer : public IBase
     {
@@ -237,7 +247,7 @@ namespace Position
         virtual void setCamera(const CameraParam &mCam) = 0;
 
         //设置特征提取类
-        virtual void setFeature( std::shared_ptr<IFeature> feature) = 0;
+        virtual void setFeature(const std::shared_ptr<IFeature> &feature) = 0;
     };
 
     //块匹配接口

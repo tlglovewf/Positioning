@@ -16,7 +16,7 @@ namespace Position {
     class ORBFeature : public PFeature
     {
     public:
-        ORBFeature(std::shared_ptr<IConfig> pcfg):PFeature(pcfg){}
+        ORBFeature(const std::shared_ptr<IConfig> &pcfg):PFeature(pcfg){}
         //计算特征点 以及 描述子
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
          //返回sigma参数(主要用于优化 信息矩阵)

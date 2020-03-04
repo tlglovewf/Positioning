@@ -12,25 +12,38 @@
 class PositionController
 {
 public:
-    enum DataParseType{eWeiyaType};
-    enum ImgDetectType{eSSDType};
     //构造函数
-    PositionController(const string &cfgpath,DataParseType datatype,ImgDetectType imgtype = eSSDType);
+    PositionController(const shared_ptr<Position::IDetector> &pdetected,
+                       const shared_ptr<Position::IData> &pdata,
+                       const shared_ptr<Position::IConfig> &pcfg);
 
     //初始化
     bool init(); 
 
-    
+    //运行
+    void run();
+
+    //处理位姿
+    void handlePose();
 
 protected:
 
-    
+    //是否能创建新帧
+    bool needCreateNewKeyFrame();
+
+    //创建新帧
+    void createNewKeyFrame();
 
 protected:
     std::shared_ptr<Position::IConfig>    mpConfig;
-    std::unique_ptr<Position::IData>      mpData;
-    std::unique_ptr<Position::IDetector>  mpDetector;
+    std::shared_ptr<Position::IData>      mpData;
+    std::shared_ptr<Position::IDetector>  mpDetector;
+    std::shared_ptr<Position::IMap>       mpMap;
+    std::unique_ptr<Position::ITracker>   mpTracker;
+
     std::unique_ptr<Position::IViewer>    mpViewer;
+    std::unique_ptr<Position::IChecker>   mpChecker;
+
 };
 
 #endif

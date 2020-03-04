@@ -136,6 +136,7 @@ namespace Position
          //相机参数     
         IntConfigParam      ImgWd;          //图像宽度
         IntConfigParam      ImgHg;          //图像长度
+        IntConfigParam      ImgFps;         //图像帧率
 
         IntConfigParam      FeatureCnt;     //特征点数量
         IntConfigParam      PyramidLevel;   //金字塔层数
@@ -149,6 +150,7 @@ namespace Position
         StringConfigParam   OutPath;        //输出路径
 
         //可视化参数
+        IntConfigParam      ViewEnable;     //是否使用可视化
         IntConfigParam      ViewerW;        //可视窗口宽
         IntConfigParam      ViewerH;        //可视窗口高
         FloatConfigParam    ViewptX;
@@ -163,7 +165,7 @@ namespace Position
     class WeiyaConfig : public PConfig
     {
     public:
-        WeiyaConfig();
+        WeiyaConfig(const std::string &path);
     protected:
         //其他信息加载
         virtual void loadmore();

@@ -1,42 +1,68 @@
 #include "P_Controller.h"
-#include "P_Config.h"
-#include "P_Data.h"
-#include "P_Detector.h"
-#include "P_Writer.h"
+#include "P_Factory.h"
+#include "P_Map.h"
 
 //设置数据解析类型
-PositionController::PositionController(const string &cfgpath, DataParseType datatype,ImgDetectType imgtype /*= eSSDType*/ )
+PositionController::PositionController(const shared_ptr<Position::IDetector> &pdetecter, 
+                                       const shared_ptr<Position::IData> &pdata,
+                                       const shared_ptr<Position::IConfig> &pcfg):
+                                        mpConfig(pcfg),mpData(pdata),mpDetector(pdetecter)
 {
-    assert(!cfgpath.empty());
+    assert(pdata);
+    assert(pcfg);
+    assert(pdetecter);
 
-    PROMT_V("data parse type is ", datatype);
-    switch(datatype)
+    mpMap = std::make_shared<Position::PMap>();
+    if(GETCFGVALUE(mpConfig,ViewEnable,int))
     {
-        case eWeiyaType:
-            mpConfig = std::make_shared<Position::WeiyaConfig>(); 
-            mpConfig->load(cfgpath);
-            mpData   =  std::unique_ptr<Position::IData>(new Position::WeiyaData(mpConfig));
-            break;
-        default:
-            assert(NULL);
-            break;
+        mpViewer = std::unique_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg,mpMap));
     }
-
-    PROMT_V("image detect type is ",imgtype);
-    switch(imgtype)
-    {
-        case eSSDType:
-            mpDetector = std::unique_ptr<Position::IDetector>(new Position::SSDDetector());
-            break;
-        default:
-            assert(NULL);
-            break;
-    }
+    std::shared_ptr<Position::ITracker>(Position::PFactory::CreateTracker(Position::eUniformSpeed,mpMap));
+    mpChecker = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
 }
 
 //初始化 
 bool PositionController::init()
 {
     //add more
-    return mpData->loadDatas();
+    bool bol = mpData->loadDatas() && mpDetector->init();
+
+    return bol ;   
+}
+
+//运行
+void PositionController::run()
+{
+    if(init())
+    {
+       Position::FrameDataVIter it = mpData->begin();
+       Position::FrameDataVIter ed = mpData->end();
+       const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
+       for(;it != ed ;++it)
+       {
+           const std::string picpath = imgpath + it->_name;
+           it->_img = imread(picpath,IMREAD_UNCHANGED);
+           if(it->_img.channels() > 1)
+           {//通道数量>1 转为灰度图
+               cvtColor(it->_img,it->_img,CV_RGB2GRAY);
+           }
+           it->_targets = mpDetector->detect(it->_img);
+           if(it->_targets.empty())
+           {
+               continue;
+           }
+       }
+    }
+}
+
+//处理位姿
+void PositionController::handlePose()
+{
+
+}
+
+//是否能创建新帧
+bool PositionController::needCreateNewKeyFrame()
+{
+    return true;
 }

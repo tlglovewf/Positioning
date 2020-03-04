@@ -5,6 +5,9 @@
 #include "P_Optimizer.h"
 #include "P_Positioning.h"
 #include "P_FeatureMatcher.h"
+#include "P_Tracker.h"
+#include "P_Checker.h"
+#include "Pangolin_Viewer.h"
 namespace Position
 {
      /*
@@ -24,7 +27,7 @@ namespace Position
     /*
     * 特征点
     */
-    IFeature* PFactory::CreateFeature(eFeatureType type, std::shared_ptr<IConfig> pcfg)
+    IFeature* PFactory::CreateFeature(eFeatureType type,const std::shared_ptr<IConfig> &pcfg)
     {
         switch(type)
         {
@@ -98,4 +101,46 @@ namespace Position
                 assert(NULL);
          }
      }
+    /*
+     * 创建可视化
+     */
+    IViewer* PFactory::CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg,const std::shared_ptr<IMap> &pmap)
+    {
+        switch(type)
+        {
+            case eVPangolin:
+                return new Pangolin_Viwer(pcfg,pmap);
+            default:
+                assert(NULL);
+        }
+    }
+
+    /*
+     * 创建跟踪对象
+     */
+    ITracker* PFactory::CreateTracker(eTrackerType type, const std::shared_ptr<IMap> &pmap)
+    {
+        switch(type)
+        {
+            case eUniformSpeed:
+                return new UniformSpeedTracker(pmap);
+
+            default:
+                return new PTracker(pmap);
+        }
+    }
+
+    /*
+     * 优化
+     */
+    IChecker* PFactory::CreateChecker(eCheckerType type)
+    {
+        switch (type)
+        {
+            case eNormalChecker:
+                return new PChecker();
+            default:
+                assert(NULL);
+        }   
+    }
 }

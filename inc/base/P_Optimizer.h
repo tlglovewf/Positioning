@@ -40,7 +40,7 @@ namespace Position
             mCy = mCam.K.at<double>(1,2);
         }
         //设置特征提取类
-        virtual void setFeature( std::shared_ptr<IFeature> feature)
+        virtual void setFeature(const std::shared_ptr<IFeature> &feature)
         {
             mpFeature = feature;
         }

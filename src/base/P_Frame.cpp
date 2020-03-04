@@ -117,7 +117,7 @@ u64 PFrame::s_nIndexCount = 0;
 
 
     //构造函数
-    PFrame::PFrame(const FrameData &data,std::shared_ptr<IFeature> pFeature,bool retainimg /* = false */):
+    PFrame::PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,bool retainimg /* = false */):
         mbBad(false),mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
@@ -125,9 +125,13 @@ u64 PFrame::s_nIndexCount = 0;
         mN = mKeypts.size();
         mPts.resize(mN);
         mIndex = s_nIndexCount++;
-        //若不保存 释放图片资源
-        if(!retainimg)
+    }
+    PFrame::~PFrame()
+    {
+        if(!mData._img.empty())
+        {
             mData._img.release();
+        }
     }
     //析构
     PKeyFrame::~PKeyFrame()
