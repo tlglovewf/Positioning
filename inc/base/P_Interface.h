@@ -221,12 +221,29 @@ namespace Position
 
     };
 
+    //跟踪状态
+    enum eTrackStatus
+    {   
+        eTrackPrepare,
+        eTrackReady,
+        eTrackOk,
+        eTrackLost
+    };
+
     //帧跟踪接口
     class ITracker : public IBase
     {
     public:
         //跟踪
         virtual cv::Mat track(const FrameData &data) = 0;
+        //状态
+        virtual eTrackStatus status()const = 0;
+        //重置
+        virtual void reset() = 0;
+        //当前帧
+        virtual IKeyFrame* current()const = 0;
+        //上一帧
+        virtual IKeyFrame* last()const = 0;
     };
 
      //优化基类

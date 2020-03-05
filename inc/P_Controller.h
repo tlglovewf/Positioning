@@ -27,14 +27,6 @@ public:
     void handlePose();
 
 protected:
-
-    //是否能创建新帧
-    bool needCreateNewKeyFrame();
-
-    //创建新帧
-    void createNewKeyFrame();
-
-protected:
     std::shared_ptr<Position::IConfig>    mpConfig;
     std::shared_ptr<Position::IData>      mpData;
     std::shared_ptr<Position::IDetector>  mpDetector;

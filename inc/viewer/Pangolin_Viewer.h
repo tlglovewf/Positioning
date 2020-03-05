@@ -11,12 +11,6 @@
 
 namespace Position
 {
-    enum eTrackStatus
-    {
-        eTrackOk = 0,
-        eStop,  
-        eLost
-    };
     class IFrameDrawer : public IBase
     {
     public:

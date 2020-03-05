@@ -2,6 +2,10 @@
 #include "P_Factory.h"
 #include "P_Map.h"
 
+
+//间隔最大的帧数
+const int maxThFrameCnt = 3;
+
 //设置数据解析类型
 PositionController::PositionController(const shared_ptr<Position::IDetector> &pdetecter, 
                                        const shared_ptr<Position::IData> &pdata,
@@ -17,7 +21,7 @@ PositionController::PositionController(const shared_ptr<Position::IDetector> &pd
     {
         mpViewer = std::unique_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg,mpMap));
     }
-    std::shared_ptr<Position::ITracker>(Position::PFactory::CreateTracker(Position::eUniformSpeed,mpMap));
+    mpTracker.reset(Position::PFactory::CreateTracker(Position::eUniformSpeed,mpMap));
     mpChecker = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
 }
 
@@ -38,6 +42,8 @@ void PositionController::run()
        Position::FrameDataVIter it = mpData->begin();
        Position::FrameDataVIter ed = mpData->end();
        const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
+       bool hasTarget =  false;
+       int  oThs = 0;
        for(;it != ed ;++it)
        {
            const std::string picpath = imgpath + it->_name;
@@ -49,20 +55,27 @@ void PositionController::run()
            it->_targets = mpDetector->detect(it->_img);
            if(it->_targets.empty())
            {
-               continue;
+               hasTarget = false;
+
+               if(oThs++ > maxThFrameCnt)
+               {//间隔帧超过阈值 重置跟踪
+                   mpTracker->reset();
+                   continue;
+               }
+
            }
+           else
+           {
+               hasTarget = true;
+           }
+
+           mpTracker->track(*it);
+           
+           if(hasTarget)
+           {//存在目标,进入定位
+
+           }
+
        }
     }
-}
-
-//处理位姿
-void PositionController::handlePose()
-{
-
-}
-
-//是否能创建新帧
-bool PositionController::needCreateNewKeyFrame()
-{
-    return true;
 }
