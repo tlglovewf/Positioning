@@ -13,6 +13,8 @@ namespace Position
         }
         mPose = pose.rowRange(0,3);
         mIndex = s_nIndexCount++;
+        mMinDistance = 0;
+        mMaxDistance = 0;
     }
     PMapPoint::PMapPoint(const cv::Point3f &pt, PMap *pMap):mpMap(pMap)
     {

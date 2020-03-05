@@ -73,7 +73,23 @@ namespace Position
         {
             return mbBad;
         }
+        
+        //返回向量
+        virtual const cv::Mat& normal()const 
+        {
+            return mNormal;
+        }
 
+        //尺度不变性最大距离
+        virtual double maxDistance()const 
+        {
+            return mMaxDistance;
+        }
+        //尺度不变性最小距离
+        virtual double minDistance()const 
+        {
+            return mMinDistance;
+        }
 
         //重置静态参数
         static void resetStaticParams()
@@ -82,8 +98,12 @@ namespace Position
         }
     protected:
         cv::Mat     mPose;
+        cv::Mat     mNormal;
         PMap       *mpMap;
         u64         mIndex;
+
+        double      mMinDistance;
+        double      mMaxDistance;
 
         bool        mbBad;
         

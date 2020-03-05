@@ -8,6 +8,16 @@ int   FrameGrid::FRAME_GRID_COLS = 64;
 float FrameGrid::mfGridElementWidthInv   = 0.0;
 float FrameGrid::mfGridElementHeightInv  = 0.0;
 
+static cv::Mat s_K;
+
+    //设置静态变量
+    void SetStaticParams(const CameraParam &cam)
+    {
+        s_K = cam.K;
+    }
+
+
+
     //根据坐标 查询特征点序号
     SzVector FrameGrid::getFrameFeaturesInArea(IFrame *pframe,
                                                float x,float y,float r,
@@ -133,6 +143,61 @@ u64 PFrame::s_nIndexCount = 0;
             mData._img.release();
         }
     }
+
+    //判断点在帧视锥体中
+    bool PFrame::isInFrustum(IMapPoint* pMP, float viewingCosLimit)
+    {
+        assert(pMP);
+        // pMP->mbTrackInView = false;
+
+        //get world pose 
+        const cv::Mat& P = pMP->getPose();
+
+        const cv::Mat Pc = mPose.rowRange(0,3).colRange(0,3) * P + mPose.rowRange(0,3).col(3);
+       
+        MATTYPE pcZ = Pc.at<MATTYPE>(2);
+
+        //check positive depth
+        if(pcZ < 0)
+            return false;
+
+        cv::Mat pixel = s_K * Pc;
+        const MATTYPE pixZ = pixel.at<MATTYPE>(2);
+        const MATTYPE u = pixel.at<MATTYPE>(0) / pixZ;
+        const MATTYPE v = pixel.at<MATTYPE>(1) / pixZ;
+
+        if(u < 0 || u > mData._img.cols)
+            return false;
+        if(v < 0 || v > mData._img.rows)
+            return false;
+        
+        const float maxDistance = pMP->minDistance();
+        const float minDistance = pMP->maxDistance();
+
+        const cv::Mat PO = P - mWd;
+        const float dist = cv::norm(PO);
+
+        if( dist < minDistance || dist > maxDistance)
+            return false;
+        
+        cv::Mat Pn = pMP->normal();
+        
+        const double viewCos = PO.dot(Pn) / dist;
+
+        if(viewCos < viewingCosLimit)
+            return false;
+
+
+        // Data used by the tracking
+        // pMP->mbTrackInView = true;
+        // pMP->mTrackProjX = u;
+        // pMP->mTrackProjXR = u - mbf*invz;
+        // pMP->mTrackProjY = v;
+        // pMP->mnTrackScaleLevel= nPredictedLevel;
+        // pMP->mTrackViewCos = viewCos;
+        return true;
+    }
+
     //析构
     PKeyFrame::~PKeyFrame()
     {

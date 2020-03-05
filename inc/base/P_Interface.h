@@ -72,12 +72,21 @@ namespace Position
         virtual void setBadFlag() = 0;
         //返回是否为坏点
         virtual bool isBad()const = 0;
+        //返回向量
+        virtual const cv::Mat& normal()const = 0;
+        //尺度不变性最大距离
+        virtual double maxDistance()const = 0;
+        //尺度不变性最小距离
+        virtual double minDistance()const = 0;
 
     };
     //帧对象
     class IFrame : public IBase
     {
     public:
+        //设置静态变量
+        static void SetStaticParams(const CameraParam &cam);
+
         //获取数据
         virtual FrameData getData()const = 0;
         //获取关键点
@@ -105,6 +114,8 @@ namespace Position
         virtual bool isBad()const = 0;
         //设为坏帧
         virtual void setBadFlag() = 0;
+        //判断点在帧视锥体中
+        virtual bool isInFrustum(IMapPoint* pMP, float viewingCosLimit) = 0;
     };
 
     //关键帧

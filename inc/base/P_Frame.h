@@ -52,6 +52,9 @@ namespace Position
         virtual void setPose(const cv::Mat &pose) 
         {
             mPose = pose;
+            cv::Mat rot = pose.rowRange(0,3).colRange(0,3);
+            cv::Mat t = pose.rowRange(0,3).col(3);
+            mWd = -rot.t() * t;
         }
 
         //获取地图点
@@ -110,6 +113,9 @@ namespace Position
         {
             mbBad = true;
         }
+
+        //判断点在帧视锥体中
+        virtual bool isInFrustum(IMapPoint* pMP, float viewingCosLimit);
     protected:
         int                         mN;
         bool                        mbBad;
@@ -121,6 +127,7 @@ namespace Position
         MapPtVector                 mPts;
         Mat                         mDescript;
         Mat                         mPose;
+        Mat                         mWd;
         std::shared_ptr<IFeature>   mFeature;
         FloatVector                 mvInvLevelSigma2;
         vector<vector<SzVector> >   mGrid;
@@ -225,6 +232,11 @@ namespace Position
         virtual TargetVector& getTargets() 
         {
             return mTargets;
+        }
+         //判断点在帧视锥体中
+        virtual bool isInFrustum(IMapPoint* pMP, float viewingCosLimit)
+        {
+            return mpFrame->isInFrustum(pMP,viewingCosLimit);
         }
          //更新下一帧
         virtual void updateNext(IKeyFrame *next) 
