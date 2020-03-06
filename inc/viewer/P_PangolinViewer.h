@@ -1,5 +1,5 @@
 /**
- *   Pangolin_Viewer.h
+ *   P_PangolinViewer.h
  *   
  *   add by tu li gen   2020.2.7
  * 

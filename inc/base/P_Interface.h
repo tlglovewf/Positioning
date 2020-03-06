@@ -242,9 +242,11 @@ namespace Position
     };
 
     //帧跟踪接口
-    class ITracker : public IBase
+    class ITrajProcesser : public IBase
     {
     public:
+        //处理
+        virtual bool process(const FrameDataVector &framedatas) = 0;
         //跟踪
         virtual cv::Mat track(const FrameData &data) = 0;
         //状态

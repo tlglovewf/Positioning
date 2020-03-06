@@ -5,9 +5,10 @@
 #include "P_Optimizer.h"
 #include "P_Positioning.h"
 #include "P_FeatureMatcher.h"
-#include "P_Tracker.h"
 #include "P_Checker.h"
-#include "Pangolin_Viewer.h"
+
+#include "P_PangolinViewer.h"
+#include "P_UniformVTrajProcesser.h"
 namespace Position
 {
      /*
@@ -118,15 +119,15 @@ namespace Position
     /*
      * 创建跟踪对象
      */
-    ITracker* PFactory::CreateTracker(eTrackerType type, const std::shared_ptr<IMap> &pmap)
+    ITrajProcesser* PFactory::CreateTrajProcesser(eTrajProcesserType type, const std::shared_ptr<IMap> &pmap)
     {
         switch(type)
         {
             case eUniformSpeed:
-                return new UniformSpeedTracker(pmap);
+                return new UniformVTrajProcesser(pmap);
 
             default:
-                return new PTracker(pmap);
+                return new PTrajProcesser(pmap);
         }
     }
 

@@ -21,8 +21,8 @@ PositionController::PositionController(const shared_ptr<Position::IDetector> &pd
     {
         mpViewer = std::unique_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg,mpMap));
     }
-    mpTracker.reset(Position::PFactory::CreateTracker(Position::eUniformSpeed,mpMap));
-    mpChecker = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
+    mpTrajProcesser.reset(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,mpMap));
+    mpChecker           = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
 }
 
 //初始化 
@@ -30,6 +30,9 @@ bool PositionController::init()
 {
     //add more
     bool bol = mpData->loadDatas() && mpDetector->init();
+    const Position::CameraParam &cam = mpData->getCamera();
+    mpMulPositioner     = std::unique_ptr<Position::IPositioning>(Position::PFactory::CreatePositioning(Position::ePMultiImage,cam)); 
+    mpSinglePositioner  = std::unique_ptr<Position::IPositioning>(Position::PFactory::CreatePositioning(Position::ePSingleImage,cam));
 
     return bol ;   
 }
@@ -43,39 +46,71 @@ void PositionController::run()
        Position::FrameDataVIter ed = mpData->end();
        const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
        bool hasTarget =  false;
-       int  oThs = 0;
-       for(;it != ed ;++it)
-       {
-           const std::string picpath = imgpath + it->_name;
-           it->_img = imread(picpath,IMREAD_UNCHANGED);
-           if(it->_img.channels() > 1)
-           {//通道数量>1 转为灰度图
-               cvtColor(it->_img,it->_img,CV_RGB2GRAY);
-           }
-           it->_targets = mpDetector->detect(it->_img);
-           if(it->_targets.empty())
-           {
-               hasTarget = false;
+       
+        while( it != ed)
+        {//帧循环 构建局部场景
+            int  oThs = 0;
+            Position::FrameDataVector framedatas; 
+            mpTrajProcesser->reset();//重置位姿推算器
+            for(;it != ed ;++it)
+            {//遍历帧
+                if(!mpChecker->check(*it))
+                    continue;
+                const std::string picpath = imgpath + it->_name;
+                it->_img = imread(picpath,IMREAD_UNCHANGED);
+                it->_targets = mpDetector->detect(it->_img);
+                framedatas.push_back(*it);
+                if(it->_targets.empty())
+                {
+                    hasTarget = false;
 
-               if(oThs++ > maxThFrameCnt)
-               {//间隔帧超过阈值 重置跟踪
-                   mpTracker->reset();
-                   continue;
-               }
+                    if(oThs++ > maxThFrameCnt)
+                    {//连续帧没有探测到物体 闭合定位场景
+                        break;
+                    }
 
-           }
-           else
-           {
-               hasTarget = true;
-           }
+                }
+                else
+                {   
+                    oThs = 0;
+                    hasTarget = true;
+                }
+            }
 
-           mpTracker->track(*it);
-           
-           if(hasTarget)
-           {//存在目标,进入定位
+            if(framedatas.empty())
+            {
+                ;//不做处理
+            }
+            else if(framedatas.size() < 2)
+            {
+                //单张直接定位
+                // mpSinglePositioner->positioin
+            }
+            else
+            {
+                //先处理轨迹
+                if(mpTrajProcesser->process(framedatas))
+                {
+                    //轨迹处理完 进行目标定位
+                    // mpMulPositioner->positioin();
+                }
+                else
+                {
+                    cout << "!!!!!!!!!!!!!!!!" << endl;
+                    cout << "position failed." << endl;
+                    cout << "!!!!!!!!!!!!!!!!" << endl;
+                }
+                
+            }
 
-           }
-
-       }
+            saveResult();
+        }
     }
 }
+
+
+void PositionController::saveResult()
+{
+
+}
+

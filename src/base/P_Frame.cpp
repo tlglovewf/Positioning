@@ -148,7 +148,6 @@ u64 PFrame::s_nIndexCount = 0;
     bool PFrame::isInFrustum(IMapPoint* pMP, float viewingCosLimit)
     {
         assert(pMP);
-        // pMP->mbTrackInView = false;
 
         //get world pose 
         const cv::Mat& P = pMP->getPose();
@@ -185,16 +184,14 @@ u64 PFrame::s_nIndexCount = 0;
         const double viewCos = PO.dot(Pn) / dist;
 
         if(viewCos < viewingCosLimit)
+        {
             return false;
+        }
+        else
+        {
+            return true;
+        }
 
-
-        // Data used by the tracking
-        // pMP->mbTrackInView = true;
-        // pMP->mTrackProjX = u;
-        // pMP->mTrackProjXR = u - mbf*invz;
-        // pMP->mTrackProjY = v;
-        // pMP->mnTrackScaleLevel= nPredictedLevel;
-        // pMP->mTrackViewCos = viewCos;
         return true;
     }
 

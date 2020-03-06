@@ -73,7 +73,7 @@ namespace Position
     /*
      * 跟踪类型
      */
-    DEFINEENUM(Tracker)
+    DEFINEENUM(TrajProcesser)
     {
         eUniformSpeed
     };
@@ -118,9 +118,9 @@ namespace Position
         static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg,const std::shared_ptr<IMap> &pmap);
 
         /*
-         * 创建跟踪对象
+         * 创建轨迹处理对象
          */
-        static ITracker* CreateTracker(eTrackerType type, const std::shared_ptr<IMap> &pmap);
+        static ITrajProcesser *CreateTrajProcesser(eTrajProcesserType type, const std::shared_ptr<IMap> &pmap);
 
         /*
          * 位姿推算

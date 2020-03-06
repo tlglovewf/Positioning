@@ -27,14 +27,20 @@ public:
     void handlePose();
 
 protected:
-    std::shared_ptr<Position::IConfig>    mpConfig;
-    std::shared_ptr<Position::IData>      mpData;
-    std::shared_ptr<Position::IDetector>  mpDetector;
-    std::shared_ptr<Position::IMap>       mpMap;
-    std::unique_ptr<Position::ITracker>   mpTracker;
+    //输出
+    void saveResult();
 
-    std::unique_ptr<Position::IViewer>    mpViewer;
-    std::unique_ptr<Position::IChecker>   mpChecker;
+protected:
+    std::shared_ptr<Position::IConfig>          mpConfig;
+    std::shared_ptr<Position::IData>            mpData;
+    std::shared_ptr<Position::IDetector>        mpDetector;
+    std::shared_ptr<Position::IMap>             mpMap;
+    std::shared_ptr<Position::ITrajProcesser>   mpTrajProcesser;
+
+    std::unique_ptr<Position::IViewer>          mpViewer;
+    std::unique_ptr<Position::IChecker>         mpChecker;
+    std::unique_ptr<Position::IPositioning>     mpMulPositioner;
+    std::unique_ptr<Position::IPositioning>     mpSinglePositioner;
 
 };
 

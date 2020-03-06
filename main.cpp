@@ -12,7 +12,7 @@
 #include "P_Frame.h"
 #include "P_MapPoint.h"
 #include "P_Map.h"
-#include "Pangolin_Viewer.h"
+#include "P_PangolinViewer.h"
 #include "P_Factory.h"
 #include "P_Config.h"
 #include "P_Data.h"
@@ -27,12 +27,12 @@ int main(void)
 
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config.yaml"); 
     std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
-    std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
-    std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
+    // std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
+    // std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
-    system->run();
+    // system->run();
 
-    return 0;
+    // return 0;
     pData->loadDatas();
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string);//
     Mat img1 = imread(imgpath + "/20191107-072927356003-0000000300_L.jpg",IMREAD_UNCHANGED);
