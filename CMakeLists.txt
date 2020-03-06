@@ -72,7 +72,7 @@ include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/inc
 ${PROJECT_SOURCE_DIR}/inc/base
-${PROJECT_SOURCE_DIR}/inc/impl
+${PROJECT_SOURCE_DIR}/inc/orb
 ${PROJECT_SOURCE_DIR}/inc/viewer
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
@@ -103,8 +103,23 @@ src/base/P_Feature.cpp
 src/base/P_BlockMatcher.cpp
 src/base/P_FeatureMatcher.cpp
 src/viewer/P_PangolinViewer.cpp
-src/impl/P_ORBFeature.cpp
-src/impl/P_UniformVTrajProcesser.cpp
+src/orb/P_ORBFeature.cpp
+src/orb/P_UniformVTrajProcesser.cpp
+src/orb/P_ORBSystem.cpp
+src/orb/P_ORBTracking.cpp
+src/orb/P_ORBLocalMapping.cpp
+src/orb/P_ORBLoopClosing.cpp
+src/orb/P_ORBmatcher.cpp
+src/orb/P_ORBConverter.cpp
+src/orb/P_ORBMapPoint.cpp
+src/orb/P_ORBKeyFrame.cpp
+src/orb/P_ORBMap.cpp
+src/orb/P_ORBOptimizer.cpp
+src/orb/P_ORBPnPsolver.cpp
+src/orb/P_ORBFrame.cpp
+src/orb/P_ORBKeyFrameDatabase.cpp
+src/orb/P_ORBSim3Solver.cpp
+src/orb/P_ORBInitializer.cpp
 src/P_Factory.cpp
 src/P_Controller.cpp
 )
@@ -119,10 +134,12 @@ ${Pangolin_LIBRARIES}
 if(CMAKE_HOST_APPLE)
    if(CMAKE_BUILD_TYPE EQUAL Release)
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.dylib)
+         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.dylib
+         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib)
    else()
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.dylib)
+         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.dylib
+         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib)
    endif()
 else()
    if(CMAKE_BUILD_TYPE EQUAL Release)
