@@ -13,6 +13,7 @@
 #include "P_ORBConverter.h"
 
 #include<mutex>
+#include "P_Types.h"
 
 namespace Position
 {
@@ -54,7 +55,7 @@ void Optimizer::BundleAdjustment(const vector<ORBKeyFrame *> &vpKFs, const vecto
         if(pKF->isBad())
             continue;
         g2o::VertexSE3Expmap * vSE3 = new g2o::VertexSE3Expmap();
-        vSE3->setEstimate(Converter::toSE3Quat(pKF->GetPose()));
+        vSE3->setEstimate(Converter::toSE3Quat(pKF->getPose()));
         vSE3->setId(pKF->mnId);
         vSE3->setFixed(pKF->mnId==0);
         optimizer.addVertex(vSE3);
@@ -74,20 +75,20 @@ void Optimizer::BundleAdjustment(const vector<ORBKeyFrame *> &vpKFs, const vecto
 
         //set vertexs 
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
-        vPoint->setEstimate(Converter::toVector3d(pMP->GetWorldPos()));
+        vPoint->setEstimate(Converter::toVector3d(pMP->getWorldPos()));
         const int id = pMP->mnId+maxKFid+1;
         vPoint->setId(id);
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
 
-        const map<ORBKeyFrame*,size_t> observations = pMP->GetObservations();
+        const KeyFrameMap observations = pMP->getObservations();
 
         int nEdges = 0;
         //SET EDGES
-        for(map<ORBKeyFrame*,size_t>::const_iterator mit=observations.begin(); mit!=observations.end(); mit++)
+        for(KeyFrameMap::const_iterator mit=observations.begin(); mit!=observations.end(); mit++)
         {
 
-            ORBKeyFrame* pKF = mit->first;
+            ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(mit->first);
             if(pKF->isBad() || pKF->mnId>maxKFid)
                 continue;
 
@@ -150,7 +151,7 @@ void Optimizer::BundleAdjustment(const vector<ORBKeyFrame *> &vpKFs, const vecto
         g2o::SE3Quat SE3quat = vSE3->estimate();
         if(nLoopKF==0)
         {
-            pKF->SetPose(Converter::toCvMat(SE3quat));
+            pKF->setPose(Converter::toCvMat(SE3quat));
         }
         else
         {
@@ -174,7 +175,7 @@ void Optimizer::BundleAdjustment(const vector<ORBKeyFrame *> &vpKFs, const vecto
 
         if(nLoopKF==0)
         {
-            pMP->SetWorldPos(Converter::toCvMat(vPoint->estimate()));
+            pMP->setWorldPos(Converter::toCvMat(vPoint->estimate()));
             pMP->UpdateNormalAndDepth();
         }
         else
@@ -230,7 +231,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
 
     for(int i=0; i<N; i++)
     {
-        ORBMapPoint* pMP = pFrame->mvpMapPoints[i];
+        IMapPoint* pMP = pFrame->mvpMapPoints[i];
         if(pMP)
         {
             // Monocular observation
@@ -257,7 +258,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
                 e->fy = pFrame->fy;
                 e->cx = pFrame->cx;
                 e->cy = pFrame->cy;
-                cv::Mat Xw = pMP->GetWorldPos();
+                cv::Mat Xw = pMP->getWorldPos();
                 e->Xw[0] = Xw.at<float>(0);
                 e->Xw[1] = Xw.at<float>(1);
                 e->Xw[2] = Xw.at<float>(2);
@@ -358,7 +359,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
     g2o::VertexSE3Expmap* vSE3_recov = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(0));
     g2o::SE3Quat SE3quat_recov = vSE3_recov->estimate();
     cv::Mat pose = Converter::toCvMat(SE3quat_recov);
-    pFrame->SetPose(pose);
+    pFrame->setPose(pose);
 
     return nInitialCorrespondences-nBad;
 }
@@ -384,10 +385,10 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
     list<ORBMapPoint*> lLocalMapPoints;
     for(list<ORBKeyFrame*>::iterator lit=lLocalKeyFrames.begin() , lend=lLocalKeyFrames.end(); lit!=lend; lit++)
     {
-        vector<ORBMapPoint*> vpMPs = (*lit)->GetMapPointMatches();
-        for(vector<ORBMapPoint*>::iterator vit=vpMPs.begin(), vend=vpMPs.end(); vit!=vend; vit++)
+        MapPtVector vpMPs = (*lit)->GetMapPointMatches();
+        for(MapPtVector::iterator vit=vpMPs.begin(), vend=vpMPs.end(); vit!=vend; vit++)
         {
-            ORBMapPoint* pMP = *vit;
+            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(*vit);
             if(pMP)
                 if(!pMP->isBad())
                     if(pMP->mnBALocalForKF!=pKF->mnId)
@@ -402,10 +403,10 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
     list<ORBKeyFrame*> lFixedCameras;
     for(list<ORBMapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
     {
-        map<ORBKeyFrame*,size_t> observations = (*lit)->GetObservations();
-        for(map<ORBKeyFrame*,size_t>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
+        KeyFrameMap observations = (*lit)->getObservations();
+        for(KeyFrameMapIter mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
         {
-            ORBKeyFrame* pKFi = mit->first;
+            ORBKeyFrame* pKFi =  dynamic_cast<ORBKeyFrame*>(mit->first);
 
             if(pKFi->mnBALocalForKF!=pKF->mnId && pKFi->mnBAFixedForKF!=pKF->mnId)
             {                
@@ -437,7 +438,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
     {
         ORBKeyFrame* pKFi = *lit;
         g2o::VertexSE3Expmap * vSE3 = new g2o::VertexSE3Expmap();
-        vSE3->setEstimate(Converter::toSE3Quat(pKFi->GetPose()));
+        vSE3->setEstimate(Converter::toSE3Quat(pKFi->getPose()));
         vSE3->setId(pKFi->mnId);
         vSE3->setFixed(pKFi->mnId==0);
         optimizer.addVertex(vSE3);
@@ -450,7 +451,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
     {
         ORBKeyFrame* pKFi = *lit;
         g2o::VertexSE3Expmap * vSE3 = new g2o::VertexSE3Expmap();
-        vSE3->setEstimate(Converter::toSE3Quat(pKFi->GetPose()));
+        vSE3->setEstimate(Converter::toSE3Quat(pKFi->getPose()));
         vSE3->setId(pKFi->mnId);
         vSE3->setFixed(true);
         optimizer.addVertex(vSE3);
@@ -486,18 +487,18 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
     {
         ORBMapPoint* pMP = *lit;
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
-        vPoint->setEstimate(Converter::toVector3d(pMP->GetWorldPos()));
+        vPoint->setEstimate(Converter::toVector3d(pMP->getWorldPos()));
         int id = pMP->mnId+maxKFid+1;
         vPoint->setId(id);
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
 
-        const map<ORBKeyFrame*,size_t> observations = pMP->GetObservations();
+        const KeyFrameMap observations = pMP->getObservations();
 
         //Set edges
-        for(map<ORBKeyFrame*,size_t>::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
+        for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
         {
-            ORBKeyFrame* pKFi = mit->first;
+            ORBKeyFrame* pKFi = dynamic_cast<ORBKeyFrame*>(mit->first);
 
             if(!pKFi->isBad())
             {                
@@ -634,7 +635,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
             ORBKeyFrame* pKFi = vToErase[i].first;
             ORBMapPoint* pMPi = vToErase[i].second;
             pKFi->EraseMapPointMatch(pMPi);
-            pMPi->EraseObservation(pKFi);
+            pMPi->rmObservation(pKFi);
         }
     }
 
@@ -646,7 +647,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
         ORBKeyFrame* pKF = *lit;
         g2o::VertexSE3Expmap* vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->mnId));
         g2o::SE3Quat SE3quat = vSE3->estimate();
-        pKF->SetPose(Converter::toCvMat(SE3quat));
+        pKF->setPose(Converter::toCvMat(SE3quat));
     }
 
     //Points
@@ -654,7 +655,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, Map* p
     {
         ORBMapPoint* pMP = *lit;
         g2o::VertexSBAPointXYZ* vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->mnId+maxKFid+1));
-        pMP->SetWorldPos(Converter::toCvMat(vPoint->estimate()));
+        pMP->setWorldPos(Converter::toCvMat(vPoint->estimate()));
         pMP->UpdateNormalAndDepth();
     }
 }
@@ -888,7 +889,7 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, ORBKeyFrame* pLoopKF, ORBKeyFr
 
         cv::Mat Tiw = Converter::toCvSE3(eigR,eigt);
 
-        pKFi->SetPose(Tiw);
+        pKFi->setPose(Tiw);
     }
 
     // Correct points. Transform to "non-optimized" reference keyframe pose and transform back with optimized pose
@@ -914,18 +915,18 @@ void Optimizer::OptimizeEssentialGraph(Map* pMap, ORBKeyFrame* pLoopKF, ORBKeyFr
         g2o::Sim3 Srw = vScw[nIDr];
         g2o::Sim3 correctedSwr = vCorrectedSwc[nIDr];
 
-        cv::Mat P3Dw = pMP->GetWorldPos();
+        cv::Mat P3Dw = pMP->getWorldPos();
         Eigen::Matrix<double,3,1> eigP3Dw = Converter::toVector3d(P3Dw);
         Eigen::Matrix<double,3,1> eigCorrectedP3Dw = correctedSwr.map(Srw.map(eigP3Dw));
 
         cv::Mat cvCorrectedP3Dw = Converter::toCvMat(eigCorrectedP3Dw);
-        pMP->SetWorldPos(cvCorrectedP3Dw);
+        pMP->setWorldPos(cvCorrectedP3Dw);
 
         pMP->UpdateNormalAndDepth();
     }
 }
 
-int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, vector<ORBMapPoint *> &vpMatches1, g2o::Sim3 &g2oS12, const float th2, const bool bFixScale)
+int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &vpMatches1, g2o::Sim3 &g2oS12, const float th2, const bool bFixScale)
 {
     g2o::SparseOptimizer optimizer;
     g2o::BlockSolverX::LinearSolverType * linearSolver;
@@ -965,7 +966,7 @@ int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, vector<ORBMapP
 
     // Set ORBMapPoint vertices
     const int N = vpMatches1.size();
-    const vector<ORBMapPoint*> vpMapPoints1 = pKF1->GetMapPointMatches();
+    const MapPtVector vpMapPoints1 = pKF1->GetMapPointMatches();
     vector<g2o::EdgeSim3ProjectXYZ*> vpEdges12;
     vector<g2o::EdgeInverseSim3ProjectXYZ*> vpEdges21;
     vector<size_t> vnIndexEdge;
@@ -983,20 +984,20 @@ int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, vector<ORBMapP
         if(!vpMatches1[i])
             continue;
 
-        ORBMapPoint* pMP1 = vpMapPoints1[i];
-        ORBMapPoint* pMP2 = vpMatches1[i];
+        IMapPoint* pMP1 = vpMapPoints1[i];
+        IMapPoint* pMP2 = vpMatches1[i];
 
         const int id1 = 2*i+1;
         const int id2 = 2*(i+1);
 
-        const int i2 = pMP2->GetIndexInKeyFrame(pKF2);
+        const int i2 =  dynamic_cast<ORBMapPoint*>(pMP2)->GetIndexInKeyFrame(pKF2);
 
         if(pMP1 && pMP2)
         {
             if(!pMP1->isBad() && !pMP2->isBad() && i2>=0)
             {
                 g2o::VertexSBAPointXYZ* vPoint1 = new g2o::VertexSBAPointXYZ();
-                cv::Mat P3D1w = pMP1->GetWorldPos();
+                cv::Mat P3D1w = pMP1->getWorldPos();
                 cv::Mat P3D1c = R1w*P3D1w + t1w;
                 vPoint1->setEstimate(Converter::toVector3d(P3D1c));
                 vPoint1->setId(id1);
@@ -1004,7 +1005,7 @@ int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, vector<ORBMapP
                 optimizer.addVertex(vPoint1);
 
                 g2o::VertexSBAPointXYZ* vPoint2 = new g2o::VertexSBAPointXYZ();
-                cv::Mat P3D2w = pMP2->GetWorldPos();
+                cv::Mat P3D2w = pMP2->getWorldPos();
                 cv::Mat P3D2c = R2w*P3D2w + t2w;
                 vPoint2->setEstimate(Converter::toVector3d(P3D2c));
                 vPoint2->setId(id2);

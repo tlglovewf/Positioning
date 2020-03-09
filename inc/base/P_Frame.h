@@ -12,15 +12,14 @@ namespace Position
 {
     class PMap;
     class PMapPoint;
-
     //帧对象
     class PFrame : public IFrame
     {
     public:
-        friend class FrameGrid;
+        friend class FrameHelper;
 
         //构造函数 retainimg(是否保存图片资源 默认释放)
-        PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,bool retainimg = false);
+        PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,int index, int cameraIndex = 0);
         ~PFrame();
          //获取数据
         virtual FrameData getData()const 
@@ -44,7 +43,7 @@ namespace Position
         }
         
         //获取位置(世界坐标)
-        virtual const Mat& getPose()const 
+        virtual Mat getPose() 
         {
             return mPose;
         }
@@ -52,9 +51,89 @@ namespace Position
         virtual void setPose(const cv::Mat &pose) 
         {
             mPose = pose;
-            cv::Mat rot = pose.rowRange(0,3).colRange(0,3);
-            cv::Mat t = pose.rowRange(0,3).col(3);
-            mWd = -rot.t() * t;
+            UpdatePoseMatrices();
+        }
+
+        //帧序号
+        virtual u64 index()const 
+        {
+            return mIndex;
+        }
+
+        //获取中心点
+        virtual const Mat& getCameraCenter()const 
+        {
+            return mOw;
+        }
+    protected:
+         // Computes rotation, translation and camera center matrices from the camera pose.
+        void UpdatePoseMatrices()
+        {
+            cv::Mat rot = mPose.rowRange(0,3).colRange(0,3);
+            cv::Mat t   = mPose.rowRange(0,3).col(3);
+            mOw = -rot.t() * t;
+        }
+    protected:
+        int                         mN;
+        int                         mCamIdx;
+        u64                         mIndex;
+
+
+        FrameData                   mData;
+        KeyPtVector                 mKeypts;
+        Mat                         mDescript;
+        Mat                         mPose;
+        Mat                         mOw;
+        std::shared_ptr<IFeature>   mFeature;
+        vector<vector<SzVector> >   mGrid;
+
+    private:
+        DISABLEDCP(PFrame)
+    };
+    
+      //关键帧
+    class PKeyFrame : public IKeyFrame
+    {
+
+    protected:
+          //构造
+        PKeyFrame(IFrame *pframe,IKeyFrame *prev,PMap *pMap);
+        ~PKeyFrame();
+
+    public:
+      
+        friend class PMap;
+
+        //设置位置
+        virtual void setPose(const cv::Mat &pose)
+        {
+            mpFrame->setPose(pose);
+        }
+        //获取位置(世界坐标)
+        virtual Mat getPose()
+        {
+            return mpFrame->getPose();
+        }
+        //重载强转
+        virtual operator IFrame*()const
+        {
+            return mpFrame;
+        }
+        //是否为坏点
+        bool isBad()
+        {
+            return mbBad;
+        }
+        //设为坏帧
+        void setBadFlag()
+        {
+            mbBad = true;
+        }
+        //序号
+        u64 index()const
+        {
+            assert(mpFrame);
+            return mpFrame->index();
         }
 
         //获取地图点
@@ -62,13 +141,7 @@ namespace Position
         {
             return mPts;
         }
-
-        //帧序号
-        virtual int index()const 
-        {
-            return mIndex;
-        }
-         //添加地图点
+          //添加地图点
         virtual void addMapPoint( IMapPoint *pt, int index)
         {
             assert(index > -1 && index < mPts.size());
@@ -97,147 +170,12 @@ namespace Position
             mPts[index]->rmObservation(this);
             mPts[index] = NULL;
         }
-
-        //重置静态数据
-        static void resetStaticParams()
-        {
-            s_nIndexCount = 0;
-        }
-        //是否为坏点
-        virtual bool isBad()const
-        {
-            return mbBad;
-        }
-        //设为坏帧
-        virtual void setBadFlag()
-        {
-            mbBad = true;
-        }
-
-        //判断点在帧视锥体中
-        virtual bool isInFrustum(IMapPoint* pMP, float viewingCosLimit);
-    protected:
-        int                         mN;
-        bool                        mbBad;
-        u64                         mIndex;
-
-
-        FrameData                   mData;
-        KeyPtVector                 mKeypts;
-        MapPtVector                 mPts;
-        Mat                         mDescript;
-        Mat                         mPose;
-        Mat                         mWd;
-        std::shared_ptr<IFeature>   mFeature;
-        FloatVector                 mvInvLevelSigma2;
-        vector<vector<SzVector> >   mGrid;
-
-        static u64                  s_nIndexCount;
-
-    private:
-        DISABLEDCP(PFrame)
-    };
-    
-      //关键帧
-    class PKeyFrame : public IKeyFrame
-    {
-
-    protected:
-          //构造
-        PKeyFrame(IFrame *pframe,IKeyFrame *prev,PMap *pMap):
-        mpFrame(pframe),mpNext(NULL),mpPre(NULL),mpMap(pMap){assert(pframe);}
-        ~PKeyFrame();
-
-    public:
-      
-        friend class PMap;
-
-        //设置位置
-        virtual void setPose(const cv::Mat &pose)
-        {
-            mpFrame->setPose(pose);
-        }
-        //获取位置(世界坐标)
-        virtual const Mat& getPose()const
-        {
-            return mpFrame->getPose();
-        }
-        //重载强转
-        virtual operator IFrame*()const
-        {
-            return mpFrame;
-        }
-        //是否为坏点
-        bool isBad()const
-        {
-            return mpFrame->isBad();
-        }
-        //设为坏帧
-        void setBadFlag()
-        {
-            mpFrame->setBadFlag();
-        }
-        //序号
-        int index()const
-        {
-            assert(mpFrame);
-            return mpFrame->index();
-        }
-
-         //获取数据
-        virtual FrameData getData()const 
-        {
-            return mpFrame->getData();
-        }
-        //获取关键点
-        virtual const KeyPtVector& getKeys()const 
-        {
-            return mpFrame->getKeys();
-        }
-        //获取特征点数量
-        virtual int getKeySize()const 
-        {
-            return mpFrame->getKeySize();
-        }
-        //获取描述子
-        virtual const Mat& getDescript()const 
-        {
-            return mpFrame->getDescript();
-        }
-        //获取地图点
-        virtual const MapPtVector& getPoints() 
-        {
-            return mpFrame->getPoints();
-        }
-        //添加地图点
-        virtual void addMapPoint(IMapPoint *pt, int index) 
-        {
-            mpFrame->addMapPoint(pt,index);
-        }
-        //是否已有对应地图点
-        virtual bool hasMapPoint(int index) 
-        {
-           return mpFrame->hasMapPoint(index);
-        }
-        //移除地图点
-        virtual void rmMapPoint(IMapPoint *pt) 
-        {
-            mpFrame->rmMapPoint(pt);
-        }
-        virtual void rmMapPoint(int index) 
-        {
-            mpFrame->rmMapPoint(index);
-        }
          //帧目标
         virtual TargetVector& getTargets() 
         {
             return mTargets;
         }
-         //判断点在帧视锥体中
-        virtual bool isInFrustum(IMapPoint* pMP, float viewingCosLimit)
-        {
-            return mpFrame->isInFrustum(pMP,viewingCosLimit);
-        }
+
          //更新下一帧
         virtual void updateNext(IKeyFrame *next) 
         {
@@ -263,19 +201,18 @@ namespace Position
         IFrame      *mpFrame;
         IKeyFrame   *mpNext;
         IKeyFrame   *mpPre;
-        PMap   *mpMap;
-        
+        PMap        *mpMap;
+        bool        mbBad;
 
+        MapPtVector                 mPts;
         TargetVector                mTargets;
 
     private:
         DISABLEDCP(PKeyFrame)
     };
 
-#define FRAMEPT(K)（(IFrame*)*K)
-
-    //frame grid 划分
-    class FrameGrid
+    //frame 帮助类
+    class FrameHelper
     {
     public:
         //根据坐标 查询特征点序号
@@ -284,7 +221,7 @@ namespace Position
                                                int minLevel,int maxLevel);
 
         //初始化配置参数
-        static void initParams(float width, float height);
+        static void initParams(float width, float height,CameraParam *pcam, int index = 0);
 
         //将特征点分grid
         static void assignFeaturesToGrid(IFrame *frame);
@@ -301,13 +238,33 @@ namespace Position
             else
                 return true;
         }
+
+       //获取相机参数
+       static void getCameraParams(double &fx,double &fy,double &cx, double &cy)
+       {
+           assert(mInit);
+           fx = mFx;
+           fy = mFy;
+           cx = mCx;
+           cy = mCy;
+       }
+
     private:
+        static bool mInit;
 
         static int  FRAME_GRID_ROWS; 
         static int  FRAME_GRID_COLS;
     
         static float mfGridElementWidthInv;
         static float mfGridElementHeightInv;
+
+         //相机内参
+        static double mFx;
+        static double mFy;
+        static double mCx;
+        static double mCy;
+
+        DISABLEDC(FrameHelper)
     };     
 }
 

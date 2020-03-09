@@ -20,7 +20,7 @@ namespace Position
         return &g2o;
     }
     //单张位姿优化
-    int G2oOptimizer::frameOptimization(IFrame *pFrame, const FloatVector &sigma2)
+    int G2oOptimizer::frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2)
     {
         assert(pFrame && !pFrame->getPoints().empty());
         g2o::SparseOptimizer optimizer;
@@ -38,7 +38,7 @@ namespace Position
         vSE3->setFixed(false);
         optimizer.addVertex(vSE3);
 
-        const int N = pFrame->getKeySize();
+        const int N = IFRAME(pFrame)->getKeySize();
 
         vector<g2o::EdgeSE3ProjectXYZOnlyPose*> vpEdgesMono;
         vector<size_t> vnIndexEdgeMono;
@@ -60,7 +60,7 @@ namespace Position
                     nInitialCorrespondences++;
                     // pFrame->mvbOutliner[i] = false;
                     Eigen::Matrix<double,2,1> obs;
-                    const cv::KeyPoint &kp = pFrame->getKeys()[i];
+                    const cv::KeyPoint &kp = IFRAME(pFrame)->getKeys()[i];
                     obs << kp.pt.x, kp.pt.y ;
 
                     g2o::EdgeSE3ProjectXYZOnlyPose *e = new g2o::EdgeSE3ProjectXYZOnlyPose();
@@ -80,7 +80,7 @@ namespace Position
                     e->fy = mFy;
                     e->cx = mCx;
                     e->cy = mCy;
-                    cv::Mat Xw = pMppt->getPose();
+                    cv::Mat Xw = pMppt->getWorldPos();
                     e->Xw[0] = Xw.at<MATTYPE>(0);
                     e->Xw[1] = Xw.at<MATTYPE>(1);
                     e->Xw[2] = Xw.at<MATTYPE>(2);
@@ -195,32 +195,32 @@ namespace Position
 
         for(size_t i = 0; i < mappts.size(); ++i)
         {
-            const IMapPoint *pMP = mappts[i];
+            IMapPoint *pMP = mappts[i];
             if(pMP->isBad())
                 continue;
             g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
-            vPoint->setEstimate(PConverter::toVector3d(pMP->getPose()));
+            vPoint->setEstimate(PConverter::toVector3d(pMP->getWorldPos()));
             const int id = pMP->index() + maxKFid + 1;
             vPoint->setId(id);
             vPoint->setMarginalized(true);
             optimizer.addVertex(vPoint);
 
-            const FrameMap  &observations = pMP->getObservation();
+            const KeyFrameMap observations = pMP->getObservations();
 
             int nEdges = 0;
 
-            FrameMap::const_iterator it = observations.begin();
-            FrameMap::const_iterator ed = observations.end();
+            KeyFrameMap::const_iterator it = observations.begin();
+            KeyFrameMap::const_iterator ed = observations.end();
 
             for(; it != ed; ++it )
             {
-                IFrame *pKF = it->first;
-                if(pKF->isBad() || pKF->index() > maxKFid)
+                IKeyFrame *pKF = it->first;
+                if( pKF->isBad() || pKF->index() > maxKFid)
                     continue;
 
                 nEdges++;
 
-                const cv::KeyPoint &kp = pKF->getKeys()[it->second];
+                const cv::KeyPoint &kp = IFRAME(pKF)->getKeys()[it->second];
 
                 Eigen::Matrix<double,2,1> obs;
                 obs << kp.pt.x, kp.pt.y;
@@ -302,7 +302,7 @@ namespace Position
 
             if(0 == nIndex)
             {
-                pMP->setPose(PConverter::toCvMat(vPoint->estimate()));
+                pMP->setWorldPos(PConverter::toCvMat(vPoint->estimate()));
                 // pMP->updateNormalAndDepth();
             }
             else

@@ -2,27 +2,38 @@
 #include "P_MapPoint.h"
 namespace Position
 {
-#pragma region  FrameGrid
-int   FrameGrid::FRAME_GRID_ROWS = 48;
-int   FrameGrid::FRAME_GRID_COLS = 64;
-float FrameGrid::mfGridElementWidthInv   = 0.0;
-float FrameGrid::mfGridElementHeightInv  = 0.0;
+#pragma region  FrameHelper
+int    FrameHelper::FRAME_GRID_ROWS = 48;
+int    FrameHelper::FRAME_GRID_COLS = 64;
+float  FrameHelper::mfGridElementWidthInv   = 0.0;
+float  FrameHelper::mfGridElementHeightInv  = 0.0;
+double FrameHelper::mFx = 0;
+double FrameHelper::mFy = 0;
+double FrameHelper::mCx = 0;
+double FrameHelper::mCy = 0;
+bool   FrameHelper::mInit = false;
 
-static cv::Mat s_K;
-
-    //设置静态变量
-    void SetStaticParams(const CameraParam &cam)
+    //初始化配置参数
+    void FrameHelper::initParams(float width, float height,CameraParam *pcam, int index /* = 0 */)
     {
-        s_K = cam.K;
+        assert(width > 1.0 && height > 1.0);
+        assert(pcam);
+        assert(index >= 0);
+        mfGridElementWidthInv  = static_cast<float>(FRAME_GRID_COLS) / width;
+        mfGridElementHeightInv = static_cast<float>(FRAME_GRID_ROWS) / height;
+        mFx = pcam[index].K.at<MATTYPE>(0,0);
+        mFy = pcam[index].K.at<MATTYPE>(1,1);
+        mCx = pcam[index].K.at<MATTYPE>(0,2);
+        mCy = pcam[index].K.at<MATTYPE>(1,2);
+        mInit = true;
     }
 
-
-
     //根据坐标 查询特征点序号
-    SzVector FrameGrid::getFrameFeaturesInArea(IFrame *pframe,
+    SzVector FrameHelper::getFrameFeaturesInArea(IFrame *pframe,
                                                float x,float y,float r,
                                                int minLevel,int maxLevel)
     {
+        assert(mInit);
         SzVector vIndices;
         vIndices.reserve(pframe->getKeySize());
 
@@ -83,17 +94,11 @@ static cv::Mat s_K;
         return vIndices;
     }
 
-    //初始化配置参数
-    void FrameGrid::initParams(float width, float height)
-    {
-        assert(width > 1.0 && height > 1.0);
-        mfGridElementWidthInv  = static_cast<float>(FRAME_GRID_COLS) / width;
-        mfGridElementHeightInv = static_cast<float>(FRAME_GRID_ROWS) / height;
-    }
 
     //将特征点分grid
-    void FrameGrid::assignFeaturesToGrid(IFrame *pframe)
+    void FrameHelper::assignFeaturesToGrid(IFrame *pframe)
     {
+        assert(mInit);
         assert(pframe);
         PFrame &frame = *dynamic_cast<PFrame*>(pframe);
         
@@ -122,19 +127,16 @@ static cv::Mat s_K;
     }
 #pragma endregion
 
-
-u64 PFrame::s_nIndexCount = 0;
-
-
     //构造函数
-    PFrame::PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,bool retainimg /* = false */):
-        mbBad(false),mData(data),mFeature(pFeature)
+    PFrame::PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,int index,int cameraIndex /* = 0 */):
+        mCamIdx(cameraIndex),mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
         pFeature->detect(data,mKeypts,mDescript);
         mN = mKeypts.size();
-        mPts.resize(mN);
-        mIndex = s_nIndexCount++;
+        mIndex = index;
+        mPose = Mat::eye(4,4,MATCVTYPE);
+        mOw = Mat::zeros(4,1,MATCVTYPE);
     }
     PFrame::~PFrame()
     {
@@ -143,66 +145,19 @@ u64 PFrame::s_nIndexCount = 0;
             mData._img.release();
         }
     }
-
-    //判断点在帧视锥体中
-    bool PFrame::isInFrustum(IMapPoint* pMP, float viewingCosLimit)
+    PKeyFrame::PKeyFrame(IFrame *pframe,IKeyFrame *prev,PMap *pMap):
+    mpFrame(pframe),mpNext(NULL),mpPre(NULL),mpMap(pMap),mbBad(false)
     {
-        assert(pMP);
-
-        //get world pose 
-        const cv::Mat& P = pMP->getPose();
-
-        const cv::Mat Pc = mPose.rowRange(0,3).colRange(0,3) * P + mPose.rowRange(0,3).col(3);
-       
-        MATTYPE pcZ = Pc.at<MATTYPE>(2);
-
-        //check positive depth
-        if(pcZ < 0)
-            return false;
-
-        cv::Mat pixel = s_K * Pc;
-        const MATTYPE pixZ = pixel.at<MATTYPE>(2);
-        const MATTYPE u = pixel.at<MATTYPE>(0) / pixZ;
-        const MATTYPE v = pixel.at<MATTYPE>(1) / pixZ;
-
-        if(u < 0 || u > mData._img.cols)
-            return false;
-        if(v < 0 || v > mData._img.rows)
-            return false;
-        
-        const float maxDistance = pMP->minDistance();
-        const float minDistance = pMP->maxDistance();
-
-        const cv::Mat PO = P - mWd;
-        const float dist = cv::norm(PO);
-
-        if( dist < minDistance || dist > maxDistance)
-            return false;
-        
-        cv::Mat Pn = pMP->normal();
-        
-        const double viewCos = PO.dot(Pn) / dist;
-
-        if(viewCos < viewingCosLimit)
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
-
-        return true;
+        mPts.resize(mpFrame->getKeySize());
     }
-
     //析构
     PKeyFrame::~PKeyFrame()
     {
         if(NULL != mpFrame)
         {
-            for(auto item : mpFrame->getPoints())
+            for(auto item : mPts)
             {
-                item->rmObservation(mpFrame);
+                item->rmObservation(this);
             }
             mpFrame->release();
         }   

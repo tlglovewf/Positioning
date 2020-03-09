@@ -118,18 +118,18 @@ void LocalMapping::ProcessNewKeyFrame()
     mpCurrentKeyFrame->ComputeBoW();
 
     // Associate MapPoints to the new keyframe and update normal and descriptor
-    const vector<ORBMapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    const MapPtVector vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
 
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
-        ORBMapPoint* pMP = vpMapPointMatches[i];
+        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPointMatches[i]);
         if(pMP)
         {
             if(!pMP->isBad())
             {
-                if(!pMP->IsInKeyFrame(mpCurrentKeyFrame))
+                if(!pMP->isInFrame(mpCurrentKeyFrame))
                 {
-                    pMP->AddObservation(mpCurrentKeyFrame, i);
+                    pMP->addObservation(mpCurrentKeyFrame, i);
                     pMP->UpdateNormalAndDepth();
                     pMP->ComputeDistinctiveDescriptors();
                 }
@@ -170,12 +170,12 @@ void LocalMapping::MapPointCulling()
         }
         else if(pMP->GetFoundRatio()<0.25f )
         {
-            pMP->SetBadFlag();
+            pMP->setBadFlag();
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
-        else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->Observations()<=cnThObs)
+        else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->observations()<=cnThObs)
         {
-            pMP->SetBadFlag();
+            pMP->setBadFlag();
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=3)
@@ -362,11 +362,11 @@ void LocalMapping::CreateNewMapPoints()
             // Triangulation is succesfull
             ORBMapPoint* pMP = new ORBMapPoint(x3D,mpCurrentKeyFrame,mpMap);
 
-            pMP->AddObservation(mpCurrentKeyFrame,idx1);            
-            pMP->AddObservation(pKF2,idx2);
+            pMP->addObservation(mpCurrentKeyFrame,idx1);            
+            pMP->addObservation(pKF2,idx2);
 
-            mpCurrentKeyFrame->AddMapPoint(pMP,idx1);
-            pKF2->AddMapPoint(pMP,idx2);
+            mpCurrentKeyFrame->addMapPoint(pMP,idx1);
+            pKF2->addMapPoint(pMP,idx2);
 
             pMP->ComputeDistinctiveDescriptors();
 
@@ -410,7 +410,7 @@ void LocalMapping::SearchInNeighbors()
 
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
-    vector<ORBMapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    MapPtVector vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     for(vector<ORBKeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
         ORBKeyFrame* pKFi = *vit;
@@ -419,18 +419,18 @@ void LocalMapping::SearchInNeighbors()
     }
 
     // Search matches by projection from target KFs in current KF
-    vector<ORBMapPoint*> vpFuseCandidates;
+    MapPtVector vpFuseCandidates;
     vpFuseCandidates.reserve(vpTargetKFs.size()*vpMapPointMatches.size());
 
     for(vector<ORBKeyFrame*>::iterator vitKF=vpTargetKFs.begin(), vendKF=vpTargetKFs.end(); vitKF!=vendKF; vitKF++)
     {
         ORBKeyFrame* pKFi = *vitKF;
 
-        vector<ORBMapPoint*> vpMapPointsKFi = pKFi->GetMapPointMatches();
+        MapPtVector vpMapPointsKFi = pKFi->GetMapPointMatches();
 
-        for(vector<ORBMapPoint*>::iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
+        for(MapPtVector::iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
         {
-            ORBMapPoint* pMP = *vitMP;
+            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(*vitMP);
             if(!pMP)
                 continue;
             if(pMP->isBad() || pMP->mnFuseCandidateForKF == mpCurrentKeyFrame->mnId)
@@ -447,7 +447,7 @@ void LocalMapping::SearchInNeighbors()
     vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
     for(size_t i=0, iend=vpMapPointMatches.size(); i<iend; i++)
     {
-        ORBMapPoint* pMP=vpMapPointMatches[i];
+        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPointMatches[i]);
         if(pMP)
         {
             if(!pMP->isBad())
@@ -571,7 +571,7 @@ void LocalMapping::KeyFrameCulling()
         ORBKeyFrame* pKF = *vit;
         if(pKF->mnId==0)
             continue;
-        const vector<ORBMapPoint*> vpMapPoints = pKF->GetMapPointMatches();
+        const MapPtVector vpMapPoints = pKF->GetMapPointMatches();
 
         int nObs = 3;
         const int thObs=nObs;
@@ -579,20 +579,20 @@ void LocalMapping::KeyFrameCulling()
         int nMPs=0;
         for(size_t i=0, iend=vpMapPoints.size(); i<iend; i++)
         {
-            ORBMapPoint* pMP = vpMapPoints[i];
+            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints[i]);
             if(pMP)
             {
                 if(!pMP->isBad())
                 {
                     nMPs++;
-                    if(pMP->Observations()>thObs)
+                    if(pMP->observations()>thObs)
                     {
                         const int &scaleLevel = pKF->mvKeysUn[i].octave;
-                        const map<ORBKeyFrame*, size_t> observations = pMP->GetObservations();
+                        const KeyFrameMap observations = pMP->getObservations();
                         int nObs=0;
-                        for(map<ORBKeyFrame*, size_t>::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
+                        for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {
-                            ORBKeyFrame* pKFi = mit->first;
+                            ORBKeyFrame* pKFi = dynamic_cast<ORBKeyFrame*>(mit->first);
                             if(pKFi==pKF)
                                 continue;
                             const int &scaleLeveli = pKFi->mvKeysUn[mit->second].octave;
@@ -614,7 +614,7 @@ void LocalMapping::KeyFrameCulling()
         }  
 
         if(nRedundantObservations>0.9*nMPs)
-            pKF->SetBadFlag();
+            pKF->setBadFlag();
     }
 }
 

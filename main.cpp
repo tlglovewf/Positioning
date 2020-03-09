@@ -54,21 +54,26 @@ int main(void)
 
     std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
 
-    Position::IFrame *preframe = new Position::PFrame(frame1,pFeature);
-    Position::IFrame *curframe = new Position::PFrame(frame2,pFeature);
-    Position::IFrame *othframe = new Position::PFrame(frame3,pFeature);
+    Position::IFrame *pframe = new Position::PFrame(frame1,pFeature,map->frameCount());
+    Position::IFrame *cframe = new Position::PFrame(frame2,pFeature,map->frameCount());
+    Position::IFrame *oframe = new Position::PFrame(frame3,pFeature,map->frameCount());
 
-    Position::FrameGrid::initParams(img1.cols,img1.rows);
-    Position::FrameGrid::assignFeaturesToGrid(preframe);
-    Position::FrameGrid::assignFeaturesToGrid(curframe);
-    Position::FrameGrid::assignFeaturesToGrid(othframe);
+    Position::CameraParam camparam = pData->getCamera();
+    Position::FrameHelper::initParams(img1.cols,img1.rows,&camparam);
+    Position::FrameHelper::assignFeaturesToGrid(pframe);
+    Position::FrameHelper::assignFeaturesToGrid(cframe);
+    Position::FrameHelper::assignFeaturesToGrid(oframe);
     
+    //创建关键帧
+    Position::IKeyFrame *preframe = map->createKeyFrame(pframe);
+    Position::IKeyFrame *curframe = map->createKeyFrame(cframe);
+    Position::IKeyFrame *othframe = map->createKeyFrame(oframe);
 
     Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.9);
 
-    Position::MatchVector matches = pMatcher->match(preframe,curframe,GETCFGVALUE(pCfg,SearchScale,int));
+    Position::MatchVector matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),GETCFGVALUE(pCfg,SearchScale,int));
 
-    Position::MatchVector others  = pMatcher->match(curframe,othframe,GETCFGVALUE(pCfg,SearchScale,int));
+    Position::MatchVector others  = pMatcher->match(IFRAME(curframe),IFRAME(othframe),GETCFGVALUE(pCfg,SearchScale,int));
 
     if(matches.empty())
     {
@@ -88,7 +93,7 @@ int main(void)
 
         pPoseEst->setCamera(pData->getCamera());
 
-        pPoseEst->setFrames(preframe,curframe);
+        pPoseEst->setFrames(IFRAME(preframe),IFRAME(curframe));
         Mat R,t;
         Position::Pt3Vector pts;
         if(pPoseEst->estimate(R,t, matches,pts))
@@ -110,7 +115,7 @@ int main(void)
                 preframe->addMapPoint(mppt,item.queryIdx);
                 curframe->addMapPoint(mppt,item.trainIdx);
             }
-            pPoseEst->setFrames(curframe,othframe);
+            pPoseEst->setFrames(IFRAME(curframe),IFRAME(othframe));
         
            if(pPoseEst->estimate(R,t, others,pts))
            {
@@ -137,11 +142,6 @@ int main(void)
             
             Mat tpose = pose * curframe->getPose();
             othframe->setPose(tpose);
-
-            //创建关键帧
-            map->createKeyFrame(preframe);
-            map->createKeyFrame(curframe);
-            map->createKeyFrame(othframe);
 
             Position::IOptimizer *pOp = Position::IOptimizer::getSingleton();
             pOp->setCamera(pData->getCamera());

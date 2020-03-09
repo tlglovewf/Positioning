@@ -15,7 +15,7 @@ namespace Position
 {
 
 
-PnPsolver::PnPsolver(const ORBFrame &F, const vector<ORBMapPoint*> &vpMapPointMatches):
+PnPsolver::PnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatches):
     pws(0), us(0), alphas(0), pcs(0), maximum_number_of_correspondences(0), number_of_correspondences(0), mnInliersi(0),
     mnIterations(0), mnBestInliers(0), N(0)
 {
@@ -29,7 +29,7 @@ PnPsolver::PnPsolver(const ORBFrame &F, const vector<ORBMapPoint*> &vpMapPointMa
     int idx=0;
     for(size_t i=0, iend=vpMapPointMatches.size(); i<iend; i++)
     {
-        ORBMapPoint* pMP = vpMapPointMatches[i];
+        IMapPoint* pMP = vpMapPointMatches[i];
 
         if(pMP)
         {
@@ -40,7 +40,7 @@ PnPsolver::PnPsolver(const ORBFrame &F, const vector<ORBMapPoint*> &vpMapPointMa
                 mvP2D.push_back(kp.pt);
                 mvSigma2.push_back(F.mvLevelSigma2[kp.octave]);
 
-                cv::Mat Pos = pMP->GetWorldPos();
+                cv::Mat Pos = pMP->getWorldPos();
                 mvP3Dw.push_back(cv::Point3f(Pos.at<float>(0),Pos.at<float>(1), Pos.at<float>(2)));
 
                 mvKeyPointIndices.push_back(i);

@@ -52,41 +52,45 @@ namespace Position
     class IMapPoint : public IBase
     {
     public:
-        //获取位置(世界坐标)
-        virtual const Mat getPose()const = 0;
-        //设置位置(世界坐标)
-        virtual void setPose(const cv::Mat &pose) = 0;
+         //设置世界位姿
+        virtual void setWorldPos(const cv::Mat &Pos) = 0;
+        //获取位姿
+        virtual cv::Mat getWorldPos() = 0;
         //获取序号
         virtual u64 index()const = 0;
         //观察点
-        virtual int observations()const = 0;
+        virtual int observations() = 0;
         //添加观察者 index(特征点序号)
-        virtual void addObservation(IFrame *frame,int index) = 0;
+        virtual void addObservation(IKeyFrame *frame,int index) = 0;
         //移除观察者
-        virtual void rmObservation(IFrame *frame) = 0;
+        virtual void rmObservation(IKeyFrame *frame) = 0;
         //获取观察帧列表
-        virtual const FrameMap& getObservation()const = 0;
+        virtual KeyFrameMap getObservations() = 0;
         //是否在帧中
-        virtual bool isInFrame(IFrame *pFrame) = 0;
+        virtual bool isInFrame(IKeyFrame *pFrame) = 0;
         //设置坏点
         virtual void setBadFlag() = 0;
         //返回是否为坏点
-        virtual bool isBad()const = 0;
+        virtual bool isBad() = 0;
         //返回向量
-        virtual const cv::Mat& normal()const = 0;
-        //尺度不变性最大距离
-        virtual double maxDistance()const = 0;
-        //尺度不变性最小距离
-        virtual double minDistance()const = 0;
-
+        virtual cv::Mat normal() = 0;
     };
-    //帧对象
-    class IFrame : public IBase
+    //位姿节点
+    class IPoseNode : public IBase
     {
     public:
-        //设置静态变量
-        static void SetStaticParams(const CameraParam &cam);
+         //获取位置(R|t 矩阵)
+        virtual Mat getPose() = 0;
+        //设置位置(R|t 矩阵)
+        virtual void setPose(const cv::Mat &pose) = 0;
+        //序号
+        virtual u64 index()const = 0;
+    };
 
+    //帧对象
+    class IFrame : public IPoseNode
+    {
+    public:
         //获取数据
         virtual FrameData getData()const = 0;
         //获取关键点
@@ -95,36 +99,16 @@ namespace Position
         virtual int getKeySize()const = 0;
         //获取描述子
         virtual const Mat& getDescript()const = 0;
-        //获取位置(世界坐标)
-        virtual const Mat& getPose()const = 0;
-        //设置位置(世界坐标)
-        virtual void setPose(const cv::Mat &pose) = 0;
-        //获取地图点
-        virtual const MapPtVector& getPoints() = 0;
-        //帧序号
-        virtual int index()const = 0;
-        //添加地图点
-        virtual void addMapPoint(IMapPoint *pt, int index) = 0;
-        //是否已有对应地图点
-        virtual bool hasMapPoint(int index) = 0;
-        //移除地图点
-        virtual void rmMapPoint(IMapPoint *pt) = 0;
-        virtual void rmMapPoint(int index) = 0;
-        //是否为坏点
-        virtual bool isBad()const = 0;
-        //设为坏帧
-        virtual void setBadFlag() = 0;
-        //判断点在帧视锥体中
-        virtual bool isInFrustum(IMapPoint* pMP, float viewingCosLimit) = 0;
+        //获取中心点
+        virtual const Mat& getCameraCenter()const = 0;
     };
 
     //关键帧
-    class IKeyFrame : public IFrame
+    class IKeyFrame : public IPoseNode
     {
     public:
         //强制类型转换
         virtual operator IFrame*()const = 0;
-
         //帧目标
         virtual TargetVector& getTargets() = 0;
         //更新下一帧
@@ -135,7 +119,21 @@ namespace Position
         virtual IKeyFrame* getNext() = 0;
         //获取上一帧
         virtual IKeyFrame* getPre() = 0;
+        //是否为坏点
+        virtual bool isBad() = 0;
+        //设为坏帧
+        virtual void setBadFlag() = 0;
+           //添加地图点
+        virtual void addMapPoint(IMapPoint *pt, int index) = 0;
+        //是否已有对应地图点
+        virtual bool hasMapPoint(int index) = 0;
+        //移除地图点
+        virtual void rmMapPoint(IMapPoint *pt) = 0;
+        virtual void rmMapPoint(int index) = 0;
+         //获取地图点
+        virtual const MapPtVector& getPoints() = 0;
     };
+    #define IFRAME(K) (static_cast<Position::IFrame*>(*(K)))
     //地图
     class IMap : public IBase
     {
@@ -161,6 +159,10 @@ namespace Position
         virtual KeyFrameVector getAllFrames()const = 0;
         //最大帧号
         virtual u64 getMaxKFid()const = 0;
+
+        //获取帧，点计数
+        virtual u64 frameCount() = 0;
+        virtual u64 mapptCount() = 0;
     };
 
     
@@ -178,7 +180,7 @@ namespace Position
         virtual FrameDataVIter end() = 0;
 
         // 获取相机参数 default(0)  left    1 right 
-        virtual CameraParam getCamera(int index = 0) = 0;
+        virtual const CameraParam& getCamera(int index = 0)const = 0;
 
         //根据图像名取时间(天秒)
         virtual double getTimeFromName(const std::string &name) = 0;
@@ -269,7 +271,7 @@ namespace Position
         static IOptimizer* getSingleton();
         
         //单张位姿优化
-        virtual int frameOptimization(IFrame *pFrame, const FloatVector &sigma2) = 0;
+        virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2) = 0;
         
         //ba 优化
         virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,

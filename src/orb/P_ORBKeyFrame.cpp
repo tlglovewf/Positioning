@@ -34,7 +34,7 @@ ORBKeyFrame::ORBKeyFrame(ORBFrame &F, Map *pMap, KeyFrameDatabase *pKFDB):
             mGrid[i][j] = F.mGrid[i][j];
     }
 
-    SetPose(F.mTcw);    
+    setPose(F.mTcw);    
 }
 
 void ORBKeyFrame::ComputeBoW()
@@ -48,7 +48,7 @@ void ORBKeyFrame::ComputeBoW()
     }
 }
 
-void ORBKeyFrame::SetPose(const cv::Mat &Tcw_)
+void ORBKeyFrame::setPose(const cv::Mat &Tcw_)
 {
     unique_lock<mutex> lock(mMutexPose);
     Tcw_.copyTo(Tcw);
@@ -62,7 +62,7 @@ void ORBKeyFrame::SetPose(const cv::Mat &Tcw_)
     Ow.copyTo(Twc.rowRange(0,3).col(3));
 }
 
-cv::Mat ORBKeyFrame::GetPose()
+cv::Mat ORBKeyFrame::getPose()
 {
     unique_lock<mutex> lock(mMutexPose);
     return Tcw.clone();
@@ -113,8 +113,8 @@ void ORBKeyFrame::UpdateBestCovisibles()
     unique_lock<mutex> lock(mMutexConnections);
     vector<pair<int,ORBKeyFrame*> > vPairs;
     vPairs.reserve(mConnectedKeyFrameWeights.size());
-    for(map<ORBKeyFrame*,int>::iterator mit=mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
-       vPairs.push_back(make_pair(mit->second,mit->first));
+    for(KeyFrameMap::iterator mit=mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
+       vPairs.push_back(make_pair(mit->second,dynamic_cast<ORBKeyFrame*>(mit->first)));
 
     sort(vPairs.begin(),vPairs.end());
     list<ORBKeyFrame*> lKFs;
@@ -133,8 +133,8 @@ set<ORBKeyFrame*> ORBKeyFrame::GetConnectedKeyFrames()
 {
     unique_lock<mutex> lock(mMutexConnections);
     set<ORBKeyFrame*> s;
-    for(map<ORBKeyFrame*,int>::iterator mit=mConnectedKeyFrameWeights.begin();mit!=mConnectedKeyFrameWeights.end();mit++)
-        s.insert(mit->first);
+    for(KeyFrameMap::iterator mit=mConnectedKeyFrameWeights.begin();mit!=mConnectedKeyFrameWeights.end();mit++)
+        s.insert(dynamic_cast<ORBKeyFrame*>(mit->first));
     return s;
 }
 
@@ -180,7 +180,7 @@ int ORBKeyFrame::GetWeight(ORBKeyFrame *pKF)
         return 0;
 }
 
-void ORBKeyFrame::AddMapPoint(ORBMapPoint *pMP, const size_t &idx)
+void ORBKeyFrame::addMapPoint(IMapPoint *pMP, int idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     mvpMapPoints[idx]=pMP;
@@ -213,7 +213,7 @@ set<ORBMapPoint*> ORBKeyFrame::GetMapPoints()
     {
         if(!mvpMapPoints[i])
             continue;
-        ORBMapPoint* pMP = mvpMapPoints[i];
+        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(mvpMapPoints[i]);
         if(!pMP->isBad())
             s.insert(pMP);
     }
@@ -228,14 +228,14 @@ int ORBKeyFrame::TrackedMapPoints(const int &minObs)
     const bool bCheckObs = minObs>0;
     for(int i=0; i<N; i++)
     {
-        ORBMapPoint* pMP = mvpMapPoints[i];
+        IMapPoint* pMP = mvpMapPoints[i];
         if(pMP)
         {
             if(!pMP->isBad())
             {
                 if(bCheckObs)
                 {
-                    if(mvpMapPoints[i]->Observations()>=minObs)
+                    if(mvpMapPoints[i]->observations()>=minObs)
                         nPoints++;
                 }
                 else
@@ -247,7 +247,7 @@ int ORBKeyFrame::TrackedMapPoints(const int &minObs)
     return nPoints;
 }
 
-vector<ORBMapPoint*> ORBKeyFrame::GetMapPointMatches()
+MapPtVector ORBKeyFrame::GetMapPointMatches()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mvpMapPoints;
@@ -256,14 +256,14 @@ vector<ORBMapPoint*> ORBKeyFrame::GetMapPointMatches()
 ORBMapPoint* ORBKeyFrame::GetMapPoint(const size_t &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
-    return mvpMapPoints[idx];
+    return dynamic_cast<ORBMapPoint*>(mvpMapPoints[idx]);
 }
 
 void ORBKeyFrame::UpdateConnections()
 {
-    map<ORBKeyFrame*,int> KFcounter;
+    KeyFrameMap KFcounter;
 
-    vector<ORBMapPoint*> vpMP;
+    MapPtVector vpMP;
 
     {
         unique_lock<mutex> lockMPs(mMutexFeatures);
@@ -272,9 +272,9 @@ void ORBKeyFrame::UpdateConnections()
 
     //For all map points in keyframe check in which other keyframes are they seen
     //Increase counter for those keyframes
-    for(vector<ORBMapPoint*>::iterator vit=vpMP.begin(), vend=vpMP.end(); vit!=vend; vit++)
+    for(MapPtVIter vit=vpMP.begin(), vend=vpMP.end(); vit!=vend; vit++)
     {
-        ORBMapPoint* pMP = *vit;
+        IMapPoint* pMP = *vit;
 
         if(!pMP)
             continue;
@@ -282,11 +282,11 @@ void ORBKeyFrame::UpdateConnections()
         if(pMP->isBad())
             continue;
 
-        map<ORBKeyFrame*,size_t> observations = pMP->GetObservations();
+        KeyFrameMap observations = pMP->getObservations();
 
-        for(map<ORBKeyFrame*,size_t>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
+        for(KeyFrameMapIter mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
         {
-            if(mit->first->mnId==mnId)
+            if(mit->first->index()==mnId)
                 continue;
             KFcounter[mit->first]++;
         }
@@ -304,17 +304,18 @@ void ORBKeyFrame::UpdateConnections()
 
     vector<pair<int,ORBKeyFrame*> > vPairs;
     vPairs.reserve(KFcounter.size());
-    for(map<ORBKeyFrame*,int>::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend; mit++)
+    for(KeyFrameMap::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend; mit++)
     {
+        ORBKeyFrame *orbkey = dynamic_cast<ORBKeyFrame*>(mit->first);
         if(mit->second>nmax)
         {
             nmax=mit->second;
-            pKFmax=mit->first;
+            pKFmax = orbkey;
         }
         if(mit->second>=th)
         {
-            vPairs.push_back(make_pair(mit->second,mit->first));
-            (mit->first)->AddConnection(this,mit->second);
+            vPairs.push_back(make_pair(mit->second, orbkey));
+            orbkey->AddConnection(this,mit->second);
         }
     }
 
@@ -419,11 +420,11 @@ void ORBKeyFrame::SetErase()
 
     if(mbToBeErased)
     {
-        SetBadFlag();
+        setBadFlag();
     }
 }
 
-void ORBKeyFrame::SetBadFlag()
+void ORBKeyFrame::setBadFlag()
 {   
     {
         unique_lock<mutex> lock(mMutexConnections);
@@ -436,12 +437,12 @@ void ORBKeyFrame::SetBadFlag()
         }
     }
 
-    for(map<ORBKeyFrame*,int>::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
-        mit->first->EraseConnection(this);
+    for(KeyFrameMap::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
+       dynamic_cast<ORBKeyFrame*>(mit->first)->EraseConnection(this);
 
     for(size_t i=0; i<mvpMapPoints.size(); i++)
         if(mvpMapPoints[i])
-            mvpMapPoints[i]->EraseObservation(this);
+            mvpMapPoints[i]->rmObservation(this);
     {
         unique_lock<mutex> lock(mMutexConnections);
         unique_lock<mutex> lock1(mMutexFeatures);
@@ -587,7 +588,7 @@ bool ORBKeyFrame::IsInImage(const float &x, const float &y) const
 
 float ORBKeyFrame::ComputeSceneMedianDepth(const int q)
 {
-    vector<ORBMapPoint*> vpMapPoints;
+    MapPtVector vpMapPoints;
     cv::Mat Tcw_;
     {
         unique_lock<mutex> lock(mMutexFeatures);
@@ -605,8 +606,8 @@ float ORBKeyFrame::ComputeSceneMedianDepth(const int q)
     {
         if(mvpMapPoints[i])
         {
-            ORBMapPoint* pMP = mvpMapPoints[i];
-            cv::Mat x3Dw = pMP->GetWorldPos();
+            IMapPoint* pMP = mvpMapPoints[i];
+            cv::Mat x3Dw = pMP->getWorldPos();
             float z = Rcw2.dot(x3Dw)+zcw;
             vDepths.push_back(z);
         }

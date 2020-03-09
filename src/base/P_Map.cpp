@@ -16,5 +16,8 @@ namespace Position
         }
         mMapPts.clear();
         mMaxFmId = 0;
+        mnFrameCnt = 0;
+        mnMapPtCnt = 0;
+        mMaxFmId   = 0;
     }
 }

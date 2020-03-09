@@ -12,7 +12,7 @@ namespace Position
 
 class PnPsolver {
  public:
-  PnPsolver(const ORBFrame &F, const vector<ORBMapPoint*> &vpMapPointMatches);
+  PnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatches);
 
   ~PnPsolver();
 
@@ -86,7 +86,7 @@ class PnPsolver {
   double cws[4][3], ccs[4][3];
   double cws_determinant;
 
-  vector<ORBMapPoint*> mvpMapPointMatches;
+  MapPtVector mvpMapPointMatches;
 
   // 2D Points
   vector<cv::Point2f> mvP2D;

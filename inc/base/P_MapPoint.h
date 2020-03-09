@@ -18,20 +18,20 @@ namespace Position
     {
     protected:
          //构造
-        PMapPoint(const cv::Mat &pose, PMap *pMap);
-        PMapPoint(const cv::Point3f &pt, PMap *pMap);
+        PMapPoint(const cv::Mat &pose, PMap *pMap,u64 index);
+        PMapPoint(const cv::Point3f &pt, PMap *pMap,u64 index);
     public:
         friend class PMap;
 
-        //获取位置(世界坐标)
-        virtual const Mat getPose()const 
+           //设置世界位姿
+        virtual void setWorldPos(const cv::Mat &Pos) 
+        {
+            mPose = Pos;
+        }
+        //获取位姿
+        virtual cv::Mat getWorldPos() 
         {
             return mPose;
-        }
-        //设置位置(世界坐标)
-        virtual void setPose(const cv::Mat &pose)
-        {
-            mPose = pose;
         }
         //获取序号
         virtual u64 index()const 
@@ -39,27 +39,27 @@ namespace Position
             return mIndex;
         }
          //观察点
-        virtual int observations()const 
+        virtual int observations() 
         {
             return mObsers.size();
         }
         //添加观察者
-        virtual void addObservation(IFrame *frame,int index) 
+        virtual void addObservation(IKeyFrame *frame,int index) 
         {
             mObsers.insert(std::make_pair(frame,index));
         }
         //获取观察帧列表
-        virtual const FrameMap& getObservation()const 
+        virtual KeyFrameMap getObservations() 
         {
             return mObsers;
         }
         //移除观察者
-        virtual void rmObservation(IFrame *frame) 
+        virtual void rmObservation(IKeyFrame *frame) 
         {
             mObsers.erase(frame);
         }
         //是否在帧中
-        virtual bool isInFrame(IFrame *pFrame) 
+        virtual bool isInFrame(IKeyFrame *pFrame) 
         {
             return mObsers.find(pFrame) != mObsers.end();
         }
@@ -69,33 +69,17 @@ namespace Position
             mbBad = true;
         }
         //返回是否为坏点
-        virtual bool isBad() const
+        virtual bool isBad() 
         {
             return mbBad;
         }
         
         //返回向量
-        virtual const cv::Mat& normal()const 
+        virtual cv::Mat normal() 
         {
             return mNormal;
         }
 
-        //尺度不变性最大距离
-        virtual double maxDistance()const 
-        {
-            return mMaxDistance;
-        }
-        //尺度不变性最小距离
-        virtual double minDistance()const 
-        {
-            return mMinDistance;
-        }
-
-        //重置静态参数
-        static void resetStaticParams()
-        {
-            s_nIndexCount = 0;
-        }
     protected:
         cv::Mat     mPose;
         cv::Mat     mNormal;
@@ -107,10 +91,10 @@ namespace Position
 
         bool        mbBad;
         
-        FrameMap    mObsers;
+        KeyFrameMap    mObsers;
 
-        static u64  s_nIndexCount;
-
+        std::mutex mMutexPos;
+        std::mutex mMutexFeatures;
     private:
         DISABLEDCP(PMapPoint)
     };

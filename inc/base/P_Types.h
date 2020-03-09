@@ -205,9 +205,9 @@ typedef KeyFrameVector::iterator            KeyFrameVter;
 typedef std::set<IKeyFrame*>                KeyFmSet;
 typedef KeyFmSet::iterator                  KeyFmSetIter;
 
-typedef std::pair<IFrame*,int>              FramePair;
-typedef std::map<IFrame*,int>               FrameMap;
-typedef FrameMap::iterator                  FrameMapIter;
+typedef std::pair<IKeyFrame*,int>           KeyFramePair;
+typedef std::map<IKeyFrame*,int>            KeyFrameMap;  //<keyframe,index>
+typedef KeyFrameMap::iterator               KeyFrameMapIter;
 
 typedef std::set<IFrame*>                   FrameSet;
 typedef FrameSet::iterator                  FrameSetIter;

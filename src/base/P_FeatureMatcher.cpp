@@ -94,7 +94,7 @@ namespace Position
                 continue;
 
             //根据范围在帧中搜索
-            SzVector vIndices2 = FrameGrid::getFrameFeaturesInArea(curframe, preframe->getKeys()[i1].pt.x, preframe->getKeys()[i1].pt.y, windowsize, level1, level1);
+            SzVector vIndices2 = FrameHelper::getFrameFeaturesInArea( curframe, preframe->getKeys()[i1].pt.x, preframe->getKeys()[i1].pt.y, windowsize, level1, level1);
 
             if (vIndices2.empty())
                 continue;

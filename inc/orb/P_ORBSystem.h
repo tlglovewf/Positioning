@@ -41,10 +41,6 @@ public:
     // This resumes local mapping thread and performs SLAM again.
     void DeactivateLocalizationMode();
 
-    // Returns true if there have been a big map change (loop closure, global BA)
-    // since last call to this function
-    bool MapChanged();
-
     // Reset the system (clear map)
     void Reset();
 
@@ -78,7 +74,7 @@ public:
     // Information from most recent processed frame
     // You can call this right after TrackMonocular (or stereo or RGBD)
     int GetTrackingState();
-    std::vector<ORBMapPoint*> GetTrackedMapPoints();
+    MapPtVector GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
 private:
@@ -120,7 +116,7 @@ private:
 
     // Tracking state
     int mTrackingState;
-    std::vector<ORBMapPoint*> mTrackedMapPoints;
+    MapPtVector mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
 };

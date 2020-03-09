@@ -18,7 +18,7 @@ class Sim3Solver
 {
 public:
 
-    Sim3Solver(ORBKeyFrame* pKF1, ORBKeyFrame* pKF2, const std::vector<ORBMapPoint*> &vpMatched12, const bool bFixScale = true);
+    Sim3Solver(ORBKeyFrame* pKF1, ORBKeyFrame* pKF2, const MapPtVector &vpMatched12, const bool bFixScale = true);
 
     void SetRansacParameters(double probability = 0.99, int minInliers = 6 , int maxIterations = 300);
 
@@ -53,7 +53,7 @@ protected:
     std::vector<cv::Mat> mvX3Dc2;
     std::vector<ORBMapPoint*> mvpMapPoints1;
     std::vector<ORBMapPoint*> mvpMapPoints2;
-    std::vector<ORBMapPoint*> mvpMatches12;
+    MapPtVector mvpMatches12;
     std::vector<size_t> mvnIndices1;
     std::vector<size_t> mvSigmaSquare1;
     std::vector<size_t> mvSigmaSquare2;

@@ -18,7 +18,9 @@ namespace Position
     class PMap : public IMap
     {
     public:
-        PMap():mpCurrent(NULL){}
+        PMap():mpCurrent(NULL),mMaxFmId(0),mnFrameCnt(0),mnMapPtCnt(0)
+        {
+        }
         ~PMap()
         {
             clear();
@@ -33,13 +35,13 @@ namespace Position
         //创建地图点
         IMapPoint* createMapPoint(const cv::Mat &pose)
         {
-            IMapPoint *pPt = new PMapPoint(pose,this);
+            IMapPoint *pPt = new PMapPoint(pose,this,mnMapPtCnt++);
             addMapPoint(pPt);
             return pPt;
         }
         IMapPoint* createMapPoint(const cv::Point3f &pose)
         {
-            IMapPoint *pPt = new PMapPoint(pose,this);
+            IMapPoint *pPt = new PMapPoint(pose,this,mnMapPtCnt++);
             addMapPoint(pPt);
             return pPt;
         }
@@ -100,11 +102,23 @@ namespace Position
         {
             return mMaxFmId;
         }
+         //获取帧，点计数
+        virtual u64 frameCount() 
+        {
+            return mnFrameCnt++;
+        }
+        virtual u64 mapptCount() 
+        {
+            return mnMapPtCnt++;
+        }
     protected:
         MapPtSet    mMapPts;
         KeyFmSet    mMapFms;
         IKeyFrame  *mpCurrent;
         u64         mMaxFmId;
+
+        u64         mnFrameCnt;
+        u64         mnMapPtCnt;
     private:
         DISABLEDCP(PMap)
     };

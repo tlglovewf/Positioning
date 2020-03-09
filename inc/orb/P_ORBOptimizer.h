@@ -35,7 +35,7 @@ public:
                                        const bool &bFixScale);
 
     // if bFixScale is true, optimize SE3 (stereo,rgbd), Sim3 otherwise (mono)
-    static int OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, std::vector<ORBMapPoint *> &vpMatches1,
+    static int OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &vpMatches1,
                             g2o::Sim3 &g2oS12, const float th2, const bool bFixScale);
 };
 

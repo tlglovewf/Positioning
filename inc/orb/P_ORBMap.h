@@ -27,8 +27,6 @@ public:
     void EraseMapPoint(ORBMapPoint* pMP);
     void EraseKeyFrame(ORBKeyFrame* pKF);
     void SetReferenceMapPoints(const std::vector<ORBMapPoint*> &vpMPs);
-    void InformNewBigChange();
-    int GetLastBigChangeIdx();
 
     std::vector<ORBKeyFrame*> GetAllKeyFrames();
     std::vector<ORBMapPoint*> GetAllMapPoints();
@@ -55,9 +53,6 @@ protected:
     std::vector<ORBMapPoint*> mvpReferenceMapPoints;
 
     long unsigned int mnMaxKFid;
-
-    // Index related to a big change in the map (loop closure, global BA)
-    int mnBigChangeIdx;
 
     std::mutex mMutexMap;
 };

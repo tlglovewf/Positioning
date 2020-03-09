@@ -9,8 +9,7 @@
 #include "P_ORBVocabulary.h"
 #include "P_ORBKeyFrame.h"
 #include "P_ORBFeature.h"
-
-#include <opencv2/opencv.hpp>
+#include "P_Interface.h"
 
 namespace Position
 {
@@ -20,7 +19,7 @@ namespace Position
 class ORBMapPoint;
 class ORBKeyFrame;
 
-class ORBFrame
+class ORBFrame : public IFrame
 {
 public:
     ORBFrame();
@@ -31,22 +30,46 @@ public:
     // Constructor for Monocular cameras.
     ORBFrame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef);
 
+
+    //帧序号
+    virtual u64 index()const 
+    {
+        return mnId;
+    }
+    //获取帧数据
+    virtual FrameData getData()const
+    {
+        assert(NULL);
+    }
+    //获取关键点
+    virtual const KeyPtVector& getKeys()const {return mvKeysUn;}
+    //获取特征点数量
+    virtual int getKeySize()const {return mvKeysUn.size();}
+    //获取描述子
+    virtual const Mat& getDescript()const {return mDescriptors;}
+
+    //获取位置(R|t 矩阵)
+    virtual Mat getPose() 
+    {
+        return mTcw;
+    }
+    //设置位置(R|t 矩阵)
+    virtual void setPose(const cv::Mat &pose);
+    //获取中心点
+    virtual const Mat& getCameraCenter()const 
+    {
+        return mOw;
+    }
+
     // Extract ORB on the image. 0 for left image and 1 for right image.
     void ExtractORB(int flag, const cv::Mat &im);
 
     // Compute Bag of Words representation.
     void ComputeBoW();
 
-    // Set the camera pose.
-    void SetPose(cv::Mat Tcw);
-
     // Computes rotation, translation and camera center matrices from the camera pose.
     void UpdatePoseMatrices();
 
-    // Returns the camera center.
-    inline cv::Mat GetCameraCenter(){
-        return mOw.clone();
-    }
 
     // Returns inverse of rotation
     inline cv::Mat GetRotationInverse(){
@@ -91,8 +114,8 @@ public:
     // Vector of keypoints (original for visualization) and undistorted (actually used by the system).
     // In the stereo case, mvKeysUn is redundant as images must be rectified.
     // In the RGB-D case, RGB images can be distorted.
-    std::vector<cv::KeyPoint> mvKeysUn;
-    std::vector<cv::KeyPoint> mvKeys;
+    KeyPtVector mvKeysUn;
+    KeyPtVector mvKeys;
 
     // Bag of Words Vector structures.
     DBoW2::BowVector mBowVec;
@@ -102,7 +125,7 @@ public:
     cv::Mat mDescriptors;
 
     // MapPoints associated to keypoints, NULL pointer if no association.
-    std::vector<ORBMapPoint*> mvpMapPoints;
+    MapPtVector mvpMapPoints;
 
     // Flag to identify outlier associations.
     std::vector<bool> mvbOutlier;
@@ -116,8 +139,8 @@ public:
     cv::Mat mTcw;
 
     // Current and Next Frame id.
-    static long unsigned int nNextId;
-    long unsigned int mnId;
+    static u64 nNextId;
+    u64 mnId;
 
     // Reference Keyframe.
     ORBKeyFrame* mpReferenceKF;

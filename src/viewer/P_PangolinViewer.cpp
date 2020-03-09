@@ -249,7 +249,7 @@ namespace Position
 
         for(size_t i = 0; i < vpKFs.size(); ++i)
         {
-            IFrame *pKF = vpKFs[i];
+            IKeyFrame *pKF = vpKFs[i];
             cv::Mat Twc = pKF->getPose().clone();
             Twc = Twc.inv().t();
             // cout << i << " " << Twc << endl;
@@ -302,7 +302,7 @@ namespace Position
             if(mpts[i]->isBad())
                 continue;
             
-            cv::Mat pos = mpts[i]->getPose();
+            cv::Mat pos = mpts[i]->getWorldPos();
             glVertex3f(pos.at<MATTYPE>(0),
                        pos.at<MATTYPE>(1),
                        pos.at<MATTYPE>(2));

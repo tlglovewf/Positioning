@@ -135,8 +135,8 @@ protected:
 
     //Local Map
     ORBKeyFrame* mpReferenceKF;
-    std::vector<ORBKeyFrame*> mvpLocalKeyFrames;
-    std::vector<ORBMapPoint*> mvpLocalMapPoints;
+    KeyFrameVector    mvpLocalKeyFrames;
+    MapPtVector       mvpLocalMapPoints;
 
     //Map
     Map* mpMap;

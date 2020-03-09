@@ -151,7 +151,7 @@ void Tracking::Track()
     mLastProcessedState=mState;
 
     // Get Map Mutex -> Map cannot be changed
-    unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
+    // unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
 
     if(mState==NOT_INITIALIZED)
     {
@@ -225,7 +225,7 @@ void Tracking::Track()
 
                     bool bOKMM = false;
                     bool bOKReloc = false;
-                    vector<ORBMapPoint*> vpMPsMM;
+                    MapPtVector vpMPsMM;
                     vector<bool> vbOutMM;
                     cv::Mat TcwMM;
                     if(!mVelocity.empty())
@@ -239,7 +239,7 @@ void Tracking::Track()
 
                     if(bOKMM && !bOKReloc)
                     {
-                        mCurrentFrame.SetPose(TcwMM);
+                        mCurrentFrame.setPose(TcwMM);
                         mCurrentFrame.mvpMapPoints = vpMPsMM;
                         mCurrentFrame.mvbOutlier = vbOutMM;
 
@@ -249,7 +249,7 @@ void Tracking::Track()
                             {
                                 if(mCurrentFrame.mvpMapPoints[i] && !mCurrentFrame.mvbOutlier[i])
                                 {
-                                    mCurrentFrame.mvpMapPoints[i]->IncreaseFound();
+                                    dynamic_cast<ORBMapPoint*>(mCurrentFrame.mvpMapPoints[i])->IncreaseFound();
                                 }
                             }
                         }
@@ -294,7 +294,7 @@ void Tracking::Track()
             {
                 cv::Mat LastTwc = cv::Mat::eye(4,4,CV_32F);
                 mLastFrame.GetRotationInverse().copyTo(LastTwc.rowRange(0,3).colRange(0,3));
-                mLastFrame.GetCameraCenter().copyTo(LastTwc.rowRange(0,3).col(3));
+                mLastFrame.getCameraCenter().copyTo(LastTwc.rowRange(0,3).col(3));
                 mVelocity = mCurrentFrame.mTcw*LastTwc;
             }
             else
@@ -303,9 +303,9 @@ void Tracking::Track()
             // Clean VO matches
             for(int i=0; i<mCurrentFrame.N; i++)
             {
-                ORBMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
+                IMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
                 if(pMP)
-                    if(pMP->Observations()<1)
+                    if(pMP->observations()<1)
                     {
                         mCurrentFrame.mvbOutlier[i] = false;
                         mCurrentFrame.mvpMapPoints[i]=static_cast<ORBMapPoint*>(NULL);
@@ -436,11 +436,11 @@ void Tracking::MonocularInitialization()
             }
 
             // Set ORBFrame Poses
-            mInitialFrame.SetPose(cv::Mat::eye(4,4,CV_32F));
+            mInitialFrame.setPose(cv::Mat::eye(4,4,CV_32F));
             cv::Mat Tcw = cv::Mat::eye(4,4,CV_32F);
             Rcw.copyTo(Tcw.rowRange(0,3).colRange(0,3));
             tcw.copyTo(Tcw.rowRange(0,3).col(3));
-            mCurrentFrame.SetPose(Tcw);
+            mCurrentFrame.setPose(Tcw);
 
             CreateInitialMapMonocular();
         }
@@ -472,11 +472,11 @@ void Tracking::CreateInitialMapMonocular()
 
         ORBMapPoint* pMP = new ORBMapPoint(worldPos,pKFcur,mpMap);
 
-        pKFini->AddMapPoint(pMP,i);
-        pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
+        pKFini->addMapPoint(pMP,i);
+        pKFcur->addMapPoint(pMP,mvIniMatches[i]);
 
-        pMP->AddObservation(pKFini,i);
-        pMP->AddObservation(pKFcur,mvIniMatches[i]);
+        pMP->addObservation(pKFini,i);
+        pMP->addObservation(pKFcur,mvIniMatches[i]);
         //筛选关联特征点最佳的描述子(与其他描述子的距离具有最小中距离)
         pMP->ComputeDistinctiveDescriptors();
         pMP->UpdateNormalAndDepth();
@@ -510,37 +510,37 @@ void Tracking::CreateInitialMapMonocular()
     }
 
     // Scale initial baseline
-    cv::Mat Tc2w = pKFcur->GetPose();
+    cv::Mat Tc2w = pKFcur->getPose();
     Tc2w.col(3).rowRange(0,3) = Tc2w.col(3).rowRange(0,3)*invMedianDepth;
-    pKFcur->SetPose(Tc2w);
+    pKFcur->setPose(Tc2w);
 
     // Scale points
-    vector<ORBMapPoint*> vpAllMapPoints = pKFini->GetMapPointMatches();
+    MapPtVector vpAllMapPoints = pKFini->GetMapPointMatches();
     for(size_t iMP=0; iMP<vpAllMapPoints.size(); iMP++)
     {
         if(vpAllMapPoints[iMP])
         {
-            ORBMapPoint* pMP = vpAllMapPoints[iMP];
-            pMP->SetWorldPos(pMP->GetWorldPos()*invMedianDepth);
+            IMapPoint* pMP = vpAllMapPoints[iMP];
+            pMP->setWorldPos(pMP->getWorldPos()*invMedianDepth);
         }
     }
 
     mpLocalMapper->InsertKeyFrame(pKFini);
     mpLocalMapper->InsertKeyFrame(pKFcur);
 
-    mCurrentFrame.SetPose(pKFcur->GetPose());
+    mCurrentFrame.setPose(pKFcur->getPose());
     mnLastKeyFrameId=mCurrentFrame.mnId;
     mpLastKeyFrame = pKFcur;
 
     mvpLocalKeyFrames.push_back(pKFcur);
     mvpLocalKeyFrames.push_back(pKFini);
-    mvpLocalMapPoints=mpMap->GetAllMapPoints();
+    // mvpLocalMapPoints=mpMap->GetAllMapPoints();
     mpReferenceKF = pKFcur;
     mCurrentFrame.mpReferenceKF = pKFcur;
 
     mLastFrame = ORBFrame(mCurrentFrame);
 
-    mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
+    // mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
 
     mpMap->mvpKeyFrameOrigins.push_back(pKFini);
 
@@ -551,7 +551,7 @@ void Tracking::CheckReplacedInLastFrame()
 {
     for(int i =0; i<mLastFrame.N; i++)
     {
-        ORBMapPoint* pMP = mLastFrame.mvpMapPoints[i];
+        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(mLastFrame.mvpMapPoints[i]);
 
         if(pMP)
         {
@@ -573,7 +573,7 @@ bool Tracking::TrackReferenceKeyFrame()
     // We perform first an ORB matching with the reference keyframe
     // If enough matches are found we setup a PnP solver
     ORBmatcher matcher(0.7,true);
-    vector<ORBMapPoint*> vpMapPointMatches;
+    MapPtVector vpMapPointMatches;
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
 
@@ -581,7 +581,7 @@ bool Tracking::TrackReferenceKeyFrame()
         return false;
 
     mCurrentFrame.mvpMapPoints = vpMapPointMatches;
-    mCurrentFrame.SetPose(mLastFrame.mTcw);
+    mCurrentFrame.setPose(mLastFrame.mTcw);
 
     Optimizer::PoseOptimization(&mCurrentFrame);
 
@@ -593,7 +593,7 @@ bool Tracking::TrackReferenceKeyFrame()
         {
             if(mCurrentFrame.mvbOutlier[i])
             {
-                ORBMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
+                ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(mCurrentFrame.mvpMapPoints[i]);
 
                 mCurrentFrame.mvpMapPoints[i]=static_cast<ORBMapPoint*>(NULL);
                 mCurrentFrame.mvbOutlier[i]=false;
@@ -601,7 +601,7 @@ bool Tracking::TrackReferenceKeyFrame()
                 pMP->mnLastFrameSeen = mCurrentFrame.mnId;
                 nmatches--;
             }
-            else if(mCurrentFrame.mvpMapPoints[i]->Observations()>0)
+            else if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
                 nmatchesMap++;
         }
     }
@@ -615,7 +615,7 @@ void Tracking::UpdateLastFrame()
     ORBKeyFrame* pRef = mLastFrame.mpReferenceKF;
     cv::Mat Tlr = mlRelativeFramePoses.back();
 
-    mLastFrame.SetPose(Tlr*pRef->GetPose());
+    mLastFrame.setPose(Tlr*pRef->getPose());
 }
 
 bool Tracking::TrackWithMotionModel()
@@ -626,7 +626,7 @@ bool Tracking::TrackWithMotionModel()
     // Create "visual odometry" points if in Localization Mode
     UpdateLastFrame();
 
-    mCurrentFrame.SetPose(mVelocity*mLastFrame.mTcw);
+    mCurrentFrame.setPose(mVelocity*mLastFrame.mTcw);
 
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<ORBMapPoint*>(NULL));
 
@@ -656,7 +656,7 @@ bool Tracking::TrackWithMotionModel()
         {
             if(mCurrentFrame.mvbOutlier[i])
             {
-                ORBMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
+                ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(mCurrentFrame.mvpMapPoints[i]);
 
                 mCurrentFrame.mvpMapPoints[i]=static_cast<ORBMapPoint*>(NULL);
                 mCurrentFrame.mvbOutlier[i]=false;
@@ -664,7 +664,7 @@ bool Tracking::TrackWithMotionModel()
                 pMP->mnLastFrameSeen = mCurrentFrame.mnId;
                 nmatches--;
             }
-            else if(mCurrentFrame.mvpMapPoints[i]->Observations()>0)
+            else if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
                 nmatchesMap++;
         }
     }    
@@ -698,10 +698,10 @@ bool Tracking::TrackLocalMap()
         {
             if(!mCurrentFrame.mvbOutlier[i])
             {
-                mCurrentFrame.mvpMapPoints[i]->IncreaseFound();
+                dynamic_cast<ORBMapPoint*>(mCurrentFrame.mvpMapPoints[i])->IncreaseFound();
                 if(!mbOnlyTracking)
                 {
-                    if(mCurrentFrame.mvpMapPoints[i]->Observations()>0)
+                    if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
                         mnMatchesInliers++;
                 }
                 else
@@ -810,9 +810,9 @@ void Tracking::CreateNewKeyFrame()
 void Tracking::SearchLocalPoints()
 {
     // Do not search map points already matched
-    for(vector<ORBMapPoint*>::iterator vit=mCurrentFrame.mvpMapPoints.begin(), vend=mCurrentFrame.mvpMapPoints.end(); vit!=vend; vit++)
+    for(MapPtVIter vit=mCurrentFrame.mvpMapPoints.begin(), vend=mCurrentFrame.mvpMapPoints.end(); vit!=vend; vit++)
     {
-        ORBMapPoint* pMP = *vit;
+        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(*vit);
         if(pMP)
         {
             if(pMP->isBad())
@@ -831,9 +831,9 @@ void Tracking::SearchLocalPoints()
     int nToMatch=0;
 
     // Project points in frame and check its visibility
-    for(vector<ORBMapPoint*>::iterator vit=mvpLocalMapPoints.begin(), vend=mvpLocalMapPoints.end(); vit!=vend; vit++)
+    for(MapPtVIter vit=mvpLocalMapPoints.begin(), vend=mvpLocalMapPoints.end(); vit!=vend; vit++)
     {
-        ORBMapPoint* pMP = *vit;
+        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(*vit);
         if(pMP->mnLastFrameSeen == mCurrentFrame.mnId)
             continue;
         if(pMP->isBad())
@@ -859,8 +859,7 @@ void Tracking::SearchLocalPoints()
 
 void Tracking::UpdateLocalMap()
 {
-    // This is for visualization
-    mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
+    // mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
 
     // Update
     UpdateLocalKeyFrames();
@@ -871,14 +870,14 @@ void Tracking::UpdateLocalPoints()
 {
     mvpLocalMapPoints.clear();
 
-    for(vector<ORBKeyFrame*>::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
+    for(KeyFrameVector::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
     {
-        ORBKeyFrame* pKF = *itKF;
-        const vector<ORBMapPoint*> vpMPs = pKF->GetMapPointMatches();
+        ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(*itKF);
+        const MapPtVector vpMPs = pKF->GetMapPointMatches();
 
-        for(vector<ORBMapPoint*>::const_iterator itMP=vpMPs.begin(), itEndMP=vpMPs.end(); itMP!=itEndMP; itMP++)
+        for(MapPtVector::const_iterator itMP=vpMPs.begin(), itEndMP=vpMPs.end(); itMP!=itEndMP; itMP++)
         {
-            ORBMapPoint* pMP = *itMP;
+            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(*itMP);
             if(!pMP)
                 continue;
             if(pMP->mnTrackReferenceForFrame==mCurrentFrame.mnId)
@@ -896,16 +895,16 @@ void Tracking::UpdateLocalPoints()
 void Tracking::UpdateLocalKeyFrames()
 {
     // Each map point vote for the keyframes in which it has been observed
-    map<ORBKeyFrame*,int> keyframeCounter;
+    KeyFrameMap keyframeCounter;
     for(int i=0; i<mCurrentFrame.N; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
         {
-            ORBMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
+            IMapPoint* pMP = mCurrentFrame.mvpMapPoints[i];
             if(!pMP->isBad())
             {
-                const map<ORBKeyFrame*,size_t> observations = pMP->GetObservations();
-                for(map<ORBKeyFrame*,size_t>::const_iterator it=observations.begin(), itend=observations.end(); it!=itend; it++)
+                const KeyFrameMap observations = pMP->getObservations();
+                for(KeyFrameMap::const_iterator it=observations.begin(), itend=observations.end(); it!=itend; it++)
                     keyframeCounter[it->first]++;
             }
             else
@@ -925,9 +924,9 @@ void Tracking::UpdateLocalKeyFrames()
     mvpLocalKeyFrames.reserve(3*keyframeCounter.size());
 
     // All keyframes that observe a map point are included in the local map. Also check which keyframe shares most points
-    for(map<ORBKeyFrame*,int>::const_iterator it=keyframeCounter.begin(), itEnd=keyframeCounter.end(); it!=itEnd; it++)
+    for(KeyFrameMap::const_iterator it=keyframeCounter.begin(), itEnd=keyframeCounter.end(); it!=itEnd; it++)
     {
-        ORBKeyFrame* pKF = it->first;
+        ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(it->first);
 
         if(pKF->isBad())
             continue;
@@ -938,19 +937,19 @@ void Tracking::UpdateLocalKeyFrames()
             pKFmax=pKF;
         }
 
-        mvpLocalKeyFrames.push_back(it->first);
+        mvpLocalKeyFrames.push_back(dynamic_cast<ORBKeyFrame*>(it->first));
         pKF->mnTrackReferenceForFrame = mCurrentFrame.mnId;
     }
 
 
     // Include also some not-already-included keyframes that are neighbors to already-included keyframes
-    for(vector<ORBKeyFrame*>::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
+    for(KeyFrameVector::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
     {
         // Limit the number of keyframes
         if(mvpLocalKeyFrames.size()>80)
             break;
 
-        ORBKeyFrame* pKF = *itKF;
+        ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(*itKF);
 
         const vector<ORBKeyFrame*> vNeighs = pKF->GetBestCovisibilityKeyFrames(10);
 
@@ -1024,7 +1023,7 @@ bool Tracking::Relocalization()
     vector<PnPsolver*> vpPnPsolvers;
     vpPnPsolvers.resize(nKFs);
 
-    vector<vector<ORBMapPoint*> > vvpMapPointMatches;
+    vector< MapPtVector > vvpMapPointMatches;
     vvpMapPointMatches.resize(nKFs);
 
     vector<bool> vbDiscarded;
@@ -1087,7 +1086,7 @@ bool Tracking::Relocalization()
             {
                 Tcw.copyTo(mCurrentFrame.mTcw);
 
-                set<ORBMapPoint*> sFound;
+                MapPtSet sFound;
 
                 const int np = vbInliers.size();
 
@@ -1187,7 +1186,7 @@ void Tracking::Reset()
     cout << " done" << endl;
 
     // Clear Map (this erase MapPoints and KeyFrames)
-    mpMap->clear();
+    // mpMap->clear();
 
     ORBKeyFrame::nNextId = 0;
     ORBFrame::nNextId = 0;

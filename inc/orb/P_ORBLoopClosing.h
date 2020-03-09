@@ -108,8 +108,8 @@ protected:
     std::vector<ConsistentGroup> mvConsistentGroups;
     std::vector<ORBKeyFrame*> mvpEnoughConsistentCandidates;
     std::vector<ORBKeyFrame*> mvpCurrentConnectedKFs;
-    std::vector<ORBMapPoint*> mvpCurrentMatchedPoints;
-    std::vector<ORBMapPoint*> mvpLoopMapPoints;
+    MapPtVector mvpCurrentMatchedPoints;
+    MapPtVector mvpLoopMapPoints;
     cv::Mat mScw;
     g2o::Sim3 mg2oScw;
 
@@ -126,7 +126,7 @@ protected:
     bool mbFixScale;
 
 
-    bool mnFullBAIdx;
+    int mnFullBAIdx;
 };
 
 }

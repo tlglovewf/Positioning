@@ -35,9 +35,9 @@ namespace Position
         }
 
         // 获取相机参数 default(0)  left    1 right 
-        virtual CameraParam getCamera(int index = 0) 
+        virtual const CameraParam& getCamera(int index = 0)const
         {
-            return mCamera;
+                assert(NULL);
         }
 
         //根据图像名取时间(天秒)
@@ -57,7 +57,6 @@ namespace Position
         std::unique_ptr<IChecker>   mpChecker;
 
         FrameDataVector             mFrameDatas;
-        CameraParam                 mCamera;
     };
 
     //维亚数据处理
@@ -71,7 +70,13 @@ namespace Position
         //根据图像名取时间(天秒)
         virtual double getTimeFromName(const std::string &name);
 
+          // 获取相机参数 default(0)  left    1 right 
+        virtual const CameraParam& getCamera(int index = 0)const
+        {
+            return mCamera;
+        }
     protected:
+        CameraParam mCamera;
     };
 
 

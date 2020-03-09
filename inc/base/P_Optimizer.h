@@ -17,7 +17,7 @@ namespace Position
     {
     public:
         //单张位姿优化
-        virtual int frameOptimization(IFrame *pFrame, const FloatVector &sigma2) 
+        virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2) 
         {
             assert(NULL);
         }
@@ -57,7 +57,7 @@ namespace Position
     {
     public:
         //单张位姿优化
-        virtual int frameOptimization(IFrame *pFrame, const FloatVector &sigma2);
+        virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2);
 
         //ba 优化
         virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,

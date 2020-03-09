@@ -6,7 +6,7 @@
 #include <opencv2/core/core.hpp>
 
 #include "P_ORBKeyFrame.h"
-#include "p_ORBmatcher.h"
+#include "P_ORBmatcher.h"
 
 #include "Thirdparty/DBoW2/DUtils/Random.h"
 
@@ -14,13 +14,13 @@ namespace Position
 {
 
 
-Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const vector<ORBMapPoint *> &vpMatched12, const bool bFixScale):
+Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &vpMatched12, const bool bFixScale):
     mnIterations(0), mnBestInliers(0), mbFixScale(bFixScale)
 {
     mpKF1 = pKF1;
     mpKF2 = pKF2;
 
-    vector<ORBMapPoint*> vpKeyFrameMP1 = pKF1->GetMapPointMatches();
+    MapPtVector vpKeyFrameMP1 = pKF1->GetMapPointMatches();
 
     mN1 = vpMatched12.size();
 
@@ -43,8 +43,8 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const vector<ORBMap
     {
         if(vpMatched12[i1])
         {
-            ORBMapPoint* pMP1 = vpKeyFrameMP1[i1];
-            ORBMapPoint* pMP2 = vpMatched12[i1];
+            ORBMapPoint* pMP1 = dynamic_cast<ORBMapPoint*>(vpKeyFrameMP1[i1]);
+            ORBMapPoint* pMP2 = dynamic_cast<ORBMapPoint*>(vpMatched12[i1]);
 
             if(!pMP1)
                 continue;
@@ -71,10 +71,10 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const vector<ORBMap
             mvpMapPoints2.push_back(pMP2);
             mvnIndices1.push_back(i1);
 
-            cv::Mat X3D1w = pMP1->GetWorldPos();
+            cv::Mat X3D1w = pMP1->getWorldPos();
             mvX3Dc1.push_back(Rcw1*X3D1w+tcw1);
 
-            cv::Mat X3D2w = pMP2->GetWorldPos();
+            cv::Mat X3D2w = pMP2->getWorldPos();
             mvX3Dc2.push_back(Rcw2*X3D2w+tcw2);
 
             mvAllIndices.push_back(idx);

@@ -221,7 +221,7 @@ bool LoopClosing::ComputeSim3()
     vector<Sim3Solver*> vpSim3Solvers;
     vpSim3Solvers.resize(nInitialCandidates);
 
-    vector<vector<ORBMapPoint*> > vvpMapPointMatches;
+    vector< MapPtVector > vvpMapPointMatches;
     vvpMapPointMatches.resize(nInitialCandidates);
 
     vector<bool> vbDiscarded;
@@ -290,7 +290,7 @@ bool LoopClosing::ComputeSim3()
             // If RANSAC returns a Sim3, perform a guided matching and optimize with all correspondences
             if(!Scm.empty())
             {
-                vector<ORBMapPoint*> vpMapPointMatches(vvpMapPointMatches[i].size(), static_cast<ORBMapPoint*>(NULL));
+                MapPtVector vpMapPointMatches(vvpMapPointMatches[i].size(), NULL);
                 for(size_t j=0, jend=vbInliers.size(); j<jend; j++)
                 {
                     if(vbInliers[j])
@@ -336,10 +336,10 @@ bool LoopClosing::ComputeSim3()
     for(vector<ORBKeyFrame*>::iterator vit=vpLoopConnectedKFs.begin(); vit!=vpLoopConnectedKFs.end(); vit++)
     {
         ORBKeyFrame* pKF = *vit;
-        vector<ORBMapPoint*> vpMapPoints = pKF->GetMapPointMatches();
+        MapPtVector vpMapPoints = pKF->GetMapPointMatches();
         for(size_t i=0, iend=vpMapPoints.size(); i<iend; i++)
         {
-            ORBMapPoint* pMP = vpMapPoints[i];
+            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints[i]);
             if(pMP)
             {
                 if(!pMP->isBad() && pMP->mnLoopPointForKF!=mpCurrentKF->mnId)
@@ -428,7 +428,7 @@ void LoopClosing::CorrectLoop()
         {
             ORBKeyFrame* pKFi = *vit;
 
-            cv::Mat Tiw = pKFi->GetPose();
+            cv::Mat Tiw = pKFi->getPose();
 
             if(pKFi!=mpCurrentKF)
             {
@@ -457,10 +457,10 @@ void LoopClosing::CorrectLoop()
 
             g2o::Sim3 g2oSiw =NonCorrectedSim3[pKFi];
 
-            vector<ORBMapPoint*> vpMPsi = pKFi->GetMapPointMatches();
+            MapPtVector vpMPsi = pKFi->GetMapPointMatches();
             for(size_t iMP=0, endMPi = vpMPsi.size(); iMP<endMPi; iMP++)
             {
-                ORBMapPoint* pMPi = vpMPsi[iMP];
+                ORBMapPoint* pMPi =  dynamic_cast<ORBMapPoint*>(vpMPsi[iMP]);
                 if(!pMPi)
                     continue;
                 if(pMPi->isBad())
@@ -469,12 +469,12 @@ void LoopClosing::CorrectLoop()
                     continue;
 
                 // Project with non-corrected pose and project back with corrected pose
-                cv::Mat P3Dw = pMPi->GetWorldPos();
+                cv::Mat P3Dw = pMPi->getWorldPos();
                 Eigen::Matrix<double,3,1> eigP3Dw = Converter::toVector3d(P3Dw);
                 Eigen::Matrix<double,3,1> eigCorrectedP3Dw = g2oCorrectedSwi.map(g2oSiw.map(eigP3Dw));
 
                 cv::Mat cvCorrectedP3Dw = Converter::toCvMat(eigCorrectedP3Dw);
-                pMPi->SetWorldPos(cvCorrectedP3Dw);
+                pMPi->setWorldPos(cvCorrectedP3Dw);
                 pMPi->mnCorrectedByKF = mpCurrentKF->mnId;
                 pMPi->mnCorrectedReference = pKFi->mnId;
                 pMPi->UpdateNormalAndDepth();
@@ -489,7 +489,7 @@ void LoopClosing::CorrectLoop()
 
             cv::Mat correctedTiw = Converter::toCvSE3(eigR,eigt);
 
-            pKFi->SetPose(correctedTiw);
+            pKFi->setPose(correctedTiw);
 
             // Make sure connections are updated
             pKFi->UpdateConnections();
@@ -501,14 +501,14 @@ void LoopClosing::CorrectLoop()
         {
             if(mvpCurrentMatchedPoints[i])
             {
-                ORBMapPoint* pLoopMP = mvpCurrentMatchedPoints[i];
+                ORBMapPoint* pLoopMP = dynamic_cast<ORBMapPoint*>(mvpCurrentMatchedPoints[i]);
                 ORBMapPoint* pCurMP = mpCurrentKF->GetMapPoint(i);
                 if(pCurMP)
                     pCurMP->Replace(pLoopMP);
                 else
                 {
-                    mpCurrentKF->AddMapPoint(pLoopMP,i);
-                    pLoopMP->AddObservation(mpCurrentKF,i);
+                    mpCurrentKF->addMapPoint(pLoopMP,i);
+                    pLoopMP->addObservation(mpCurrentKF,i);
                     pLoopMP->ComputeDistinctiveDescriptors();
                 }
             }
@@ -546,8 +546,6 @@ void LoopClosing::CorrectLoop()
     // Optimize graph
     Optimizer::OptimizeEssentialGraph(mpMap, mpMatchedKF, mpCurrentKF, NonCorrectedSim3, CorrectedSim3, LoopConnections, mbFixScale);
 
-    mpMap->InformNewBigChange();
-
     // Add loop edge
     mpMatchedKF->AddLoopEdge(mpCurrentKF);
     mpCurrentKF->AddLoopEdge(mpMatchedKF);
@@ -575,7 +573,7 @@ void LoopClosing::SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap)
         g2o::Sim3 g2oScw = mit->second;
         cv::Mat cvScw = Converter::toCvMat(g2oScw);
 
-        vector<ORBMapPoint*> vpReplacePoints(mvpLoopMapPoints.size(),static_cast<ORBMapPoint*>(NULL));
+        MapPtVector vpReplacePoints(mvpLoopMapPoints.size(),NULL);
         matcher.Fuse(pKF,cvScw,mvpLoopMapPoints,4,vpReplacePoints);
 
         // Get Map Mutex
@@ -583,10 +581,10 @@ void LoopClosing::SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap)
         const int nLP = mvpLoopMapPoints.size();
         for(int i=0; i<nLP;i++)
         {
-            ORBMapPoint* pRep = vpReplacePoints[i];
+            ORBMapPoint* pRep = dynamic_cast<ORBMapPoint*>(vpReplacePoints[i]);
             if(pRep)
             {
-                pRep->Replace(mvpLoopMapPoints[i]);
+                pRep->Replace( dynamic_cast<ORBMapPoint*>(mvpLoopMapPoints[i]));
             }
         }
     }
@@ -666,7 +664,7 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
                     ORBKeyFrame* pChild = *sit;
                     if(pChild->mnBAGlobalForKF!=nLoopKF)
                     {
-                        cv::Mat Tchildc = pChild->GetPose()*Twc;
+                        cv::Mat Tchildc = pChild->getPose() * Twc;
                         pChild->mTcwGBA = Tchildc*pKF->mTcwGBA;//*Tcorc*pKF->mTcwGBA;
                         pChild->mnBAGlobalForKF=nLoopKF;
 
@@ -674,8 +672,8 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
                     lpKFtoCheck.push_back(pChild);
                 }
 
-                pKF->mTcwBefGBA = pKF->GetPose();
-                pKF->SetPose(pKF->mTcwGBA);
+                pKF->mTcwBefGBA = pKF->getPose();
+                pKF->setPose(pKF->mTcwGBA);
                 lpKFtoCheck.pop_front();
             }
 
@@ -692,7 +690,7 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
                 if(pMP->mnBAGlobalForKF==nLoopKF)
                 {
                     // If optimized by Global BA, just update
-                    pMP->SetWorldPos(pMP->mPosGBA);
+                    pMP->setWorldPos(pMP->mPosGBA);
                 }
                 else
                 {
@@ -705,18 +703,16 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
                     // Map to non-corrected camera
                     cv::Mat Rcw = pRefKF->mTcwBefGBA.rowRange(0,3).colRange(0,3);
                     cv::Mat tcw = pRefKF->mTcwBefGBA.rowRange(0,3).col(3);
-                    cv::Mat Xc = Rcw*pMP->GetWorldPos()+tcw;
+                    cv::Mat Xc = Rcw*pMP->getWorldPos()+tcw;
 
                     // Backproject using corrected camera
                     cv::Mat Twc = pRefKF->GetPoseInverse();
                     cv::Mat Rwc = Twc.rowRange(0,3).colRange(0,3);
                     cv::Mat twc = Twc.rowRange(0,3).col(3);
 
-                    pMP->SetWorldPos(Rwc*Xc+twc);
+                    pMP->setWorldPos(Rwc*Xc+twc);
                 }
             }            
-
-            mpMap->InformNewBigChange();
 
             mpLocalMapper->Release();
 

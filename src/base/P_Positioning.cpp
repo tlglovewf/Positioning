@@ -196,8 +196,8 @@ namespace Position
         t.copyTo(P2.rowRange(0,3).col(3));
         P2 = mCamera.K * P2;
         // calculate world trans matrix
-        Mat trans = PUtils::CalcTransBLH(frame->getData()._pos,
-                                         pnxt->getData()._pos);
+        Mat trans = PUtils::CalcTransBLH(IFRAME(frame)->getData()._pos,
+                                         IFRAME(pnxt)->getData()._pos);
         //遍历目标
         for(TargetData &data : preTargets)
         {
@@ -211,7 +211,7 @@ namespace Position
             }
             else
             {//基于物体包围盒匹配失败,开始极线搜索
-                Point2f dpt = eplineMatch(epline,frame->getData(),pnxt->getData(),ct);
+                Point2f dpt = eplineMatch(epline,IFRAME(frame)->getData(),IFRAME(pnxt)->getData(),ct);
                 if(dpt.x < 0)
                 {
                     PROMT_V("not found. ",data._type);

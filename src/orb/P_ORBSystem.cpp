@@ -135,19 +135,6 @@ void System::DeactivateLocalizationMode()
     mbDeactivateLocalizationMode = true;
 }
 
-bool System::MapChanged()
-{
-    static int n=0;
-    int curn = mpMap->GetLastBigChangeIdx();
-    if(n<curn)
-    {
-        n=curn;
-        return true;
-    }
-    else
-        return false;
-}
-
 void System::Reset()
 {
     unique_lock<mutex> lock(mMutexReset);
@@ -208,7 +195,7 @@ void System::SaveTrajectoryTUM(const string &filename)
             pKF = pKF->GetParent();
         }
 
-        Trw = Trw*pKF->GetPose()*Two;
+        Trw = Trw*pKF->getPose()*Two;
 
         cv::Mat Tcw = (*lit)*Trw;
         cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
@@ -242,7 +229,7 @@ void System::SaveKeyFrameTrajectoryTUM(const string &filename)
     {
         ORBKeyFrame* pKF = vpKFs[i];
 
-       // pKF->SetPose(pKF->GetPose()*Two);
+       // pKF->setPose(pKF->getPose()*Two);
 
         if(pKF->isBad())
             continue;
@@ -295,7 +282,7 @@ void System::SaveTrajectoryKITTI(const string &filename)
             pKF = pKF->GetParent();
         }
 
-        Trw = Trw*pKF->GetPose()*Two;
+        Trw = Trw*pKF->getPose()*Two;
 
         cv::Mat Tcw = (*lit)*Trw;
         cv::Mat Rwc = Tcw.rowRange(0,3).colRange(0,3).t();
@@ -315,7 +302,7 @@ int System::GetTrackingState()
     return mTrackingState;
 }
 
-vector<ORBMapPoint*> System::GetTrackedMapPoints()
+MapPtVector System::GetTrackedMapPoints()
 {
     unique_lock<mutex> lock(mMutexState);
     return mTrackedMapPoints;

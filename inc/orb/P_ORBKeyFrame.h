@@ -8,8 +8,8 @@
 #include "P_ORBFeature.h"
 #include "P_ORBFrame.h"
 #include "P_ORBKeyFrameDatabase.h"
+#include "P_Interface.h"
 
-#include <mutex>
 
 namespace Position
 {
@@ -19,14 +19,78 @@ class ORBMapPoint;
 class ORBFrame;
 class KeyFrameDatabase;
 
-class ORBKeyFrame
+class ORBKeyFrame : public IKeyFrame
 {
 public:
     ORBKeyFrame(ORBFrame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
-    // Pose functions
-    void SetPose(const cv::Mat &Tcw);
-    cv::Mat GetPose();
+
+    //重载类型转换
+    virtual operator IFrame*()const 
+    {
+        assert(NULL);
+    }
+
+    //设置位置(R|t 矩阵)
+    virtual void setPose(const cv::Mat &Tcw);
+    //获取位置
+    virtual cv::Mat getPose();
+    //序号
+    virtual u64 index()const {return mnId;}
+
+    // Set/check bad flag
+    virtual void setBadFlag();
+    virtual bool isBad();
+
+    //帧目标
+    virtual TargetVector& getTargets() 
+    {
+        assert(NULL);
+    }
+
+    //更新下一帧
+    virtual void updateNext(IKeyFrame *next) 
+    {
+        assert(NULL);
+    }
+    //更新上一帧
+    virtual void updatePre(IKeyFrame *pre) 
+    {
+        assert(NULL);
+    }
+    //获取到下一帧
+    virtual IKeyFrame* getNext() 
+    {
+        assert(NULL);
+    }
+    //获取上一帧
+    virtual IKeyFrame* getPre() 
+    {
+        assert(NULL);
+    }
+    // virtual void addMapPoint(IMapPoint *pt, int index) = 0;
+    virtual void addMapPoint(IMapPoint* pMP, int idx);
+
+    //是否已有对应地图点
+    virtual bool hasMapPoint(int index)
+    {
+        assert(NULL);
+    }
+    //移除地图点
+    virtual void rmMapPoint(IMapPoint *pt) 
+    {
+        assert(NULL);
+    }
+    virtual void rmMapPoint(int index)
+    {
+        assert(NULL);
+    }
+     //获取地图点
+    virtual const MapPtVector& getPoints()
+    {
+        assert(NULL);
+    }
+
     cv::Mat GetPoseInverse();
     cv::Mat GetCameraCenter();
     cv::Mat GetRotation();
@@ -59,12 +123,12 @@ public:
     std::set<ORBKeyFrame*> GetLoopEdges();
 
     // ORBMapPoint observation functions
-    void AddMapPoint(ORBMapPoint* pMP, const size_t &idx);
+    
     void EraseMapPointMatch(const size_t &idx);
     void EraseMapPointMatch(ORBMapPoint* pMP);
     void ReplaceMapPointMatch(const size_t &idx, ORBMapPoint* pMP);
     std::set<ORBMapPoint*> GetMapPoints();
-    std::vector<ORBMapPoint*> GetMapPointMatches();
+    MapPtVector GetMapPointMatches();
     int TrackedMapPoints(const int &minObs);
     ORBMapPoint* GetMapPoint(const size_t &idx);
 
@@ -77,10 +141,6 @@ public:
     // Enable/Disable bad flag changes
     void SetNotErase();
     void SetErase();
-
-    // Set/check bad flag
-    void SetBadFlag();
-    bool isBad();
 
     // Compute Scene Depth (q=2 median). Used in monocular.
     float ComputeSceneMedianDepth(const int q);
@@ -98,7 +158,7 @@ public:
 public:
 
     static long unsigned int nNextId;
-    long unsigned int mnId;
+    u64 mnId;
     const long unsigned int mnFrameId;
 
     const double mTimeStamp;
@@ -173,7 +233,7 @@ protected:
     cv::Mat Ow;
 
     // MapPoints associated to keypoints
-    std::vector<ORBMapPoint*> mvpMapPoints;
+    MapPtVector mvpMapPoints;
 
     // BoW
     KeyFrameDatabase* mpKeyFrameDB;
@@ -182,7 +242,7 @@ protected:
     // Grid over the image to speed up feature matching
     std::vector< std::vector <std::vector<size_t> > > mGrid;
 
-    std::map<ORBKeyFrame*,int> mConnectedKeyFrameWeights;
+    KeyFrameMap mConnectedKeyFrameWeights;
     std::vector<ORBKeyFrame*> mvpOrderedConnectedKeyFrames;
     std::vector<int> mvOrderedWeights;
 
