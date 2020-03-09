@@ -15,5 +15,6 @@ namespace Position
             delete *it;
         }
         mMapPts.clear();
+        mMaxFmId = 0;
     }
 }

@@ -32,7 +32,7 @@ class Tracking
 
 public:
     Tracking(ORBVocabulary* pVoc, IViewer *pViewer, Map* pMap,
-             KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor);
+             KeyFrameDatabase* pKFDB, const string &strSettingPath);
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat track(const FrameData &data);
@@ -62,9 +62,6 @@ public:
 
     eTrackingState mState;
     eTrackingState mLastProcessedState;
-
-    // Input sensor
-    int mSensor;
 
     // Current Frame
     ORBFrame mCurrentFrame;

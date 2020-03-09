@@ -159,6 +159,8 @@ namespace Position
 
         //获取所有帧
         virtual KeyFrameVector getAllFrames()const = 0;
+        //最大帧号
+        virtual u64 getMaxKFid()const = 0;
     };
 
     

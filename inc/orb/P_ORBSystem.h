@@ -26,15 +26,9 @@ class LoopClosing;
 class System
 {
 public:
-    // Input sensor
-    enum eSensor{
-        MONOCULAR=0
-    };
-
-public:
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true);
+    System(const string &strVocFile, const string &strSettingsFile, const bool bUseViewer = true);
 
 
     // Proccess the given monocular frame
@@ -88,10 +82,6 @@ public:
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
 private:
-
-    // Input sensor
-    eSensor mSensor;
-
     // ORB vocabulary used for place recognition and feature matching.
     ORBVocabulary* mpVocabulary;
 

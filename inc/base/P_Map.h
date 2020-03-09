@@ -51,6 +51,8 @@ namespace Position
             if(NULL != mpCurrent)mpCurrent->updateNext(pKF);
             mpCurrent = pKF;
             mMapFms.insert(pKF);
+            if( pKF->index() > mMaxFmId)
+                mMaxFmId = pKF->index();
         }
         void rmKeyFrame(IKeyFrame *pKF)
         {
@@ -92,10 +94,17 @@ namespace Position
         {
             return KeyFrameVector(mMapFms.begin(),mMapFms.end());
         }
+
+        //最大帧号
+        virtual u64 getMaxKFid()const 
+        {
+            return mMaxFmId;
+        }
     protected:
         MapPtSet    mMapPts;
         KeyFmSet    mMapFms;
         IKeyFrame  *mpCurrent;
+        u64         mMaxFmId;
     private:
         DISABLEDCP(PMap)
     };
