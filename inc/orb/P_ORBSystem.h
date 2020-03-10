@@ -9,7 +9,6 @@
 #include<opencv2/core/core.hpp>
 
 #include "P_ORBTracking.h"
-#include "P_ORBMap.h"
 #include "P_ORBLocalMapping.h"
 #include "P_ORBLoopClosing.h"
 #include "P_ORBKeyFrameDatabase.h"
@@ -18,7 +17,6 @@
 namespace Position
 {
 
-class Map;
 class Tracking;
 class LocalMapping;
 class LoopClosing;
@@ -36,11 +34,6 @@ public:
     // Returns the camera pose (empty if tracking fails).
     cv::Mat TrackMonocular(const cv::Mat &im, const double &timestamp);
 
-    // This stops local mapping thread (map building) and performs only camera tracking.
-    void ActivateLocalizationMode();
-    // This resumes local mapping thread and performs SLAM again.
-    void DeactivateLocalizationMode();
-
     // Reset the system (clear map)
     void Reset();
 
@@ -48,34 +41,6 @@ public:
     // It waits until all threads have finished.
     // This function must be called before saving the trajectory.
     void Shutdown();
-
-    // Save camera trajectory in the TUM RGB-D dataset format.
-    // Only for stereo and RGB-D. This method does not work for monocular.
-    // Call first Shutdown()
-    // See format details at: http://vision.in.tum.de/data/datasets/rgbd-dataset
-    void SaveTrajectoryTUM(const string &filename);
-
-    // Save keyframe poses in the TUM RGB-D dataset format.
-    // This method works for all sensor input.
-    // Call first Shutdown()
-    // See format details at: http://vision.in.tum.de/data/datasets/rgbd-dataset
-    void SaveKeyFrameTrajectoryTUM(const string &filename);
-
-    // Save camera trajectory in the KITTI dataset format.
-    // Only for stereo and RGB-D. This method does not work for monocular.
-    // Call first Shutdown()
-    // See format details at: http://www.cvlibs.net/datasets/kitti/eval_odometry.php
-    void SaveTrajectoryKITTI(const string &filename);
-
-    // TODO: Save/Load functions
-    // SaveMap(const string &filename);
-    // LoadMap(const string &filename);
-
-    // Information from most recent processed frame
-    // You can call this right after TrackMonocular (or stereo or RGBD)
-    int GetTrackingState();
-    MapPtVector GetTrackedMapPoints();
-    std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
 private:
     // ORB vocabulary used for place recognition and feature matching.
@@ -85,7 +50,7 @@ private:
     KeyFrameDatabase* mpKeyFrameDatabase;
 
     // Map structure that stores the pointers to all KeyFrames and MapPoints.
-    Map* mpMap;
+    IMap* mpMap;
 
     // Tracker. It receives a frame and computes the associated camera pose.
     // It also decides when to insert a new keyframe, create some new MapPoints and
@@ -117,7 +82,7 @@ private:
     // Tracking state
     int mTrackingState;
     MapPtVector mTrackedMapPoints;
-    std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
+    KeyPtVector mTrackedKeyPointsUn;
     std::mutex mMutexState;
 };
 

@@ -60,10 +60,10 @@ namespace Position
         {
             if(NULL != pKF)
             { //重新建立链接
-                IKeyFrame *pre = pKF->getPre();
+                IKeyFrame *pre = pKF->getPrev();
                 IKeyFrame *nxt = pKF->getNext();
                 if(pre)pre->updateNext(nxt);
-                if(nxt)nxt->updatePre(pre);
+                if(nxt)nxt->updatePrev(pre);
                 mMapFms.erase(pKF);
                 pKF->release();
             }
@@ -86,19 +86,29 @@ namespace Position
         void clear();
 
         //获取所有地图点
-        MapPtVector getAllMapPts()const
+        MapPtVector getAllMapPts()
         {
             return MapPtVector(mMapPts.begin(),mMapPts.end());
         }
 
         //获取所有帧
-        KeyFrameVector getAllFrames()const
+        KeyFrameVector getAllFrames()
         {
             return KeyFrameVector(mMapFms.begin(),mMapFms.end());
         }
 
+        //设最近点关联地图点
+        virtual void setReferenceMapPoints(const MapPtVector &vpMPs) 
+        {
+            assert(NULL);
+        }
+         //获取最近帧关联点
+        virtual MapPtVector getReferenceMapPoints() 
+        {
+            assert(NULL);
+        }
         //最大帧号
-        virtual u64 getMaxKFid()const 
+        virtual u64 getMaxKFid()
         {
             return mMaxFmId;
         }
@@ -111,6 +121,12 @@ namespace Position
         {
             return mnMapPtCnt++;
         }
+         //用于多线程 地图更新锁
+        virtual std::mutex& mapUpdateMutex()
+        {
+            assert(NULL);
+        }
+
     protected:
         MapPtSet    mMapPts;
         KeyFmSet    mMapFms;

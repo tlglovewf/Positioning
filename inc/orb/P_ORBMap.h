@@ -3,60 +3,84 @@
 #ifndef _ORBMAP_H_
 #define _ORBMAP_H_
 
-#include "P_ORBMapPoint.h"
-#include "P_ORBKeyFrame.h"
-#include <set>
-
-#include <mutex>
-
-
+#include "P_Interface.h"
 
 namespace Position
 {
+    class ORBMap : public IMap
+    {
+    public:
+        ORBMap();
 
-class ORBMapPoint;
-class ORBKeyFrame;
+        // //创建关键帧
+        virtual IKeyFrame* createKeyFrame(IFrame *frame) 
+        {
+            assert(NULL);
+        }
+        //创建地图点
+        virtual IMapPoint* createMapPoint(const cv::Mat &pose) 
+        {
+            assert(NULL);
+        }
+        virtual IMapPoint* createMapPoint(const cv::Point3f &pose)
+        {
+            assert(NULL);
+        }
 
-class Map
-{
-public:
-    Map();
+        //加入/移除地图点
+        virtual void addMapPoint(IMapPoint *pMp);
+        virtual void rmMapPoint(IMapPoint *pMp) ;
 
-    void AddKeyFrame(ORBKeyFrame* pKF);
-    void AddMapPoint(ORBMapPoint* pMP);
-    void EraseMapPoint(ORBMapPoint* pMP);
-    void EraseKeyFrame(ORBKeyFrame* pKF);
-    void SetReferenceMapPoints(const std::vector<ORBMapPoint*> &vpMPs);
+        //加入/移除关键帧
+        virtual void addKeyFrame(IKeyFrame *pKF);
+        virtual void rmKeyFrame(IKeyFrame *pKF) ;
 
-    std::vector<ORBKeyFrame*> GetAllKeyFrames();
-    std::vector<ORBMapPoint*> GetAllMapPoints();
-    std::vector<ORBMapPoint*> GetReferenceMapPoints();
+        //最大帧号
+        virtual u64 getMaxKFid() ;
 
-    long unsigned int MapPointsInMap();
-    long unsigned  KeyFramesInMap();
+        //获取所有地图点
+        virtual MapPtVector getAllMapPts();
 
-    long unsigned int GetMaxKFid();
+        //获取所有帧
+        virtual KeyFrameVector getAllFrames();
 
-    void clear();
+        //清空
+        virtual void clear() ;
 
-    vector<ORBKeyFrame*> mvpKeyFrameOrigins;
+        //设置最近关联点
+        virtual void setReferenceMapPoints(const MapPtVector &vpMPs);
 
-    std::mutex mMutexMapUpdate;
+        //获取最近关联点
+        virtual MapPtVector getReferenceMapPoints();
 
-    // This avoid that two points are created simultaneously in separate threads (id conflict)
-    std::mutex mMutexPointCreation;
+        //获取帧，点计数
+        virtual u64 frameCount() ;
+        virtual u64 mapptCount() ;
 
-protected:
-    std::set<ORBMapPoint*> mspMapPoints;
-    std::set<ORBKeyFrame*> mspKeyFrames;
+         //用于多线程 地图更新锁
+        virtual std::mutex& mapUpdateMutex()
+        {
+            return mMutexMapUpdate;
+        }
 
-    std::vector<ORBMapPoint*> mvpReferenceMapPoints;
+        // KeyFrameVector  mvpKeyFrameOrigins;
 
-    long unsigned int mnMaxKFid;
+        // This avoid that two points are created simultaneously in separate threads (id conflict)
+        std::mutex mMutexPointCreation;
 
-    std::mutex mMutexMap;
-};
+    protected:
+        MapPtSet               mspMapPoints;
+        KeyFmSet               mspKeyFrames;
 
+        MapPtVector            mvpReferenceMapPoints;
+
+
+        u64 mnMaxKFid;
+
+        std::mutex mMutexMap;
+        std::mutex mMutexMapUpdate;
+    };
+#define ORBMAP(P) dynamic_cast<Position::ORBMap*>(P)
 }
 
 #endif // _ORBMAP_H_

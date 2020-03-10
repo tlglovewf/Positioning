@@ -61,7 +61,7 @@ namespace Position
         PtVector mCurPts;
     };
 
-    //orbslam中 位姿推算
+    // 位姿推算
     class ORBPoseEstimation : public PPoseEstimation
     {
     public:
@@ -75,12 +75,12 @@ namespace Position
         //计算单应矩阵
         void FindHomography (BolVector &vbInliers, float &score, cv::Mat &H21);
         cv::Mat ComputeH21(const PtVector &vP1, const PtVector &vP2);
-        float CheckHomography(const cv::Mat &H21, const cv::Mat &H12, vector<bool> &vbMatchesInliers, float sigma);
+        float CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVector &vbMatchesInliers, float sigma);
 
         //计算基础矩阵
         void FindFundamental(BolVector &vbInliers, float &score, cv::Mat &F21);
         cv::Mat ComputeF21(const PtVector &vP1, const PtVector &vP2);
-        float CheckFundamental(const cv::Mat &F21, vector<bool> &vbMatchesInliers, float sigma);
+        float CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInliers, float sigma);
 
         //从基础矩阵恢复位姿
         bool ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
@@ -99,7 +99,7 @@ namespace Position
                                     const cv::Mat &K, Pt3Vector &vP3D, float th2, BolVector &vbGood, float &parallax);
 
         //归一化
-        void Normalize(const vector<cv::KeyPoint> &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T);
+        void Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T);
     
     protected:
         //初始化
@@ -110,7 +110,7 @@ namespace Position
         float                       mSigma;
         float                       mSigma2;
         
-        vector< vector<size_t> >    mvSets;
+        vector< SzVector >    mvSets;
     };
 
 

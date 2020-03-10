@@ -110,7 +110,6 @@ src/orb/P_ORBTracking.cpp
 src/orb/P_ORBLocalMapping.cpp
 src/orb/P_ORBLoopClosing.cpp
 src/orb/P_ORBmatcher.cpp
-src/orb/P_ORBConverter.cpp
 src/orb/P_ORBMapPoint.cpp
 src/orb/P_ORBKeyFrame.cpp
 src/orb/P_ORBMap.cpp

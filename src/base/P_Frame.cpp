@@ -59,7 +59,7 @@ bool   FrameHelper::mInit = false;
         {
             for (int iy = nMinCellY; iy <= nMaxCellY; iy++)
             {
-                const vector<size_t> &vCell = dynamic_cast<PFrame *>(pframe)->mGrid[ix][iy];
+                const SzVector &vCell = dynamic_cast<PFrame *>(pframe)->mGrid[ix][iy];
                 if (vCell.empty())
                     continue;
 

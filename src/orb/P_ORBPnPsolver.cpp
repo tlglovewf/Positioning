@@ -107,13 +107,13 @@ void PnPsolver::SetRansacParameters(double probability, int minInliers, int maxI
         mvMaxError[i] = mvSigma2[i]*th2;
 }
 
-cv::Mat PnPsolver::find(vector<bool> &vbInliers, int &nInliers)
+cv::Mat PnPsolver::find(BolVector &vbInliers, int &nInliers)
 {
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers,nInliers);    
 }
 
-cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers)
+cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers, int &nInliers)
 {
     bNoMore = false;
     vbInliers.clear();
@@ -127,7 +127,7 @@ cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInlie
         return cv::Mat();
     }
 
-    vector<size_t> vAvailableIndices;
+    SzVector vAvailableIndices;
 
     int nCurrentIterations = 0;
     while(mnIterations<mRansacMaxIts || nCurrentIterations<nIterations)
@@ -177,7 +177,7 @@ cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInlie
             if(Refine())
             {
                 nInliers = mnRefinedInliers;
-                vbInliers = vector<bool>(mvpMapPointMatches.size(),false);
+                vbInliers = BolVector(mvpMapPointMatches.size(),false);
                 for(int i=0; i<N; i++)
                 {
                     if(mvbRefinedInliers[i])
@@ -195,7 +195,7 @@ cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInlie
         if(mnBestInliers>=mRansacMinInliers)
         {
             nInliers=mnBestInliers;
-            vbInliers = vector<bool>(mvpMapPointMatches.size(),false);
+            vbInliers = BolVector(mvpMapPointMatches.size(),false);
             for(int i=0; i<N; i++)
             {
                 if(mvbBestInliers[i])

@@ -9,7 +9,7 @@
 namespace Position
 {
 
-LocalMapping::LocalMapping(Map *pMap, const float bMonocular):
+LocalMapping::LocalMapping(IMap *pMap, const float bMonocular):
     mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true)
 {
@@ -58,7 +58,7 @@ void LocalMapping::Run()
             if(!CheckNewKeyFrames() && !stopRequested())
             {
                 // Local BA
-                if(mpMap->KeyFramesInMap()>2)
+                if(mpMap->frameCount()>2)
                     Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
 
                 // Check redundant local Keyframes
@@ -118,11 +118,11 @@ void LocalMapping::ProcessNewKeyFrame()
     mpCurrentKeyFrame->ComputeBoW();
 
     // Associate MapPoints to the new keyframe and update normal and descriptor
-    const MapPtVector vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getPoints();
 
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPointMatches[i]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMapPointMatches[i]);
         if(pMP)
         {
             if(!pMP->isBad())
@@ -145,7 +145,7 @@ void LocalMapping::ProcessNewKeyFrame()
     mpCurrentKeyFrame->UpdateConnections();
 
     // Insert Keyframe in Map
-    mpMap->AddKeyFrame(mpCurrentKeyFrame);
+    mpMap->addKeyFrame(mpCurrentKeyFrame);
 }
 
 void LocalMapping::MapPointCulling()
@@ -195,9 +195,9 @@ void LocalMapping::CreateNewMapPoints()
 
     ORBmatcher matcher(0.6,false);
 
-    cv::Mat Rcw1 = mpCurrentKeyFrame->GetRotation();
+    cv::Mat Rcw1 = mpCurrentKeyFrame->getRotation();
     cv::Mat Rwc1 = Rcw1.t();
-    cv::Mat tcw1 = mpCurrentKeyFrame->GetTranslation();
+    cv::Mat tcw1 = mpCurrentKeyFrame->getTranslation();
     cv::Mat Tcw1(3,4,CV_32F);
     Rcw1.copyTo(Tcw1.colRange(0,3));
     tcw1.copyTo(Tcw1.col(3));
@@ -242,9 +242,9 @@ void LocalMapping::CreateNewMapPoints()
         vector<pair<size_t,size_t> > vMatchedIndices;
         matcher.SearchForTriangulation(mpCurrentKeyFrame,pKF2,F12,vMatchedIndices,false);
 
-        cv::Mat Rcw2 = pKF2->GetRotation();
+        cv::Mat Rcw2 = pKF2->getRotation();
         cv::Mat Rwc2 = Rcw2.t();
-        cv::Mat tcw2 = pKF2->GetTranslation();
+        cv::Mat tcw2 = pKF2->getTranslation();
         cv::Mat Tcw2(3,4,CV_32F);
         Rcw2.copyTo(Tcw2.colRange(0,3));
         tcw2.copyTo(Tcw2.col(3));
@@ -372,7 +372,7 @@ void LocalMapping::CreateNewMapPoints()
 
             pMP->UpdateNormalAndDepth();
 
-            mpMap->AddMapPoint(pMP);
+            mpMap->addMapPoint(pMP);
             mlpRecentAddedMapPoints.push_back(pMP);
 
             nnew++;
@@ -410,7 +410,7 @@ void LocalMapping::SearchInNeighbors()
 
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
-    MapPtVector vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getPoints();
     for(vector<ORBKeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
         ORBKeyFrame* pKFi = *vit;
@@ -426,11 +426,11 @@ void LocalMapping::SearchInNeighbors()
     {
         ORBKeyFrame* pKFi = *vitKF;
 
-        MapPtVector vpMapPointsKFi = pKFi->GetMapPointMatches();
+        const MapPtVector& vpMapPointsKFi = pKFi->getPoints();
 
-        for(MapPtVector::iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
+        for(MapPtVector::const_iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
         {
-            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(*vitMP);
+            ORBMapPoint* pMP = ORBMAPPOINT(*vitMP);
             if(!pMP)
                 continue;
             if(pMP->isBad() || pMP->mnFuseCandidateForKF == mpCurrentKeyFrame->mnId)
@@ -444,10 +444,10 @@ void LocalMapping::SearchInNeighbors()
 
 
     // Update points
-    vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
-    for(size_t i=0, iend=vpMapPointMatches.size(); i<iend; i++)
+     const MapPtVector& vpMapts = mpCurrentKeyFrame->getPoints();
+    for(size_t i=0, iend=vpMapts.size(); i<iend; i++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPointMatches[i]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMapts[i]);
         if(pMP)
         {
             if(!pMP->isBad())
@@ -462,20 +462,20 @@ void LocalMapping::SearchInNeighbors()
     mpCurrentKeyFrame->UpdateConnections();
 }
 
-cv::Mat LocalMapping::ComputeF12(ORBKeyFrame *&pKF1, ORBKeyFrame *&pKF2)
+cv::Mat LocalMapping::ComputeF12(IKeyFrame *pKF1, IKeyFrame *pKF2)
 {
-    cv::Mat R1w = pKF1->GetRotation();
-    cv::Mat t1w = pKF1->GetTranslation();
-    cv::Mat R2w = pKF2->GetRotation();
-    cv::Mat t2w = pKF2->GetTranslation();
+    cv::Mat R1w = pKF1->getRotation();
+    cv::Mat t1w = pKF1->getTranslation();
+    cv::Mat R2w = pKF2->getRotation();
+    cv::Mat t2w = pKF2->getTranslation();
 
     cv::Mat R12 = R1w*R2w.t();
     cv::Mat t12 = -R1w*R2w.t()*t2w+t1w;
 
     cv::Mat t12x = SkewSymmetricMatrix(t12);
 
-    const cv::Mat &K1 = pKF1->mK;
-    const cv::Mat &K2 = pKF2->mK;
+    const cv::Mat &K1 = ORBKEYFRAME(pKF1)->mK;
+    const cv::Mat &K2 = ORBKEYFRAME(pKF2)->mK;
 
 
     return K1.t().inv()*t12x*R12*K2.inv();
@@ -571,7 +571,7 @@ void LocalMapping::KeyFrameCulling()
         ORBKeyFrame* pKF = *vit;
         if(pKF->mnId==0)
             continue;
-        const MapPtVector vpMapPoints = pKF->GetMapPointMatches();
+        const MapPtVector& vpMapPoints = pKF->getPoints();
 
         int nObs = 3;
         const int thObs=nObs;
@@ -579,7 +579,7 @@ void LocalMapping::KeyFrameCulling()
         int nMPs=0;
         for(size_t i=0, iend=vpMapPoints.size(); i<iend; i++)
         {
-            ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints[i]);
+            IMapPoint* pMP = vpMapPoints[i];
             if(pMP)
             {
                 if(!pMP->isBad())
@@ -592,7 +592,7 @@ void LocalMapping::KeyFrameCulling()
                         int nObs=0;
                         for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {
-                            ORBKeyFrame* pKFi = dynamic_cast<ORBKeyFrame*>(mit->first);
+                            ORBKeyFrame* pKFi = ORBKEYFRAME(mit->first);
                             if(pKFi==pKF)
                                 continue;
                             const int &scaleLeveli = pKFi->mvKeysUn[mit->second].octave;

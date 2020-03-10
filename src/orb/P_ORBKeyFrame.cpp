@@ -1,15 +1,18 @@
 
 #include "P_ORBKeyFrame.h"
-#include "P_ORBConverter.h"
+#include "P_Converter.h"
 #include "P_ORBmatcher.h"
-#include<mutex>
+#include "P_ORBFeature.h"
+#include "P_ORBFrame.h"
+#include "P_ORBKeyFrameDatabase.h"
+
 
 namespace Position
 {
 
-long unsigned int ORBKeyFrame::nNextId=0;
+u64 ORBKeyFrame::nNextId=0;
 
-ORBKeyFrame::ORBKeyFrame(ORBFrame &F, Map *pMap, KeyFrameDatabase *pKFDB):
+ORBKeyFrame::ORBKeyFrame(ORBFrame &F, IMap *pMap, KeyFrameDatabase *pKFDB):
     mnFrameId(F.mnId),  mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
     mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
     mnTrackReferenceForFrame(0), mnFuseTargetForKF(0), mnBALocalForKF(0), mnBAFixedForKF(0),
@@ -41,7 +44,7 @@ void ORBKeyFrame::ComputeBoW()
 {
     if(mBowVec.empty() || mFeatVec.empty())
     {
-        vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
+        vector<cv::Mat> vCurrentDesc = PConverter::toDescriptorVector(mDescriptors);
         // Feature vector associate features with nodes in the 4th level (from leaves up)
         // We assume the vocabulary tree has 6 levels, change the 4 otherwise
         mpORBvocabulary->transform(vCurrentDesc,mBowVec,mFeatVec,4);
@@ -81,13 +84,12 @@ cv::Mat ORBKeyFrame::GetCameraCenter()
 }
 
 
-cv::Mat ORBKeyFrame::GetRotation()
+cv::Mat ORBKeyFrame::getRotation()
 {
     unique_lock<mutex> lock(mMutexPose);
     return Tcw.rowRange(0,3).colRange(0,3).clone();
 }
-
-cv::Mat ORBKeyFrame::GetTranslation()
+cv::Mat ORBKeyFrame::getTranslation()
 {
     unique_lock<mutex> lock(mMutexPose);
     return Tcw.rowRange(0,3).col(3).clone();
@@ -108,14 +110,15 @@ void ORBKeyFrame::AddConnection(ORBKeyFrame *pKF, const int &weight)
     UpdateBestCovisibles();
 }
 
+//更新最佳共视关系
 void ORBKeyFrame::UpdateBestCovisibles()
 {
     unique_lock<mutex> lock(mMutexConnections);
     vector<pair<int,ORBKeyFrame*> > vPairs;
     vPairs.reserve(mConnectedKeyFrameWeights.size());
     for(KeyFrameMap::iterator mit=mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
-       vPairs.push_back(make_pair(mit->second,dynamic_cast<ORBKeyFrame*>(mit->first)));
-
+       vPairs.push_back(make_pair(mit->second,ORBKEYFRAME(mit->first)));
+    //根据权值排序
     sort(vPairs.begin(),vPairs.end());
     list<ORBKeyFrame*> lKFs;
     list<int> lWs;
@@ -134,7 +137,7 @@ set<ORBKeyFrame*> ORBKeyFrame::GetConnectedKeyFrames()
     unique_lock<mutex> lock(mMutexConnections);
     set<ORBKeyFrame*> s;
     for(KeyFrameMap::iterator mit=mConnectedKeyFrameWeights.begin();mit!=mConnectedKeyFrameWeights.end();mit++)
-        s.insert(dynamic_cast<ORBKeyFrame*>(mit->first));
+        s.insert(ORBKEYFRAME(mit->first));
     return s;
 }
 
@@ -186,17 +189,28 @@ void ORBKeyFrame::addMapPoint(IMapPoint *pMP, int idx)
     mvpMapPoints[idx]=pMP;
 }
 
-void ORBKeyFrame::EraseMapPointMatch(const size_t &idx)
+void ORBKeyFrame::rmMapPoint(int idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
-    mvpMapPoints[idx]=static_cast<ORBMapPoint*>(NULL);
+    if(idx < 0)
+        return;
+    mvpMapPoints[idx]= NULL;
 }
 
-void ORBKeyFrame::EraseMapPointMatch(ORBMapPoint* pMP)
+bool ORBKeyFrame::hasMapPoint(int index)
 {
-    int idx = pMP->GetIndexInKeyFrame(this);
+    unique_lock<mutex> lock(mMutexFeatures);
+    if(index < 0)
+        return false;
+    return  NULL != mvpMapPoints[index];
+}
+
+void ORBKeyFrame::rmMapPoint(IMapPoint* pMP)
+{
+    unique_lock<mutex> lock(mMutexFeatures);
+    int idx = pMP->getIndexInKeyFrame(this);
     if(idx>=0)
-        mvpMapPoints[idx]=static_cast<ORBMapPoint*>(NULL);
+        mvpMapPoints[idx]= NULL;
 }
 
 
@@ -205,15 +219,15 @@ void ORBKeyFrame::ReplaceMapPointMatch(const size_t &idx, ORBMapPoint* pMP)
     mvpMapPoints[idx]=pMP;
 }
 
-set<ORBMapPoint*> ORBKeyFrame::GetMapPoints()
+MapPtSet ORBKeyFrame::GetMapPoints()
 {
-    unique_lock<mutex> lock(mMutexFeatures);
-    set<ORBMapPoint*> s;
+    unique_lock<mutex> lock(mMutexFeatures);    
+    MapPtSet s;
     for(size_t i=0, iend=mvpMapPoints.size(); i<iend; i++)
     {
         if(!mvpMapPoints[i])
             continue;
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(mvpMapPoints[i]);
+        IMapPoint* pMP = mvpMapPoints[i];
         if(!pMP->isBad())
             s.insert(pMP);
     }
@@ -247,7 +261,7 @@ int ORBKeyFrame::TrackedMapPoints(const int &minObs)
     return nPoints;
 }
 
-MapPtVector ORBKeyFrame::GetMapPointMatches()
+const MapPtVector& ORBKeyFrame::getPoints()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mvpMapPoints;
@@ -256,23 +270,19 @@ MapPtVector ORBKeyFrame::GetMapPointMatches()
 ORBMapPoint* ORBKeyFrame::GetMapPoint(const size_t &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
-    return dynamic_cast<ORBMapPoint*>(mvpMapPoints[idx]);
+    return ORBMAPPOINT(mvpMapPoints[idx]);
 }
 
 void ORBKeyFrame::UpdateConnections()
 {
-    KeyFrameMap KFcounter;
+    KeyFrameMap KFcounter;// <帧,与当前帧共视点数量>
 
-    MapPtVector vpMP;
-
-    {
-        unique_lock<mutex> lockMPs(mMutexFeatures);
-        vpMP = mvpMapPoints;
-    }
+    unique_lock<mutex> lockMPs(mMutexFeatures);
+    const MapPtVector &vpMP = mvpMapPoints;
 
     //For all map points in keyframe check in which other keyframes are they seen
     //Increase counter for those keyframes
-    for(MapPtVIter vit=vpMP.begin(), vend=vpMP.end(); vit!=vend; vit++)
+    for(MapPtVector::const_iterator vit=vpMP.begin(), vend=vpMP.end(); vit!=vend; vit++)
     {
         IMapPoint* pMP = *vit;
 
@@ -300,13 +310,13 @@ void ORBKeyFrame::UpdateConnections()
     //In case no keyframe counter is over threshold add the one with maximum counter
     int nmax=0;
     ORBKeyFrame* pKFmax=NULL;
-    int th = 15;
+    int th = 15;//共视点数量 筛选阈值
 
     vector<pair<int,ORBKeyFrame*> > vPairs;
     vPairs.reserve(KFcounter.size());
     for(KeyFrameMap::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend; mit++)
     {
-        ORBKeyFrame *orbkey = dynamic_cast<ORBKeyFrame*>(mit->first);
+        ORBKeyFrame *orbkey = ORBKEYFRAME(mit->first);
         if(mit->second>nmax)
         {
             nmax=mit->second;
@@ -318,13 +328,13 @@ void ORBKeyFrame::UpdateConnections()
             orbkey->AddConnection(this,mit->second);
         }
     }
-
+    //共视帧 的共视点数量小于阈值,则加入共视点数量最多的一个帧建立关联
     if(vPairs.empty())
     {
         vPairs.push_back(make_pair(nmax,pKFmax));
         pKFmax->AddConnection(this,nmax);
     }
-
+    //根据观测数量排序
     sort(vPairs.begin(),vPairs.end());
     list<ORBKeyFrame*> lKFs;
     list<int> lWs;
@@ -337,13 +347,12 @@ void ORBKeyFrame::UpdateConnections()
     {
         unique_lock<mutex> lockCon(mMutexConnections);
 
-        // mspConnectedKeyFrames = spConnectedKeyFrames;
         mConnectedKeyFrameWeights = KFcounter;
         mvpOrderedConnectedKeyFrames = vector<ORBKeyFrame*>(lKFs.begin(),lKFs.end());
         mvOrderedWeights = vector<int>(lWs.begin(), lWs.end());
 
         if(mbFirstConnection && mnId!=0)
-        {
+        {//首次建立关联,设置父节点
             mpParent = mvpOrderedConnectedKeyFrames.front();
             mpParent->AddChild(this);
             mbFirstConnection = false;
@@ -438,7 +447,7 @@ void ORBKeyFrame::setBadFlag()
     }
 
     for(KeyFrameMap::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
-       dynamic_cast<ORBKeyFrame*>(mit->first)->EraseConnection(this);
+       ORBKEYFRAME(mit->first)->EraseConnection(this);
 
     for(size_t i=0; i<mvpMapPoints.size(); i++)
         if(mvpMapPoints[i])
@@ -514,7 +523,7 @@ void ORBKeyFrame::setBadFlag()
     }
 
 
-    mpMap->EraseKeyFrame(this);
+    mpMap->rmKeyFrame(this);
     mpKeyFrameDB->erase(this);
 }
 
@@ -540,9 +549,9 @@ void ORBKeyFrame::EraseConnection(ORBKeyFrame* pKF)
         UpdateBestCovisibles();
 }
 
-vector<size_t> ORBKeyFrame::GetFeaturesInArea(const float &x, const float &y, const float &r) const
+SzVector ORBKeyFrame::GetFeaturesInArea(const float &x, const float &y, const float &r) const
 {
-    vector<size_t> vIndices;
+    SzVector vIndices;
     vIndices.reserve(N);
 
     const int nMinCellX = max(0,(int)floor((x-mnMinX-r)*mfGridElementWidthInv));
@@ -565,7 +574,7 @@ vector<size_t> ORBKeyFrame::GetFeaturesInArea(const float &x, const float &y, co
     {
         for(int iy = nMinCellY; iy<=nMaxCellY; iy++)
         {
-            const vector<size_t> vCell = mGrid[ix][iy];
+            const SzVector vCell = mGrid[ix][iy];
             for(size_t j=0, jend=vCell.size(); j<jend; j++)
             {
                 const cv::KeyPoint &kpUn = mvKeysUn[vCell[j]];
@@ -597,7 +606,7 @@ float ORBKeyFrame::ComputeSceneMedianDepth(const int q)
         Tcw_ = Tcw.clone();
     }
 
-    vector<float> vDepths;
+    FloatVector vDepths;
     vDepths.reserve(N);
     cv::Mat Rcw2 = Tcw_.row(2).colRange(0,3);
     Rcw2 = Rcw2.t();

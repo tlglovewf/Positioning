@@ -32,7 +32,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &F, const MapPtVector &vpMapPoints, 
 
     for(size_t iMP=0; iMP<vpMapPoints.size(); iMP++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints[iMP]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMapPoints[iMP]);
         if(!pMP->mbTrackInView)
             continue;
 
@@ -47,7 +47,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &F, const MapPtVector &vpMapPoints, 
         if(bFactor)
             r*=th;
 
-        const vector<size_t> vIndices =
+        const SzVector vIndices =
                 F.GetFeaturesInArea(pMP->mTrackProjX,pMP->mTrackProjY,r*F.mvScaleFactors[nPredictedLevel],nPredictedLevel-1,nPredictedLevel);
 
         if(vIndices.empty())
@@ -62,7 +62,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &F, const MapPtVector &vpMapPoints, 
         int bestIdx =-1 ;
 
         // Get best and second matches with near keypoints
-        for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
+        for(SzVector::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
             const size_t idx = *vit;
 
@@ -133,7 +133,7 @@ bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoin
 
 int ORBmatcher::SearchByBoW(ORBKeyFrame* pKF,ORBFrame &F, MapPtVector &vpMapPointMatches)
 {
-    const MapPtVector vpMapPointsKF = pKF->GetMapPointMatches();
+    const MapPtVector& vpMapPointsKF = pKF->getPoints();
 
     vpMapPointMatches = MapPtVector(F.N,NULL);
 
@@ -163,7 +163,7 @@ int ORBmatcher::SearchByBoW(ORBKeyFrame* pKF,ORBFrame &F, MapPtVector &vpMapPoin
             {
                 const unsigned int realIdxKF = vIndicesKF[iKF];
 
-                ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPointsKF[realIdxKF]);
+                IMapPoint* pMP = vpMapPointsKF[realIdxKF];
 
                 if(!pMP)
                     continue;
@@ -286,7 +286,7 @@ int ORBmatcher::SearchByProjection(ORBKeyFrame* pKF, cv::Mat Scw, const MapPtVec
     // For each Candidate ORBMapPoint Project and Match
     for(int iMP=0, iendMP=vpPoints.size(); iMP<iendMP; iMP++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpPoints[iMP]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpPoints[iMP]);
 
         // Discard Bad MapPoints and already found
         if(pMP->isBad() || spAlreadyFound.count(pMP))
@@ -334,7 +334,7 @@ int ORBmatcher::SearchByProjection(ORBKeyFrame* pKF, cv::Mat Scw, const MapPtVec
         // Search in a radius
         const float radius = th*pKF->mvScaleFactors[nPredictedLevel];
 
-        const vector<size_t> vIndices = pKF->GetFeaturesInArea(u,v,radius);
+        const SzVector vIndices = pKF->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
             continue;
@@ -344,7 +344,7 @@ int ORBmatcher::SearchByProjection(ORBKeyFrame* pKF, cv::Mat Scw, const MapPtVec
 
         int bestDist = 256;
         int bestIdx = -1;
-        for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
+        for(SzVector::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
             const size_t idx = *vit;
             if(vpMatched[idx])
@@ -397,7 +397,7 @@ int ORBmatcher::SearchForInitialization(ORBFrame &F1, ORBFrame &F2, vector<cv::P
         if(level1>0)
             continue;
 
-        vector<size_t> vIndices2 = F2.GetFeaturesInArea(vbPrevMatched[i1].x,vbPrevMatched[i1].y, windowSize,level1,level1);
+        SzVector vIndices2 = F2.GetFeaturesInArea(vbPrevMatched[i1].x,vbPrevMatched[i1].y, windowSize,level1,level1);
 
         if(vIndices2.empty())
             continue;
@@ -408,7 +408,7 @@ int ORBmatcher::SearchForInitialization(ORBFrame &F1, ORBFrame &F2, vector<cv::P
         int bestDist2 = INT_MAX;
         int bestIdx2 = -1;
 
-        for(vector<size_t>::iterator vit=vIndices2.begin(); vit!=vIndices2.end(); vit++)
+        for(SzVector::iterator vit=vIndices2.begin(); vit!=vIndices2.end(); vit++)
         {
             size_t i2 = *vit;
 
@@ -496,18 +496,18 @@ int ORBmatcher::SearchForInitialization(ORBFrame &F1, ORBFrame &F2, vector<cv::P
 
 int ORBmatcher::SearchByBoW(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &vpMatches12)
 {
-    const vector<cv::KeyPoint> &vKeysUn1 = pKF1->mvKeysUn;
+    const KeyPtVector &vKeysUn1 = pKF1->mvKeysUn;
     const DBoW2::FeatureVector &vFeatVec1 = pKF1->mFeatVec;
-    const MapPtVector vpMapPoints1 = pKF1->GetMapPointMatches();
+    const MapPtVector& vpMapPoints1 = pKF1->getPoints();
     const cv::Mat &Descriptors1 = pKF1->mDescriptors;
 
-    const vector<cv::KeyPoint> &vKeysUn2 = pKF2->mvKeysUn;
+    const KeyPtVector &vKeysUn2 = pKF2->mvKeysUn;
     const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;
-    const MapPtVector vpMapPoints2 = pKF2->GetMapPointMatches();
+    const MapPtVector& vpMapPoints2 = pKF2->getPoints();
     const cv::Mat &Descriptors2 = pKF2->mDescriptors;
 
     vpMatches12 = MapPtVector(vpMapPoints1.size(),NULL);
-    vector<bool> vbMatched2(vpMapPoints2.size(),false);
+    BolVector vbMatched2(vpMapPoints2.size(),false);
 
     vector<int> rotHist[HISTO_LENGTH];
     for(int i=0;i<HISTO_LENGTH;i++)
@@ -637,8 +637,8 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
 
     //Compute epipole in second image
     cv::Mat Cw = pKF1->GetCameraCenter();
-    cv::Mat R2w = pKF2->GetRotation();
-    cv::Mat t2w = pKF2->GetTranslation();
+    cv::Mat R2w = pKF2->getRotation();
+    cv::Mat t2w = pKF2->getTranslation();
     cv::Mat C2 = R2w*Cw+t2w;
     const float invz = 1.0f/C2.at<float>(2);
     const float ex =pKF2->fx*C2.at<float>(0)*invz+pKF2->cx;
@@ -649,7 +649,7 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
     // Compare only ORB that share the same node
 
     int nmatches=0;
-    vector<bool> vbMatched2(pKF2->N,false);
+    BolVector vbMatched2(pKF2->N,false);
     vector<int> vMatches12(pKF1->N,-1);
 
     vector<int> rotHist[HISTO_LENGTH];
@@ -786,8 +786,8 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
 
 int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const float th)
 {
-    cv::Mat Rcw = pKF->GetRotation();
-    cv::Mat tcw = pKF->GetTranslation();
+    cv::Mat Rcw = pKF->getRotation();
+    cv::Mat tcw = pKF->getTranslation();
 
     const float &fx = pKF->fx;
     const float &fy = pKF->fy;
@@ -802,7 +802,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
 
     for(int i=0; i<nMPs; i++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints[i]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMapPoints[i]);
 
         if(!pMP)
             continue;
@@ -848,7 +848,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
         // Search in a radius
         const float radius = th*pKF->mvScaleFactors[nPredictedLevel];
 
-        const vector<size_t> vIndices = pKF->GetFeaturesInArea(u,v,radius);
+        const SzVector vIndices = pKF->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
             continue;
@@ -859,7 +859,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
 
         int bestDist = 256;
         int bestIdx = -1;
-        for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
+        for(SzVector::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
             const size_t idx = *vit;
 
@@ -934,7 +934,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
     cv::Mat Ow = -Rcw.t()*tcw;
 
     // Set of MapPoints already found in the ORBKeyFrame
-    const set<ORBMapPoint*> spAlreadyFound = pKF->GetMapPoints();
+    const MapPtSet spAlreadyFound = pKF->GetMapPoints();
 
     int nFused=0;
 
@@ -943,7 +943,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
     // For each candidate ORBMapPoint project and match
     for(int iMP=0; iMP<nPoints; iMP++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpPoints[iMP]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpPoints[iMP]);
 
         // Discard Bad MapPoints and already found
         if(pMP->isBad() || spAlreadyFound.count(pMP))
@@ -992,7 +992,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
         // Search in a radius
         const float radius = th*pKF->mvScaleFactors[nPredictedLevel];
 
-        const vector<size_t> vIndices = pKF->GetFeaturesInArea(u,v,radius);
+        const SzVector vIndices = pKF->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
             continue;
@@ -1003,7 +1003,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
 
         int bestDist = INT_MAX;
         int bestIdx = -1;
-        for(vector<size_t>::const_iterator vit=vIndices.begin(); vit!=vIndices.end(); vit++)
+        for(SzVector::const_iterator vit=vIndices.begin(); vit!=vIndices.end(); vit++)
         {
             const size_t idx = *vit;
             const int &kpLevel = pKF->mvKeysUn[idx].octave;
@@ -1052,34 +1052,34 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
     const float &cy = pKF1->cy;
 
     // Camera 1 from world
-    cv::Mat R1w = pKF1->GetRotation();
-    cv::Mat t1w = pKF1->GetTranslation();
+    cv::Mat R1w = pKF1->getRotation();
+    cv::Mat t1w = pKF1->getTranslation();
 
     //Camera 2 from world
-    cv::Mat R2w = pKF2->GetRotation();
-    cv::Mat t2w = pKF2->GetTranslation();
+    cv::Mat R2w = pKF2->getRotation();
+    cv::Mat t2w = pKF2->getTranslation();
 
     //Transformation between cameras
     cv::Mat sR12 = s12*R12;
     cv::Mat sR21 = (1.0/s12)*R12.t();
     cv::Mat t21 = -sR21*t12;
 
-    const MapPtVector vpMapPoints1 = pKF1->GetMapPointMatches();
+    const MapPtVector& vpMapPoints1 = pKF1->getPoints();
     const int N1 = vpMapPoints1.size();
 
-    const MapPtVector vpMapPoints2 = pKF2->GetMapPointMatches();
+    const MapPtVector& vpMapPoints2 = pKF2->getPoints();
     const int N2 = vpMapPoints2.size();
 
-    vector<bool> vbAlreadyMatched1(N1,false);
-    vector<bool> vbAlreadyMatched2(N2,false);
+    BolVector vbAlreadyMatched1(N1,false);
+    BolVector vbAlreadyMatched2(N2,false);
 
     for(int i=0; i<N1; i++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMatches12[i]);
+        IMapPoint* pMP = vpMatches12[i];
         if(pMP)
         {
             vbAlreadyMatched1[i]=true;
-            int idx2 = pMP->GetIndexInKeyFrame(pKF2);
+            int idx2 = pMP->getIndexInKeyFrame(pKF2);
             if(idx2>=0 && idx2<N2)
                 vbAlreadyMatched2[idx2]=true;
         }
@@ -1091,7 +1091,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
     // Transform from KF1 to KF2 and search
     for(int i1=0; i1<N1; i1++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints1[i1]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMapPoints1[i1]);
 
         if(!pMP || vbAlreadyMatched1[i1])
             continue;
@@ -1132,7 +1132,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
         // Search in a radius
         const float radius = th*pKF2->mvScaleFactors[nPredictedLevel];
 
-        const vector<size_t> vIndices = pKF2->GetFeaturesInArea(u,v,radius);
+        const SzVector vIndices = pKF2->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
             continue;
@@ -1142,7 +1142,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
 
         int bestDist = INT_MAX;
         int bestIdx = -1;
-        for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
+        for(SzVector::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
             const size_t idx = *vit;
 
@@ -1171,7 +1171,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
     // Transform from KF2 to KF2 and search
     for(int i2=0; i2<N2; i2++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMapPoints2[i2]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMapPoints2[i2]);
 
         if(!pMP || vbAlreadyMatched2[i2])
             continue;
@@ -1212,7 +1212,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
         // Search in a radius of 2.5*sigma(ScaleLevel)
         const float radius = th*pKF1->mvScaleFactors[nPredictedLevel];
 
-        const vector<size_t> vIndices = pKF1->GetFeaturesInArea(u,v,radius);
+        const SzVector vIndices = pKF1->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
             continue;
@@ -1222,7 +1222,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
 
         int bestDist = INT_MAX;
         int bestIdx = -1;
-        for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
+        for(SzVector::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
             const size_t idx = *vit;
 
@@ -1260,7 +1260,7 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
             int idx1 = vnMatch2[idx2];
             if(idx1==i1)
             {
-                vpMatches12[i1] = dynamic_cast<ORBMapPoint*>(vpMapPoints2[idx2]);
+                vpMatches12[i1] = ORBMAPPOINT(vpMapPoints2[idx2]);
                 nFound++;
             }
         }
@@ -1284,7 +1284,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, const ORBFrame &LastF
 
     for(int i=0; i<LastFrame.N; i++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(LastFrame.mvpMapPoints[i]);
+        ORBMapPoint* pMP = ORBMAPPOINT(LastFrame.mvpMapPoints[i]);
 
         if(pMP)
         {
@@ -1314,7 +1314,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, const ORBFrame &LastF
                 // Search in a window. Size depends on scale
                 float radius = th*CurrentFrame.mvScaleFactors[nLastOctave];
 
-                vector<size_t> vIndices2;
+                SzVector vIndices2;
                 
                 vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, nLastOctave-1, nLastOctave+1);
 
@@ -1326,7 +1326,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, const ORBFrame &LastF
                 int bestDist = 256;
                 int bestIdx2 = -1;
 
-                for(vector<size_t>::const_iterator vit=vIndices2.begin(), vend=vIndices2.end(); vit!=vend; vit++)
+                for(SzVector::const_iterator vit=vIndices2.begin(), vend=vIndices2.end(); vit!=vend; vit++)
                 {
                     const size_t i2 = *vit;
                     if(CurrentFrame.mvpMapPoints[i2])
@@ -1405,11 +1405,11 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, ORBKeyFrame *pKF, con
         rotHist[i].reserve(500);
     const float factor = 1.0f/HISTO_LENGTH;
 
-    const MapPtVector vpMPs = pKF->GetMapPointMatches();
+    const MapPtVector& vpMPs = pKF->getPoints();
 
     for(size_t i=0, iend=vpMPs.size(); i<iend; i++)
     {
-        ORBMapPoint* pMP = dynamic_cast<ORBMapPoint*>(vpMPs[i]);
+        ORBMapPoint* pMP = ORBMAPPOINT(vpMPs[i]);
 
         if(pMP)
         {
@@ -1447,7 +1447,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, ORBKeyFrame *pKF, con
                 // Search in a window
                 const float radius = th*CurrentFrame.mvScaleFactors[nPredictedLevel];
 
-                const vector<size_t> vIndices2 = CurrentFrame.GetFeaturesInArea(u, v, radius, nPredictedLevel-1, nPredictedLevel+1);
+                const SzVector vIndices2 = CurrentFrame.GetFeaturesInArea(u, v, radius, nPredictedLevel-1, nPredictedLevel+1);
 
                 if(vIndices2.empty())
                     continue;
@@ -1457,7 +1457,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, ORBKeyFrame *pKF, con
                 int bestDist = 256;
                 int bestIdx2 = -1;
 
-                for(vector<size_t>::const_iterator vit=vIndices2.begin(); vit!=vIndices2.end(); vit++)
+                for(SzVector::const_iterator vit=vIndices2.begin(); vit!=vIndices2.end(); vit++)
                 {
                     const size_t i2 = *vit;
                     if(CurrentFrame.mvpMapPoints[i2])

@@ -68,6 +68,8 @@ namespace Position
         virtual KeyFrameMap getObservations() = 0;
         //是否在帧中
         virtual bool isInFrame(IKeyFrame *pFrame) = 0;
+        //获取点在帧中的序号
+        virtual int getIndexInKeyFrame(IKeyFrame *pFrame) = 0;
         //设置坏点
         virtual void setBadFlag() = 0;
         //返回是否为坏点
@@ -111,14 +113,19 @@ namespace Position
         virtual operator IFrame*()const = 0;
         //帧目标
         virtual TargetVector& getTargets() = 0;
+
+        //获取旋转 平移分量
+        virtual Mat getRotation() = 0;
+        virtual Mat getTranslation() = 0;
+
         //更新下一帧
         virtual void updateNext(IKeyFrame *next) = 0;
         //更新上一帧
-        virtual void updatePre(IKeyFrame *pre) = 0;
+        virtual void updatePrev(IKeyFrame *pre) = 0;
         //获取到下一帧
         virtual IKeyFrame* getNext() = 0;
         //获取上一帧
-        virtual IKeyFrame* getPre() = 0;
+        virtual IKeyFrame* getPrev() = 0;
         //是否为坏点
         virtual bool isBad() = 0;
         //设为坏帧
@@ -153,16 +160,25 @@ namespace Position
         virtual void clear() = 0;
 
         //获取所有地图点
-        virtual MapPtVector getAllMapPts()const = 0;
+        virtual MapPtVector getAllMapPts() = 0;
 
         //获取所有帧
-        virtual KeyFrameVector getAllFrames()const = 0;
+        virtual KeyFrameVector getAllFrames() = 0;
+
+        //设最近点关联地图点
+        virtual void setReferenceMapPoints(const MapPtVector &vpMPs) = 0;
+        //获取最近帧关联点
+        virtual MapPtVector getReferenceMapPoints() = 0;
         //最大帧号
-        virtual u64 getMaxKFid()const = 0;
+        virtual u64 getMaxKFid() = 0;
 
         //获取帧，点计数
         virtual u64 frameCount() = 0;
         virtual u64 mapptCount() = 0;
+
+        //用于多线程 地图更新锁
+        virtual std::mutex& mapUpdateMutex() = 0;
+
     };
 
     

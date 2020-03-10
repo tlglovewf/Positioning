@@ -5,19 +5,17 @@
 
 #include"P_ORBKeyFrame.h"
 #include"P_ORBFrame.h"
-#include"P_ORBMap.h"
 #include "P_Interface.h"
 
 namespace Position
 {
     class ORBKeyFrame;
-    class Map;
     class ORBFrame;
 
     class ORBMapPoint :public IMapPoint
     {
     public:
-        ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame* pRefKF, Map* pMap);
+        ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame* pRefKF, IMap* pMap);
         //设置世界位姿
         virtual void setWorldPos(const cv::Mat &Pos);
         //获取位姿
@@ -50,13 +48,13 @@ namespace Position
         //是否在帧中
         virtual bool isInFrame(IKeyFrame *pKF);
 
+        //获取点在帧中的序号
+        virtual int getIndexInKeyFrame(IKeyFrame *pFrame); 
+
 
         ORBKeyFrame* GetReferenceKeyFrame();
 
-
-
-        int GetIndexInKeyFrame(ORBKeyFrame* pKF);
-       
+        
 
         void Replace(ORBMapPoint* pMP);    
         ORBMapPoint* GetReplaced();
@@ -81,8 +79,8 @@ namespace Position
 
        
     public:
-        long unsigned int mnId;
-        static long unsigned int nNextId;
+        u64 mnId;
+        static u64 nNextId;
         long int mnFirstKFid;
         long int mnFirstFrame;
         int nObs;
@@ -93,19 +91,19 @@ namespace Position
         bool mbTrackInView;
         int mnTrackScaleLevel;
         float mTrackViewCos;
-        long unsigned int mnTrackReferenceForFrame;
-        long unsigned int mnLastFrameSeen;
+        u64 mnTrackReferenceForFrame;
+        u64 mnLastFrameSeen;
 
         // Variables used by local mapping
-        long unsigned int mnBALocalForKF;
-        long unsigned int mnFuseCandidateForKF;
+        u64 mnBALocalForKF;
+        u64 mnFuseCandidateForKF;
 
         // Variables used by loop closing
-        long unsigned int mnLoopPointForKF;
-        long unsigned int mnCorrectedByKF;
-        long unsigned int mnCorrectedReference;    
+        u64 mnLoopPointForKF;
+        u64 mnCorrectedByKF;
+        u64 mnCorrectedReference;    
         cv::Mat mPosGBA;
-        long unsigned int mnBAGlobalForKF;
+        u64 mnBAGlobalForKF;
 
 
         static std::mutex mGlobalMutex;
@@ -140,12 +138,12 @@ namespace Position
         float mfMinDistance;
         float mfMaxDistance;
 
-        Map* mpMap;
+        IMap* mpMap;
 
         std::mutex mMutexPos;
         std::mutex mMutexFeatures;
     };
-
+#define ORBMAPPOINT(P)  dynamic_cast<ORBMapPoint*>(P)
 } 
 
 #endif // _ORBMAPPOINT_H_

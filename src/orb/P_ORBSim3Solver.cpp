@@ -20,21 +20,20 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &
     mpKF1 = pKF1;
     mpKF2 = pKF2;
 
-    MapPtVector vpKeyFrameMP1 = pKF1->GetMapPointMatches();
+    const MapPtVector& vpKeyFrameMP1 = pKF1->getPoints();
 
     mN1 = vpMatched12.size();
 
     mvpMapPoints1.reserve(mN1);
-    mvpMapPoints2.reserve(mN1);
     mvpMatches12 = vpMatched12;
     mvnIndices1.reserve(mN1);
     mvX3Dc1.reserve(mN1);
     mvX3Dc2.reserve(mN1);
 
-    cv::Mat Rcw1 = pKF1->GetRotation();
-    cv::Mat tcw1 = pKF1->GetTranslation();
-    cv::Mat Rcw2 = pKF2->GetRotation();
-    cv::Mat tcw2 = pKF2->GetTranslation();
+    cv::Mat Rcw1 = pKF1->getRotation();
+    cv::Mat tcw1 = pKF1->getTranslation();
+    cv::Mat Rcw2 = pKF2->getRotation();
+    cv::Mat tcw2 = pKF2->getTranslation();
 
     mvAllIndices.reserve(mN1);
 
@@ -43,8 +42,8 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &
     {
         if(vpMatched12[i1])
         {
-            ORBMapPoint* pMP1 = dynamic_cast<ORBMapPoint*>(vpKeyFrameMP1[i1]);
-            ORBMapPoint* pMP2 = dynamic_cast<ORBMapPoint*>(vpMatched12[i1]);
+            IMapPoint* pMP1 = vpKeyFrameMP1[i1];
+            IMapPoint* pMP2 = vpMatched12[i1];
 
             if(!pMP1)
                 continue;
@@ -52,8 +51,8 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &
             if(pMP1->isBad() || pMP2->isBad())
                 continue;
 
-            int indexKF1 = pMP1->GetIndexInKeyFrame(pKF1);
-            int indexKF2 = pMP2->GetIndexInKeyFrame(pKF2);
+            int indexKF1 = pMP1->getIndexInKeyFrame(pKF1);
+            int indexKF2 = pMP2->getIndexInKeyFrame(pKF2);
 
             if(indexKF1<0 || indexKF2<0)
                 continue;
@@ -68,7 +67,6 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &
             mvnMaxError2.push_back(9.210*sigmaSquare2);
 
             mvpMapPoints1.push_back(pMP1);
-            mvpMapPoints2.push_back(pMP2);
             mvnIndices1.push_back(i1);
 
             cv::Mat X3D1w = pMP1->getWorldPos();
@@ -117,10 +115,10 @@ void Sim3Solver::SetRansacParameters(double probability, int minInliers, int max
     mnIterations = 0;
 }
 
-cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers)
+cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers, int &nInliers)
 {
     bNoMore = false;
-    vbInliers = vector<bool>(mN1,false);
+    vbInliers = BolVector(mN1,false);
     nInliers=0;
 
     if(N<mRansacMinInliers)
@@ -129,7 +127,7 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInli
         return cv::Mat();
     }
 
-    vector<size_t> vAvailableIndices;
+    SzVector vAvailableIndices;
 
     cv::Mat P3Dc1i(3,3,CV_32F);
     cv::Mat P3Dc2i(3,3,CV_32F);
@@ -186,7 +184,7 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInli
     return cv::Mat();
 }
 
-cv::Mat Sim3Solver::find(vector<bool> &vbInliers12, int &nInliers)
+cv::Mat Sim3Solver::find(BolVector &vbInliers12, int &nInliers)
 {
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers12,nInliers);

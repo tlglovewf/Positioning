@@ -90,7 +90,7 @@ namespace Position
                 mpLastKeyFm = mpCurrentKeyFm;
                 mpCurrentKeyFm = mpMap->createKeyFrame(mpCurrent);
                 //更新帧间关系
-                mpCurrentKeyFm->updatePre(mpLastKeyFm);
+                mpCurrentKeyFm->updatePrev(mpLastKeyFm);
                 mpLastKeyFm->updateNext(mpCurrentKeyFm);
             }
         }

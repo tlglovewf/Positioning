@@ -63,6 +63,14 @@ namespace Position
         {
             return mObsers.find(pFrame) != mObsers.end();
         }
+         //获取点在帧中的序号
+        virtual int getIndexInKeyFrame(IKeyFrame *pFrame) 
+        {
+            if(mObsers.count(pFrame))
+                return mObsers[pFrame];
+            else
+                return -1;
+        }
         //设置坏点
         virtual void setBadFlag() 
         {

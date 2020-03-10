@@ -41,7 +41,7 @@ namespace Position
         const int N = IFRAME(pFrame)->getKeySize();
 
         vector<g2o::EdgeSE3ProjectXYZOnlyPose*> vpEdgesMono;
-        vector<size_t> vnIndexEdgeMono;
+        SzVector vnIndexEdgeMono;
         vpEdgesMono.reserve(N);
         vnIndexEdgeMono.reserve(N);
 
@@ -173,7 +173,7 @@ namespace Position
         if(pbStopFlag)
             optimizer.setForceStopFlag(pbStopFlag);
 
-        long unsigned int  maxKFid = 0;
+        u64  maxKFid = 0;
 
         for(size_t i = 0; i < keyframes.size();++i)
         {
@@ -282,7 +282,7 @@ namespace Position
             else
             {
                 // pKF->mTcwGBA.create(4,4,CV_32F);
-                // Converter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
+                // PConverter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
                 // pKF->mnBAGlobalForKF = nLoopKF;
             }
             
@@ -308,7 +308,7 @@ namespace Position
             else
             {
                 // pMP->mPosGBA.create(3,1,CV_32F);
-                // Converter::toCvMat(vPoint->estimate()).copyTo(pMP->mPosGBA);
+                // PConverter::toCvMat(vPoint->estimate()).copyTo(pMP->mPosGBA);
                 // pMP->mnBAGlobalForKF = nLoopKF;
             }
         }

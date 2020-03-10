@@ -1,15 +1,15 @@
 #include "P_ORBMapPoint.h"
 #include "P_ORBmatcher.h"
-
+#include "P_ORBMap.h"
 #include<mutex>
 
 namespace Position
 {
 
-long unsigned int ORBMapPoint::nNextId=0;
+u64 ORBMapPoint::nNextId=0;
 mutex ORBMapPoint::mGlobalMutex;
 
-ORBMapPoint::ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame *pRefKF, Map* pMap):
+ORBMapPoint::ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame *pRefKF, IMap* pMap):
     mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
@@ -19,7 +19,7 @@ ORBMapPoint::ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame *pRefKF, Map* pMap):
     mNormalVector = cv::Mat::zeros(3,1,CV_32F);
 
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
-    unique_lock<mutex> lock(mpMap->mMutexPointCreation);
+    unique_lock<mutex> lock( ORBMAP(mpMap)->mMutexPointCreation);
     mnId=nNextId++;
 }
 
@@ -71,7 +71,7 @@ void ORBMapPoint::rmObservation(IKeyFrame *pKF)
             mObservations.erase(pKF);
 
             if(mpRefKF==pKF)
-                mpRefKF = dynamic_cast<ORBKeyFrame*>(mObservations.begin()->first);
+                mpRefKF = ORBKEYFRAME(mObservations.begin()->first);
 
             // If only 2 observations or less, discard point
             if(nObs<=2)
@@ -107,11 +107,11 @@ void ORBMapPoint::setBadFlag()
     }
     for(KeyFrameMap::iterator mit=obs.begin(), mend=obs.end(); mit!=mend; mit++)
     {
-        ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(mit->first);
-        pKF->EraseMapPointMatch(mit->second);
+        IKeyFrame* pKF = mit->first;
+        pKF->rmMapPoint(mit->second);
     }
 
-    mpMap->EraseMapPoint(this);
+    mpMap->rmMapPoint(this);
 }
 
 ORBMapPoint* ORBMapPoint::GetReplaced()
@@ -142,7 +142,7 @@ void ORBMapPoint::Replace(ORBMapPoint* pMP)
     for(KeyFrameMap::iterator mit=obs.begin(), mend=obs.end(); mit!=mend; mit++)
     {
         // Replace measurement in keyframe
-        ORBKeyFrame* pKF =  dynamic_cast<ORBKeyFrame*>(mit->first);
+        ORBKeyFrame* pKF =  ORBKEYFRAME(mit->first);
 
         if(!pMP->isInFrame(pKF))
         {
@@ -151,14 +151,14 @@ void ORBMapPoint::Replace(ORBMapPoint* pMP)
         }
         else
         {
-            pKF->EraseMapPointMatch(mit->second);
+            pKF->rmMapPoint(mit->second);
         }
     }
     pMP->IncreaseFound(nfound);
     pMP->IncreaseVisible(nvisible);
     pMP->ComputeDistinctiveDescriptors();
 
-    mpMap->EraseMapPoint(this);
+    mpMap->rmMapPoint(this);
 }
 
 bool ORBMapPoint::isBad()
@@ -207,7 +207,7 @@ void ORBMapPoint::ComputeDistinctiveDescriptors()
 
     for(KeyFrameMap::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
     {
-        ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(mit->first);
+        ORBKeyFrame* pKF = ORBKEYFRAME(mit->first);
 
         if(!pKF->isBad())
             vDescriptors.push_back(pKF->mDescriptors.row(mit->second));
@@ -259,7 +259,7 @@ cv::Mat ORBMapPoint::GetDescriptor()
     return mDescriptor.clone();
 }
 
-int ORBMapPoint::GetIndexInKeyFrame(ORBKeyFrame *pKF)
+int ORBMapPoint::getIndexInKeyFrame(IKeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     if(mObservations.count(pKF))
@@ -296,7 +296,7 @@ void ORBMapPoint::UpdateNormalAndDepth()
     int n=0;
     for(KeyFrameMap::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
     {
-        ORBKeyFrame* pKF = dynamic_cast<ORBKeyFrame*>(mit->first);
+        ORBKeyFrame* pKF = ORBKEYFRAME(mit->first);
         cv::Mat Owi = pKF->GetCameraCenter();
         cv::Mat normali = mWorldPos - Owi;
         normal = normal + normali/cv::norm(normali);

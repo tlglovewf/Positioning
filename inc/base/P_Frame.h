@@ -182,7 +182,7 @@ namespace Position
             mpNext = next;
         }
         //更新上一帧
-        virtual void updatePre(IKeyFrame *pre) 
+        virtual void updatePrev(IKeyFrame *pre) 
         {
             mpPre = pre;
         }
@@ -193,9 +193,18 @@ namespace Position
         }
 
         //获取上一帧
-        virtual IKeyFrame* getPre() 
+        virtual IKeyFrame* getPrev() 
         {
             return mpPre;
+        }
+         //获取旋转 平移分量
+        virtual Mat getRotation()
+        {
+            return mpFrame->getPose().rowRange(0,3).colRange(0,3);
+        }
+        virtual Mat getTranslation() 
+        {
+            return mpFrame->getPose().rowRange(0,3).col(3);
         }
     protected:
         IFrame      *mpFrame;

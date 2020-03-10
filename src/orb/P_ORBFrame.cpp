@@ -1,11 +1,11 @@
 #include "P_ORBFrame.h"
-#include "P_ORBConverter.h"
+#include "P_Converter.h"
 #include "P_ORBmatcher.h"
 #include <thread>
 
 namespace Position
 {
-    long unsigned int ORBFrame::nNextId=0;
+    u64 ORBFrame::nNextId=0;
     bool ORBFrame::mbInitialComputations=true;
     float ORBFrame::cx, ORBFrame::cy, ORBFrame::fx, ORBFrame::fy, ORBFrame::invfx, ORBFrame::invfy;
     float ORBFrame::mnMinX, ORBFrame::mnMinY, ORBFrame::mnMaxX, ORBFrame::mnMaxY;
@@ -62,7 +62,7 @@ namespace Position
         UndistortKeyPoints();
 
         mvpMapPoints = MapPtVector(N,NULL);
-        mvbOutlier = vector<bool>(N,false);
+        mvbOutlier = BolVector(N,false);
 
         // This is done only for the first Frame (or after a change in the calibration)
         if(mbInitialComputations)
@@ -180,9 +180,9 @@ namespace Position
         return true;
     }
 
-    vector<size_t> ORBFrame::GetFeaturesInArea(const float &x, const float  &y, const float  &r, const int minLevel, const int maxLevel) const
+    SzVector ORBFrame::GetFeaturesInArea(const float &x, const float  &y, const float  &r, const int minLevel, const int maxLevel) const
     {
-        vector<size_t> vIndices;
+        SzVector vIndices;
         vIndices.reserve(N);
 
         const int nMinCellX = max(0,(int)floor((x-mnMinX-r)*mfGridElementWidthInv));
@@ -207,7 +207,7 @@ namespace Position
         {
             for(int iy = nMinCellY; iy<=nMaxCellY; iy++)
             {
-                const vector<size_t> vCell = mGrid[ix][iy];
+                const SzVector vCell = mGrid[ix][iy];
                 if(vCell.empty())
                     continue;
 
@@ -252,7 +252,7 @@ namespace Position
     {
         if(mBowVec.empty())
         {
-            vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
+            vector<cv::Mat> vCurrentDesc = PConverter::toDescriptorVector(mDescriptors);
             mpORBvocabulary->transform(vCurrentDesc,mBowVec,mFeatVec,4);
         }
     }

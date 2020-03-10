@@ -22,7 +22,7 @@ Initializer::Initializer(const ORBFrame &ReferenceFrame, float sigma, int iterat
 }
 
 bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vMatches12, cv::Mat &R21, cv::Mat &t21,
-                             vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated)
+                             vector<cv::Point3f> &vP3D, BolVector &vbTriangulated)
 {
     // Fill structures with current keypoints and matches with reference frame
     // Reference Frame: 1, Current Frame: 2
@@ -45,9 +45,9 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     const int N = mvMatches12.size();
 
     // Indices for minimum set selection
-    vector<size_t> vAllIndices;
+    SzVector vAllIndices;
     vAllIndices.reserve(N);
-    vector<size_t> vAvailableIndices;
+    SzVector vAvailableIndices;
 
     for(int i=0; i<N; i++)
     {
@@ -55,7 +55,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     }
 
     // Generate sets of 8 points for each RANSAC iteration
-    mvSets = vector< vector<size_t> >(mMaxIterations,vector<size_t>(8,0));
+    mvSets = vector< SzVector >(mMaxIterations,SzVector(8,0));
 
     DUtils::Random::SeedRandOnce(0);
 
@@ -77,7 +77,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     }
 
     // Launch threads to compute in parallel a fundamental matrix and a homography
-    vector<bool> vbMatchesInliersH, vbMatchesInliersF;
+    BolVector vbMatchesInliersH, vbMatchesInliersF;
     float SH, SF;
     cv::Mat H, F;
 
@@ -101,7 +101,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 }
 
 
-void Initializer::FindHomography(vector<bool> &vbMatchesInliers, float &score, cv::Mat &H21)
+void Initializer::FindHomography(BolVector &vbMatchesInliers, float &score, cv::Mat &H21)
 {
     // Number of putative matches
     const int N = mvMatches12.size();
@@ -115,13 +115,13 @@ void Initializer::FindHomography(vector<bool> &vbMatchesInliers, float &score, c
 
     // Best Results variables
     score = 0.0;
-    vbMatchesInliers = vector<bool>(N,false);
+    vbMatchesInliers = BolVector(N,false);
 
     // Iteration variables
     vector<cv::Point2f> vPn1i(8);
     vector<cv::Point2f> vPn2i(8);
     cv::Mat H21i, H12i;
-    vector<bool> vbCurrentInliers(N,false);
+    BolVector vbCurrentInliers(N,false);
     float currentScore;
 
     // Perform all RANSAC iterations and save the solution with highest score
@@ -152,7 +152,7 @@ void Initializer::FindHomography(vector<bool> &vbMatchesInliers, float &score, c
 }
 
 
-void Initializer::FindFundamental(vector<bool> &vbMatchesInliers, float &score, cv::Mat &F21)
+void Initializer::FindFundamental(BolVector &vbMatchesInliers, float &score, cv::Mat &F21)
 {
     // Number of putative matches
     const int N = vbMatchesInliers.size();
@@ -166,13 +166,13 @@ void Initializer::FindFundamental(vector<bool> &vbMatchesInliers, float &score, 
 
     // Best Results variables
     score = 0.0;
-    vbMatchesInliers = vector<bool>(N,false);
+    vbMatchesInliers = BolVector(N,false);
 
     // Iteration variables
     vector<cv::Point2f> vPn1i(8);
     vector<cv::Point2f> vPn2i(8);
     cv::Mat F21i;
-    vector<bool> vbCurrentInliers(N,false);
+    BolVector vbCurrentInliers(N,false);
     float currentScore;
 
     // Perform all RANSAC iterations and save the solution with highest score
@@ -282,7 +282,7 @@ cv::Mat Initializer::ComputeF21(const vector<cv::Point2f> &vP1,const vector<cv::
     return  u*cv::Mat::diag(w)*vt;
 }
 
-float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, vector<bool> &vbMatchesInliers, float sigma)
+float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVector &vbMatchesInliers, float sigma)
 {   
     const int N = mvMatches12.size();
 
@@ -367,7 +367,7 @@ float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, vecto
     return score;
 }
 
-float Initializer::CheckFundamental(const cv::Mat &F21, vector<bool> &vbMatchesInliers, float sigma)
+float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInliers, float sigma)
 {
     const int N = mvMatches12.size();
 
@@ -447,8 +447,8 @@ float Initializer::CheckFundamental(const cv::Mat &F21, vector<bool> &vbMatchesI
     return score;
 }
 
-bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
-                            cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
+bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
+                            cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, BolVector &vbTriangulated, float minParallax, int minTriangulated)
 {
     int N=0;
     for(size_t i=0, iend = vbMatchesInliers.size() ; i<iend; i++)
@@ -468,7 +468,7 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
 
     // Reconstruct with the 4 hyphoteses and check
     vector<cv::Point3f> vP3D1, vP3D2, vP3D3, vP3D4;
-    vector<bool> vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;
+    BolVector vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;
     float parallax1,parallax2, parallax3, parallax4;
 
     int nGood1 = CheckRT(R1,t1,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D1, 4.0*mSigma2, vbTriangulated1, parallax1);
@@ -549,8 +549,8 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
     return false;
 }
 
-bool Initializer::ReconstructH(vector<bool> &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,
-                      cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
+bool Initializer::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,
+                      cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, BolVector &vbTriangulated, float minParallax, int minTriangulated)
 {
     int N=0;
     for(size_t i=0, iend = vbMatchesInliers.size() ; i<iend; i++)
@@ -671,7 +671,7 @@ bool Initializer::ReconstructH(vector<bool> &vbMatchesInliers, cv::Mat &H21, cv:
     int bestSolutionIdx = -1;
     float bestParallax = -1;
     vector<cv::Point3f> bestP3D;
-    vector<bool> bestTriangulated;
+    BolVector bestTriangulated;
 
     // Instead of applying the visibility constraints proposed in the Faugeras' paper (which could fail for points seen with low parallax)
     // We reconstruct all hypotheses and check in terms of triangulated points and parallax
@@ -679,7 +679,7 @@ bool Initializer::ReconstructH(vector<bool> &vbMatchesInliers, cv::Mat &H21, cv:
     {
         float parallaxi;
         vector<cv::Point3f> vP3Di;
-        vector<bool> vbTriangulatedi;
+        BolVector vbTriangulatedi;
         int nGood = CheckRT(vR[i],vt[i],mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K,vP3Di, 4.0*mSigma2, vbTriangulatedi, parallaxi);
 
         if(nGood>bestGood)
@@ -726,7 +726,7 @@ void Initializer::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, 
     x3D = x3D.rowRange(0,3)/x3D.at<float>(3);
 }
 
-void Initializer::Normalize(const vector<cv::KeyPoint> &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
+void Initializer::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
 {
     float meanX = 0;
     float meanY = 0;
@@ -775,9 +775,9 @@ void Initializer::Normalize(const vector<cv::KeyPoint> &vKeys, vector<cv::Point2
 }
 
 
-int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::KeyPoint> &vKeys1, const vector<cv::KeyPoint> &vKeys2,
-                       const vector<Match> &vMatches12, vector<bool> &vbMatchesInliers,
-                       const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, vector<bool> &vbGood, float &parallax)
+int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &vKeys1, const KeyPtVector &vKeys2,
+                       const vector<Match> &vMatches12, BolVector &vbMatchesInliers,
+                       const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, BolVector &vbGood, float &parallax)
 {
     // Calibration parameters
     const float fx = K.at<float>(0,0);
@@ -785,10 +785,10 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::Ke
     const float cx = K.at<float>(0,2);
     const float cy = K.at<float>(1,2);
 
-    vbGood = vector<bool>(vKeys1.size(),false);
+    vbGood = BolVector(vKeys1.size(),false);
     vP3D.resize(vKeys1.size());
 
-    vector<float> vCosParallax;
+    FloatVector vCosParallax;
     vCosParallax.reserve(vKeys1.size());
 
     // Camera 1 Projection Matrix K[I|0]
