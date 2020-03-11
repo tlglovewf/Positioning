@@ -456,6 +456,8 @@ void Tracking::CreateInitialMapMonocular()
     ORBKeyFrame* pKFini = new ORBKeyFrame(mInitialFrame,mpMap,mpKeyFrameDB);
     ORBKeyFrame* pKFcur = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB);
 
+    pKFini->updateNext(pKFcur);
+    pKFcur->updatePrev(pKFini);
 
     pKFini->ComputeBoW();
     pKFcur->ComputeBoW();
@@ -798,7 +800,7 @@ void Tracking::CreateNewKeyFrame()
         return;
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB);
-
+    pKF->updatePrev(mpReferenceKF);
     mpReferenceKF = pKF;
     mCurrentFrame.mpReferenceKF = pKF;
 
@@ -970,7 +972,7 @@ void Tracking::UpdateLocalKeyFrames()
             }
         }
 
-        const set<ORBKeyFrame*> spChilds = pKF->GetChilds();
+        const set<ORBKeyFrame*>& spChilds = pKF->GetChilds();
         for(set<ORBKeyFrame*>::const_iterator sit=spChilds.begin(), send=spChilds.end(); sit!=send; sit++)
         {
             ORBKeyFrame* pChildKF = *sit;

@@ -53,15 +53,9 @@ namespace Position
             assert(NULL);
         }
         //获取到下一帧
-        virtual IKeyFrame* getNext() 
-        {
-            assert(NULL);
-        }
+        virtual IKeyFrame* getNext();
         //获取上一帧
-        virtual IKeyFrame* getPrev() 
-        {
-            assert(NULL);
-        }
+        virtual IKeyFrame* getPrev();
 
         virtual void addMapPoint(IMapPoint* pMP, int idx);
 
@@ -100,7 +94,7 @@ namespace Position
         void AddChild(ORBKeyFrame* pKF);
         void EraseChild(ORBKeyFrame* pKF);
         void ChangeParent(ORBKeyFrame* pKF);
-        std::set<ORBKeyFrame*> GetChilds();
+        const std::set<ORBKeyFrame*>& GetChilds();
         ORBKeyFrame* GetParent();
         bool hasChild(ORBKeyFrame* pKF);
 
@@ -225,15 +219,18 @@ namespace Position
         // Grid over the image to speed up feature matching
         std::vector< std::vector < SzVector > > mGrid;
 
-        KeyFrameMap mConnectedKeyFrameWeights;
-        std::vector<ORBKeyFrame*> mvpOrderedConnectedKeyFrames;
-        std::vector<int> mvOrderedWeights;
+        KeyFrameMap mConnectedKeyFrameWeights; //帧,共视点数(权值)
+        std::vector<ORBKeyFrame*> mvpOrderedConnectedKeyFrames;//根据上权值排序的共视帧
+        std::vector<int> mvOrderedWeights;//排序权值
 
         // Spanning Tree and Loop Edges
         bool mbFirstConnection;
         ORBKeyFrame* mpParent;
         std::set<ORBKeyFrame*> mspChildrens;
         std::set<ORBKeyFrame*> mspLoopEdges;
+
+        IKeyFrame *mpPrev;
+        IKeyFrame *mpNext;
 
         // Bad flags
         bool mbNotErase;

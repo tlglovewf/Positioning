@@ -51,7 +51,7 @@ namespace Position
         virtual void setPose(const cv::Mat &pose) 
         {
             mPose = pose;
-            UpdatePoseMatrices();
+            updatePoseMatrices();
         }
 
         //帧序号
@@ -67,7 +67,7 @@ namespace Position
         }
     protected:
          // Computes rotation, translation and camera center matrices from the camera pose.
-        void UpdatePoseMatrices()
+        void updatePoseMatrices()
         {
             cv::Mat rot = mPose.rowRange(0,3).colRange(0,3);
             cv::Mat t   = mPose.rowRange(0,3).col(3);

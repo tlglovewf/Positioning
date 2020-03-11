@@ -170,8 +170,16 @@ namespace Position
     {
         assert(frame);
         IKeyFrame *pnxt = frame->getNext();
-        if(NULL == frame->getNext())
-            return ;
+
+        if(NULL == pnxt)
+            return;
+        while(pnxt->isBad())
+        {//若为坏点,一直往下关键帧
+            pnxt = pnxt->getNext();
+            if(NULL == pnxt)
+                return ;
+        }  
+        
         TargetVector &preTargets = frame->getTargets();
 
         const TargetVector &curTargets = pnxt->getTargets();

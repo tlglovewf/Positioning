@@ -94,7 +94,7 @@ cv::Mat ORBKeyFrame::getTranslation()
     unique_lock<mutex> lock(mMutexPose);
     return Tcw.rowRange(0,3).col(3).clone();
 }
-
+//新增关联, weight共视点数量
 void ORBKeyFrame::AddConnection(ORBKeyFrame *pKF, const int &weight)
 {
     {
@@ -334,7 +334,7 @@ void ORBKeyFrame::UpdateConnections()
         vPairs.push_back(make_pair(nmax,pKFmax));
         pKFmax->AddConnection(this,nmax);
     }
-    //根据观测数量排序
+    //根据观测数量排序 默认 升序排列
     sort(vPairs.begin(),vPairs.end());
     list<ORBKeyFrame*> lKFs;
     list<int> lWs;
@@ -352,7 +352,7 @@ void ORBKeyFrame::UpdateConnections()
         mvOrderedWeights = vector<int>(lWs.begin(), lWs.end());
 
         if(mbFirstConnection && mnId!=0)
-        {//首次建立关联,设置父节点
+        {//首次建立关联,设置共视点数最多的一帧为父节点
             mpParent = mvpOrderedConnectedKeyFrames.front();
             mpParent->AddChild(this);
             mbFirstConnection = false;
@@ -380,7 +380,7 @@ void ORBKeyFrame::ChangeParent(ORBKeyFrame *pKF)
     pKF->AddChild(this);
 }
 
-set<ORBKeyFrame*> ORBKeyFrame::GetChilds()
+const set<ORBKeyFrame*>& ORBKeyFrame::GetChilds()
 {
     unique_lock<mutex> lockCon(mMutexConnections);
     return mspChildrens;
@@ -390,6 +390,27 @@ ORBKeyFrame* ORBKeyFrame::GetParent()
 {
     unique_lock<mutex> lockCon(mMutexConnections);
     return mpParent;
+}
+
+//获取到下一帧
+IKeyFrame* ORBKeyFrame::getNext()
+{
+    unique_lock<mutex> lockCon(mMutexConnections);
+    if(mspChildrens.empty())
+    {
+        return NULL;
+    }
+    else
+    {
+        return *mspChildrens.begin();
+    }
+    
+}
+//获取上一帧
+IKeyFrame* ORBKeyFrame::getPrev()
+{
+    unique_lock<mutex> lockCon(mMutexConnections);
+    return mpParent; 
 }
 
 bool ORBKeyFrame::hasChild(ORBKeyFrame *pKF)
@@ -435,23 +456,22 @@ void ORBKeyFrame::SetErase()
 
 void ORBKeyFrame::setBadFlag()
 {   
+    unique_lock<mutex> lock(mMutexConnections);
+    if(mnId==0)
+        return;
+    else if(mbNotErase)
     {
-        unique_lock<mutex> lock(mMutexConnections);
-        if(mnId==0)
-            return;
-        else if(mbNotErase)
-        {
-            mbToBeErased = true;
-            return;
-        }
+        mbToBeErased = true;
+        return;
     }
-
+    //抹除关联帧 关于次帧的连接
     for(KeyFrameMap::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
        ORBKEYFRAME(mit->first)->EraseConnection(this);
 
     for(size_t i=0; i<mvpMapPoints.size(); i++)
         if(mvpMapPoints[i])
             mvpMapPoints[i]->rmObservation(this);
+
     {
         unique_lock<mutex> lock(mMutexConnections);
         unique_lock<mutex> lock1(mMutexFeatures);
@@ -478,7 +498,7 @@ void ORBKeyFrame::setBadFlag()
                 ORBKeyFrame* pKF = *sit;
                 if(pKF->isBad())
                     continue;
-
+                //获取子帧中 共视帧 与当前共父点的 更改父点(关联点数量最多的为父)
                 // Check if a parent candidate is connected to the keyframe
                 vector<ORBKeyFrame*> vpConnected = pKF->GetVectorCovisibleKeyFrames();
                 for(size_t i=0, iend=vpConnected.size(); i<iend; i++)
