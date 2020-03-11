@@ -26,7 +26,7 @@ class System
 public:
 
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string &strVocFile, const string &strSettingsFile, const bool bUseViewer = true);
+    System(const string &strVocFile, const string &strSettingsFile);
 
 
     // Proccess the given monocular frame
@@ -50,7 +50,7 @@ private:
     KeyFrameDatabase* mpKeyFrameDatabase;
 
     // Map structure that stores the pointers to all KeyFrames and MapPoints.
-    IMap* mpMap;
+    std::shared_ptr<IMap> mpMap;
 
     // Tracker. It receives a frame and computes the associated camera pose.
     // It also decides when to insert a new keyframe, create some new MapPoints and
@@ -68,7 +68,6 @@ private:
     // The Tracking thread "lives" in the main execution thread that creates the System object.
     std::thread* mptLocalMapping;
     std::thread* mptLoopClosing;
-    std::thread* mptViewer;
 
     // Reset flag
     std::mutex mMutexReset;
@@ -78,12 +77,6 @@ private:
     std::mutex mMutexMode;
     bool mbActivateLocalizationMode;
     bool mbDeactivateLocalizationMode;
-
-    // Tracking state
-    int mTrackingState;
-    MapPtVector mTrackedMapPoints;
-    KeyPtVector mTrackedKeyPointsUn;
-    std::mutex mMutexState;
 };
 
 }

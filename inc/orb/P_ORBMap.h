@@ -57,6 +57,10 @@ namespace Position
         virtual u64 frameCount() ;
         virtual u64 mapptCount() ;
 
+        //获取点、帧数量
+        virtual u64 mapPointsInMap();
+        virtual u64 keyFrameInMap();
+
          //用于多线程 地图更新锁
         virtual std::mutex& mapUpdateMutex()
         {

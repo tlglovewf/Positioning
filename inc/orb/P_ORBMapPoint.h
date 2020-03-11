@@ -15,7 +15,7 @@ namespace Position
     class ORBMapPoint :public IMapPoint
     {
     public:
-        ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame* pRefKF, IMap* pMap);
+        ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame* pRefKF, const std::shared_ptr<IMap>& pMap);
         //设置世界位姿
         virtual void setWorldPos(const cv::Mat &Pos);
         //获取位姿
@@ -43,7 +43,7 @@ namespace Position
         virtual void rmObservation(IKeyFrame *pKF);
 
         //获取观察帧列表
-        virtual  KeyFrameMap getObservations();
+        virtual const KeyFrameMap& getObservations();
 
         //是否在帧中
         virtual bool isInFrame(IKeyFrame *pKF);
@@ -138,7 +138,7 @@ namespace Position
         float mfMinDistance;
         float mfMaxDistance;
 
-        IMap* mpMap;
+        std::shared_ptr<IMap> mpMap;
 
         std::mutex mMutexPos;
         std::mutex mMutexFeatures;

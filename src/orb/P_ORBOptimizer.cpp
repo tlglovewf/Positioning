@@ -16,7 +16,7 @@ namespace Position
 {
 
 
-void Optimizer::GlobalBundleAdjustemnt(IMap* pMap, int nIterations, bool* pbStopFlag, const unsigned long nLoopKF, const bool bRobust)
+void Optimizer::GlobalBundleAdjustemnt(const std::shared_ptr<IMap> &pMap, int nIterations, bool* pbStopFlag, const unsigned long nLoopKF, const bool bRobust)
 {
     KeyFrameVector vpKFs = pMap->getAllFrames();
     MapPtVector     vpMP = pMap->getAllMapPts();
@@ -78,7 +78,7 @@ void Optimizer::BundleAdjustment(const KeyFrameVector &vpKFs, const MapPtVector 
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
 
-        const KeyFrameMap observations = pMP->getObservations();
+        const KeyFrameMap& observations = pMP->getObservations();
 
         int nEdges = 0;
         //SET EDGES
@@ -361,7 +361,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
     return nInitialCorrespondences-nBad;
 }
 
-void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, IMap* pMap)
+void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, const std::shared_ptr<IMap> &pMap)
 {    
     // Local KeyFrames: First Breath Search from Current Keyframe
     list<ORBKeyFrame*> lLocalKeyFrames;
@@ -400,8 +400,8 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, IMap* 
     list<ORBKeyFrame*> lFixedCameras;
     for(list<ORBMapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
     {
-        KeyFrameMap observations = (*lit)->getObservations();
-        for(KeyFrameMapIter mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
+        const KeyFrameMap& observations = (*lit)->getObservations();
+        for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
         {
             ORBKeyFrame* pKFi =  ORBKEYFRAME(mit->first);
 
@@ -490,7 +490,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, IMap* 
         vPoint->setMarginalized(true);
         optimizer.addVertex(vPoint);
 
-        const KeyFrameMap observations = pMP->getObservations();
+        const KeyFrameMap& observations = pMP->getObservations();
 
         //Set edges
         for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
@@ -658,7 +658,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, IMap* 
 }
 
 
-void Optimizer::OptimizeEssentialGraph(IMap* pMap, ORBKeyFrame* pLoopKF, ORBKeyFrame* pCurKF,
+void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKeyFrame* pLoopKF, ORBKeyFrame* pCurKF,
                                        const LoopClosing::KeyFrameAndPose &NonCorrectedSim3,
                                        const LoopClosing::KeyFrameAndPose &CorrectedSim3,
                                        const map<ORBKeyFrame *, set<ORBKeyFrame *> > &LoopConnections, const bool &bFixScale)

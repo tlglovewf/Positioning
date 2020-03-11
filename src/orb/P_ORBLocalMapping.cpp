@@ -9,7 +9,7 @@
 namespace Position
 {
 
-LocalMapping::LocalMapping(IMap *pMap, const float bMonocular):
+LocalMapping::LocalMapping(const std::shared_ptr<IMap> &pMap, const float bMonocular):
     mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true)
 {
@@ -58,7 +58,7 @@ void LocalMapping::Run()
             if(!CheckNewKeyFrames() && !stopRequested())
             {
                 // Local BA
-                if(mpMap->frameCount()>2)
+                if(mpMap->keyFrameInMap() >2)
                     Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
 
                 // Check redundant local Keyframes
@@ -588,7 +588,7 @@ void LocalMapping::KeyFrameCulling()
                     if(pMP->observations()>thObs)
                     {
                         const int &scaleLevel = pKF->mvKeysUn[i].octave;
-                        const KeyFrameMap observations = pMP->getObservations();
+                        const KeyFrameMap& observations = pMP->getObservations();
                         int nObs=0;
                         for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {

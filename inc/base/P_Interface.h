@@ -65,7 +65,7 @@ namespace Position
         //移除观察者
         virtual void rmObservation(IKeyFrame *frame) = 0;
         //获取观察帧列表
-        virtual KeyFrameMap getObservations() = 0;
+        virtual const KeyFrameMap& getObservations() = 0;
         //是否在帧中
         virtual bool isInFrame(IKeyFrame *pFrame) = 0;
         //获取点在帧中的序号
@@ -176,6 +176,10 @@ namespace Position
         virtual u64 frameCount() = 0;
         virtual u64 mapptCount() = 0;
 
+        //获取点、帧数量
+        virtual u64 mapPointsInMap() = 0;
+        virtual u64 keyFrameInMap() = 0;
+
         //用于多线程 地图更新锁
         virtual std::mutex& mapUpdateMutex() = 0;
 
@@ -186,7 +190,7 @@ namespace Position
     class IData : public IBase
     {
     public:
-        //预处理数据
+        //预处理数据        
         virtual bool loadDatas() = 0;
 
         //第一个元素

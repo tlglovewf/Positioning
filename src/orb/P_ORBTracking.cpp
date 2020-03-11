@@ -18,7 +18,7 @@ using namespace std;
 namespace Position
 {
 
-Tracking::Tracking(ORBVocabulary* pVoc, IViewer *pViewer, IMap *pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath):
+Tracking::Tracking(ORBVocabulary* pVoc, IViewer *pViewer, const shared_ptr<IMap>& pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath):
     mState(NO_IMAGES_YET), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)),mpMap(pMap), mnLastRelocFrameId(0)
 {
@@ -205,10 +205,10 @@ void Tracking::Track()
             }
             else
             {
-                if(!mbVO)
+                if(!mbVO)//上次追踪点 <10 为true 即trackwithmotion失败时
                 {
                     // In last frame we tracked enough MapPoints in the map
-
+                    //当匀速模型跟踪成功时 根据运动模型追踪
                     if(!mVelocity.empty())
                     {
                         bOK = TrackWithMotionModel();
@@ -231,6 +231,7 @@ void Tracking::Track()
                     MapPtVector vpMPsMM;
                     BolVector vbOutMM;
                     cv::Mat TcwMM;
+                    //速度不为零 先进行一次运动模型的跟踪 获取一遍位姿状态信息
                     if(!mVelocity.empty())
                     {
                         bOKMM = TrackWithMotionModel();
@@ -238,6 +239,7 @@ void Tracking::Track()
                         vbOutMM = mCurrentFrame.mvbOutlier;
                         TcwMM = mCurrentFrame.mTcw.clone();
                     }
+                    //再进行重定位
                     bOKReloc = Relocalization();
 
                     if(bOKMM && !bOKReloc)
@@ -261,7 +263,7 @@ void Tracking::Track()
                     {
                         mbVO = false;
                     }
-
+                    //重定位 或者 速度模型一个成功 认为跟踪成功
                     bOK = bOKReloc || bOKMM;
                 }
             }
@@ -341,7 +343,7 @@ void Tracking::Track()
         // Reset if the camera get lost soon after initialization
         if(mState==LOST)
         {
-            if(mpMap->frameCount()<=5)
+            if(mpMap->keyFrameInMap() <=5)
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
                 // mpSystem->Reset();
@@ -736,7 +738,7 @@ bool Tracking::NeedNewKeyFrame()
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
         return false;
 
-    const int nKFs = mpMap->frameCount();
+    const int nKFs = mpMap->keyFrameInMap();
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
     if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
@@ -1006,7 +1008,7 @@ void Tracking::UpdateLocalKeyFrames()
         mCurrentFrame.mpReferenceKF = mpReferenceKF;
     }
 }
-
+//重定位(当运动模型跟踪丢失 且追参考帧追踪也丢失了 才进行)
 bool Tracking::Relocalization()
 {
     // Compute Bag of Words Vector
@@ -1014,6 +1016,7 @@ bool Tracking::Relocalization()
 
     // Relocalization is performed when tracking is lost
     // Track Lost: Query ORBKeyFrame Database for keyframe candidates for relocalisation
+    //通过当前帧的词袋模型中 筛选重定位的候选关键帧
     vector<ORBKeyFrame*> vpCandidateKFs = mpKeyFrameDB->DetectRelocalizationCandidates(&mCurrentFrame);
 
     if(vpCandidateKFs.empty())
@@ -1025,7 +1028,7 @@ bool Tracking::Relocalization()
     // If enough matches are found we setup a PnP solver
     ORBmatcher matcher(0.75,true);
 
-    vector<PnPsolver*> vpPnPsolvers;
+    vector<ORBPnPsolver*> vpPnPsolvers;
     vpPnPsolvers.resize(nKFs);
 
     vector< MapPtVector > vvpMapPointMatches;
@@ -1035,7 +1038,7 @@ bool Tracking::Relocalization()
     vbDiscarded.resize(nKFs);
 
     int nCandidates=0;
-
+    //遍历候选帧率, 根据词袋模型搜索 有效帧中 匹配点数量大于阈值建立pnp算法对象
     for(int i=0; i<nKFs; i++)
     {
         ORBKeyFrame* pKF = vpCandidateKFs[i];
@@ -1051,7 +1054,7 @@ bool Tracking::Relocalization()
             }
             else
             {
-                PnPsolver* pSolver = new PnPsolver(mCurrentFrame,vvpMapPointMatches[i]);
+                ORBPnPsolver* pSolver = new ORBPnPsolver(mCurrentFrame,vvpMapPointMatches[i]);
                 pSolver->SetRansacParameters(0.99,10,300,4,0.5,5.991);
                 vpPnPsolvers[i] = pSolver;
                 nCandidates++;
@@ -1076,7 +1079,7 @@ bool Tracking::Relocalization()
             int nInliers;
             bool bNoMore;
 
-            PnPsolver* pSolver = vpPnPsolvers[i];
+            ORBPnPsolver* pSolver = vpPnPsolvers[i];
             cv::Mat Tcw = pSolver->iterate(5,bNoMore,vbInliers,nInliers);
 
             // If Ransac reachs max. iterations discard keyframe
@@ -1118,6 +1121,7 @@ bool Tracking::Relocalization()
                 // If few inliers, search by projection in a coarse window and optimize again
                 if(nGood<50)
                 {
+                    //查询候选帧中其他内点 在当前帧中新的匹配点数量
                     int nadditional =matcher2.SearchByProjection(mCurrentFrame,vpCandidateKFs[i],sFound,10,100);
 
                     if(nadditional+nGood>=50)

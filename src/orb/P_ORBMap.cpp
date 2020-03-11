@@ -60,11 +60,21 @@ namespace Position
 
     u64 ORBMap::mapptCount()
     {
-        unique_lock<mutex> lock(mMutexMap);
-        return mspMapPoints.size();
+        assert(NULL);
     }
 
     u64 ORBMap::frameCount()
+    {
+       assert(NULL);
+    }
+
+    //获取点、帧数量
+    u64 ORBMap::mapPointsInMap() 
+    {
+        unique_lock<mutex> lock(mMutexMap);
+        return mspMapPoints.size();
+    }
+    u64 ORBMap::keyFrameInMap() 
     {
         unique_lock<mutex> lock(mMutexMap);
         return mspKeyFrames.size();

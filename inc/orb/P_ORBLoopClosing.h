@@ -33,7 +33,7 @@ namespace Position
 
     public:
 
-        LoopClosing(IMap* pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale);
+        LoopClosing(const std::shared_ptr<IMap>& pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale);
 
         void SetTracker(Tracking* pTracker);
 
@@ -86,7 +86,7 @@ namespace Position
         bool mbFinished;
         std::mutex mMutexFinish;
 
-        IMap* mpMap;
+        std::shared_ptr<IMap> mpMap;
         Tracking* mpTracker;
 
         KeyFrameDatabase* mpKeyFrameDB;

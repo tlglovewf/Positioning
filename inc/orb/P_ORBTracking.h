@@ -27,7 +27,7 @@ namespace Position
     {  
 
     public:
-        Tracking(ORBVocabulary* pVoc, IViewer *pViewer, IMap* pMap,
+        Tracking(ORBVocabulary* pVoc, IViewer *pViewer, const shared_ptr<IMap>& pMap,
                 KeyFrameDatabase* pKFDB, const string &strSettingPath);
 
         // Preprocess the input and call Track(). Extract features and performs stereo matching.
@@ -59,8 +59,8 @@ namespace Position
         cv::Mat mImGray;
 
         // Initialization Variables (Monocular)
-        std::vector<int> mvIniLastMatches;
-        std::vector<int> mvIniMatches;
+        IntVector mvIniLastMatches;
+        IntVector mvIniMatches;
         std::vector<cv::Point2f> mvbPrevMatched;
         std::vector<cv::Point3f> mvIniP3D;
         ORBFrame mInitialFrame;
@@ -130,7 +130,7 @@ namespace Position
         MapPtVector       mvpLocalMapPoints;
 
         //Map
-        IMap* mpMap;
+        std::shared_ptr<IMap> mpMap;
 
         //Calibration matrix
         cv::Mat mK;

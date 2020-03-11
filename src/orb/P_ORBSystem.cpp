@@ -7,8 +7,7 @@
 namespace Position
 {
 
-System::System(const string &strVocFile, const string &strSettingsFile,
-               const bool bUseViewer): mbReset(false),mbActivateLocalizationMode(false),
+System::System(const string &strVocFile, const string &strSettingsFile):mpMap(new ORBMap()),mbReset(false),mbActivateLocalizationMode(false),
         mbDeactivateLocalizationMode(false)
 {
     //Check settings file
@@ -35,9 +34,6 @@ System::System(const string &strVocFile, const string &strSettingsFile,
 
     //Create ORBKeyFrame Database
     mpKeyFrameDatabase = new KeyFrameDatabase(*mpVocabulary);
-
-    //Create the Map
-    mpMap = new ORBMap();
 
     //Create Drawers. These are used by the Viewer
 
@@ -70,7 +66,7 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     // Check mode change
     {
         unique_lock<mutex> lock(mMutexMode);
-        if(mbActivateLocalizationMode)
+        if(mbActivateLocalizationMode)//deafult false
         {
             mpLocalMapper->RequestStop();
 
@@ -83,7 +79,7 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
             mpTracker->InformOnlyTracking(true);
             mbActivateLocalizationMode = false;
         }
-        if(mbDeactivateLocalizationMode)
+        if(mbDeactivateLocalizationMode)//default false
         {
             mpTracker->InformOnlyTracking(false);
             mpLocalMapper->Release();
@@ -103,12 +99,6 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     FrameData data;
     data._img = im;
     cv::Mat Tcw = mpTracker->track(data);
-
-    unique_lock<mutex> lock2(mMutexState);
-    mTrackingState = mpTracker->mState;
-    mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
-    mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
-
     return Tcw;
 }
 

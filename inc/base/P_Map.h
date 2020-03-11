@@ -121,6 +121,15 @@ namespace Position
         {
             return mnMapPtCnt++;
         }
+        //获取点、帧数量
+        virtual u64 mapPointsInMap()
+        {
+            return mMapPts.size();
+        }
+        virtual u64 keyFrameInMap() 
+        {
+            return mMapFms.size();
+        }
          //用于多线程 地图更新锁
         virtual std::mutex& mapUpdateMutex()
         {

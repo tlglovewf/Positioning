@@ -205,7 +205,7 @@ namespace Position
             vPoint->setMarginalized(true);
             optimizer.addVertex(vPoint);
 
-            const KeyFrameMap observations = pMP->getObservations();
+            const KeyFrameMap& observations = pMP->getObservations();
 
             int nEdges = 0;
 

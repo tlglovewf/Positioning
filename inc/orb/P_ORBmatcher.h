@@ -48,7 +48,7 @@ public:
     int SearchByBoW(ORBKeyFrame *pKF1, ORBKeyFrame* pKF2, MapPtVector &vpMatches12);
 
     // Matching for the Map Initialization (only used in the monocular case)
-    int SearchForInitialization(ORBFrame &F1, ORBFrame &F2, std::vector<cv::Point2f> &vbPrevMatched, std::vector<int> &vnMatches12, int windowSize=10);
+    int SearchForInitialization(ORBFrame &F1, ORBFrame &F2, std::vector<cv::Point2f> &vbPrevMatched, IntVector &vnMatches12, int windowSize=10);
 
     // Matching to triangulate new MapPoints. Check Epipolar Constraint.
     int SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame* pKF2, cv::Mat F12,
@@ -77,7 +77,7 @@ protected:
 
     float RadiusByViewingCos(const float &viewCos);
 
-    void ComputeThreeMaxima(std::vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3);
+    void ComputeThreeMaxima(IntVector* histo, const int L, int &ind1, int &ind2, int &ind3);
 
     float mfNNratio;
     bool mbCheckOrientation;

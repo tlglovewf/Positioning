@@ -15,7 +15,7 @@ namespace Position
 {
 
 
-PnPsolver::PnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatches):
+ORBPnPsolver::ORBPnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatches):
     pws(0), us(0), alphas(0), pcs(0), maximum_number_of_correspondences(0), number_of_correspondences(0), mnInliersi(0),
     mnIterations(0), mnBestInliers(0), N(0)
 {
@@ -60,7 +60,7 @@ PnPsolver::PnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatches):
     SetRansacParameters();
 }
 
-PnPsolver::~PnPsolver()
+ORBPnPsolver::~ORBPnPsolver()
 {
   delete [] pws;
   delete [] us;
@@ -69,7 +69,7 @@ PnPsolver::~PnPsolver()
 }
 
 
-void PnPsolver::SetRansacParameters(double probability, int minInliers, int maxIterations, int minSet, float epsilon, float th2)
+void ORBPnPsolver::SetRansacParameters(double probability, int minInliers, int maxIterations, int minSet, float epsilon, float th2)
 {
     mRansacProb = probability;
     mRansacMinInliers = minInliers;
@@ -107,13 +107,13 @@ void PnPsolver::SetRansacParameters(double probability, int minInliers, int maxI
         mvMaxError[i] = mvSigma2[i]*th2;
 }
 
-cv::Mat PnPsolver::find(BolVector &vbInliers, int &nInliers)
+cv::Mat ORBPnPsolver::find(BolVector &vbInliers, int &nInliers)
 {
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers,nInliers);    
 }
 
-cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers, int &nInliers)
+cv::Mat ORBPnPsolver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers, int &nInliers)
 {
     bNoMore = false;
     vbInliers.clear();
@@ -208,7 +208,7 @@ cv::Mat PnPsolver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers,
     return cv::Mat();
 }
 
-bool PnPsolver::Refine()
+bool ORBPnPsolver::Refine()
 {
     vector<int> vIndices;
     vIndices.reserve(mvbBestInliers.size());
@@ -256,7 +256,7 @@ bool PnPsolver::Refine()
 }
 
 
-void PnPsolver::CheckInliers()
+void ORBPnPsolver::CheckInliers()
 {
     mnInliersi=0;
 
@@ -290,7 +290,7 @@ void PnPsolver::CheckInliers()
 }
 
 
-void PnPsolver::set_maximum_number_of_correspondences(int n)
+void ORBPnPsolver::set_maximum_number_of_correspondences(int n)
 {
   if (maximum_number_of_correspondences < n) {
     if (pws != 0) delete [] pws;
@@ -306,12 +306,12 @@ void PnPsolver::set_maximum_number_of_correspondences(int n)
   }
 }
 
-void PnPsolver::reset_correspondences(void)
+void ORBPnPsolver::reset_correspondences(void)
 {
   number_of_correspondences = 0;
 }
 
-void PnPsolver::add_correspondence(double X, double Y, double Z, double u, double v)
+void ORBPnPsolver::add_correspondence(double X, double Y, double Z, double u, double v)
 {
   pws[3 * number_of_correspondences    ] = X;
   pws[3 * number_of_correspondences + 1] = Y;
@@ -323,7 +323,7 @@ void PnPsolver::add_correspondence(double X, double Y, double Z, double u, doubl
   number_of_correspondences++;
 }
 
-void PnPsolver::choose_control_points(void)
+void ORBPnPsolver::choose_control_points(void)
 {
   // Take C0 as the reference points centroid:
   cws[0][0] = cws[0][1] = cws[0][2] = 0;
@@ -359,7 +359,7 @@ void PnPsolver::choose_control_points(void)
   }
 }
 
-void PnPsolver::compute_barycentric_coordinates(void)
+void ORBPnPsolver::compute_barycentric_coordinates(void)
 {
   double cc[3 * 3], cc_inv[3 * 3];
   CvMat CC     = cvMat(3, 3, CV_64F, cc);
@@ -384,7 +384,7 @@ void PnPsolver::compute_barycentric_coordinates(void)
   }
 }
 
-void PnPsolver::fill_M(CvMat * M,
+void ORBPnPsolver::fill_M(CvMat * M,
 		  const int row, const double * as, const double u, const double v)
 {
   double * M1 = M->data.db + row * 12;
@@ -401,7 +401,7 @@ void PnPsolver::fill_M(CvMat * M,
   }
 }
 
-void PnPsolver::compute_ccs(const double * betas, const double * ut)
+void ORBPnPsolver::compute_ccs(const double * betas, const double * ut)
 {
   for(int i = 0; i < 4; i++)
     ccs[i][0] = ccs[i][1] = ccs[i][2] = 0.0f;
@@ -414,7 +414,7 @@ void PnPsolver::compute_ccs(const double * betas, const double * ut)
   }
 }
 
-void PnPsolver::compute_pcs(void)
+void ORBPnPsolver::compute_pcs(void)
 {
   for(int i = 0; i < number_of_correspondences; i++) {
     double * a = alphas + 4 * i;
@@ -425,7 +425,7 @@ void PnPsolver::compute_pcs(void)
   }
 }
 
-double PnPsolver::compute_pose(double R[3][3], double t[3])
+double ORBPnPsolver::compute_pose(double R[3][3], double t[3])
 {
   choose_control_points();
   compute_barycentric_coordinates();
@@ -475,7 +475,7 @@ double PnPsolver::compute_pose(double R[3][3], double t[3])
   return rep_errors[N];
 }
 
-void PnPsolver::copy_R_and_t(const double R_src[3][3], const double t_src[3],
+void ORBPnPsolver::copy_R_and_t(const double R_src[3][3], const double t_src[3],
 			double R_dst[3][3], double t_dst[3])
 {
   for(int i = 0; i < 3; i++) {
@@ -485,7 +485,7 @@ void PnPsolver::copy_R_and_t(const double R_src[3][3], const double t_src[3],
   }
 }
 
-double PnPsolver::dist2(const double * p1, const double * p2)
+double ORBPnPsolver::dist2(const double * p1, const double * p2)
 {
   return
     (p1[0] - p2[0]) * (p1[0] - p2[0]) +
@@ -493,12 +493,12 @@ double PnPsolver::dist2(const double * p1, const double * p2)
     (p1[2] - p2[2]) * (p1[2] - p2[2]);
 }
 
-double PnPsolver::dot(const double * v1, const double * v2)
+double ORBPnPsolver::dot(const double * v1, const double * v2)
 {
   return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
 }
 
-double PnPsolver::reprojection_error(const double R[3][3], const double t[3])
+double ORBPnPsolver::reprojection_error(const double R[3][3], const double t[3])
 {
   double sum2 = 0.0;
 
@@ -517,7 +517,7 @@ double PnPsolver::reprojection_error(const double R[3][3], const double t[3])
   return sum2 / number_of_correspondences;
 }
 
-void PnPsolver::estimate_R_and_t(double R[3][3], double t[3])
+void ORBPnPsolver::estimate_R_and_t(double R[3][3], double t[3])
 {
   double pc0[3], pw0[3];
 
@@ -577,14 +577,14 @@ void PnPsolver::estimate_R_and_t(double R[3][3], double t[3])
   t[2] = pc0[2] - dot(R[2], pw0);
 }
 
-void PnPsolver::print_pose(const double R[3][3], const double t[3])
+void ORBPnPsolver::print_pose(const double R[3][3], const double t[3])
 {
   cout << R[0][0] << " " << R[0][1] << " " << R[0][2] << " " << t[0] << endl;
   cout << R[1][0] << " " << R[1][1] << " " << R[1][2] << " " << t[1] << endl;
   cout << R[2][0] << " " << R[2][1] << " " << R[2][2] << " " << t[2] << endl;
 }
 
-void PnPsolver::solve_for_sign(void)
+void ORBPnPsolver::solve_for_sign(void)
 {
   if (pcs[2] < 0.0) {
     for(int i = 0; i < 4; i++)
@@ -599,7 +599,7 @@ void PnPsolver::solve_for_sign(void)
   }
 }
 
-double PnPsolver::compute_R_and_t(const double * ut, const double * betas,
+double ORBPnPsolver::compute_R_and_t(const double * ut, const double * betas,
 			     double R[3][3], double t[3])
 {
   compute_ccs(betas, ut);
@@ -615,7 +615,7 @@ double PnPsolver::compute_R_and_t(const double * ut, const double * betas,
 // betas10        = [B11 B12 B22 B13 B23 B33 B14 B24 B34 B44]
 // betas_approx_1 = [B11 B12     B13         B14]
 
-void PnPsolver::find_betas_approx_1(const CvMat * L_6x10, const CvMat * Rho,
+void ORBPnPsolver::find_betas_approx_1(const CvMat * L_6x10, const CvMat * Rho,
 			       double * betas)
 {
   double l_6x4[6 * 4], b4[4];
@@ -647,7 +647,7 @@ void PnPsolver::find_betas_approx_1(const CvMat * L_6x10, const CvMat * Rho,
 // betas10        = [B11 B12 B22 B13 B23 B33 B14 B24 B34 B44]
 // betas_approx_2 = [B11 B12 B22                            ]
 
-void PnPsolver::find_betas_approx_2(const CvMat * L_6x10, const CvMat * Rho,
+void ORBPnPsolver::find_betas_approx_2(const CvMat * L_6x10, const CvMat * Rho,
 			       double * betas)
 {
   double l_6x3[6 * 3], b3[3];
@@ -679,7 +679,7 @@ void PnPsolver::find_betas_approx_2(const CvMat * L_6x10, const CvMat * Rho,
 // betas10        = [B11 B12 B22 B13 B23 B33 B14 B24 B34 B44]
 // betas_approx_3 = [B11 B12 B22 B13 B23                    ]
 
-void PnPsolver::find_betas_approx_3(const CvMat * L_6x10, const CvMat * Rho,
+void ORBPnPsolver::find_betas_approx_3(const CvMat * L_6x10, const CvMat * Rho,
 			       double * betas)
 {
   double l_6x5[6 * 5], b5[5];
@@ -708,7 +708,7 @@ void PnPsolver::find_betas_approx_3(const CvMat * L_6x10, const CvMat * Rho,
   betas[3] = 0.0;
 }
 
-void PnPsolver::compute_L_6x10(const double * ut, double * l_6x10)
+void ORBPnPsolver::compute_L_6x10(const double * ut, double * l_6x10)
 {
   const double * v[4];
 
@@ -750,7 +750,7 @@ void PnPsolver::compute_L_6x10(const double * ut, double * l_6x10)
   }
 }
 
-void PnPsolver::compute_rho(double * rho)
+void ORBPnPsolver::compute_rho(double * rho)
 {
   rho[0] = dist2(cws[0], cws[1]);
   rho[1] = dist2(cws[0], cws[2]);
@@ -760,7 +760,7 @@ void PnPsolver::compute_rho(double * rho)
   rho[5] = dist2(cws[2], cws[3]);
 }
 
-void PnPsolver::compute_A_and_b_gauss_newton(const double * l_6x10, const double * rho,
+void ORBPnPsolver::compute_A_and_b_gauss_newton(const double * l_6x10, const double * rho,
 					double betas[4], CvMat * A, CvMat * b)
 {
   for(int i = 0; i < 6; i++) {
@@ -788,7 +788,7 @@ void PnPsolver::compute_A_and_b_gauss_newton(const double * l_6x10, const double
   }
 }
 
-void PnPsolver::gauss_newton(const CvMat * L_6x10, const CvMat * Rho,
+void ORBPnPsolver::gauss_newton(const CvMat * L_6x10, const CvMat * Rho,
 			double betas[4])
 {
   const int iterations_number = 5;
@@ -808,7 +808,7 @@ void PnPsolver::gauss_newton(const CvMat * L_6x10, const CvMat * Rho,
   }
 }
 
-void PnPsolver::qr_solve(CvMat * A, CvMat * b, CvMat * X)
+void ORBPnPsolver::qr_solve(CvMat * A, CvMat * b, CvMat * X)
 {
   static int max_nr = 0;
   static double * A1, * A2;
@@ -902,7 +902,7 @@ void PnPsolver::qr_solve(CvMat * A, CvMat * b, CvMat * X)
 
 
 
-void PnPsolver::relative_error(double & rot_err, double & transl_err,
+void ORBPnPsolver::relative_error(double & rot_err, double & transl_err,
 			  const double Rtrue[3][3], const double ttrue[3],
 			  const double Rest[3][3],  const double test[3])
 {
@@ -932,7 +932,7 @@ void PnPsolver::relative_error(double & rot_err, double & transl_err,
     sqrt(ttrue[0] * ttrue[0] + ttrue[1] * ttrue[1] + ttrue[2] * ttrue[2]);
 }
 
-void PnPsolver::mat_to_quat(const double R[3][3], double q[4])
+void ORBPnPsolver::mat_to_quat(const double R[3][3], double q[4])
 {
   double tr = R[0][0] + R[1][1] + R[2][2];
   double n4;

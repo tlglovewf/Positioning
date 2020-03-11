@@ -49,7 +49,7 @@ namespace Position
             mObsers.insert(std::make_pair(frame,index));
         }
         //获取观察帧列表
-        virtual KeyFrameMap getObservations() 
+        virtual const KeyFrameMap& getObservations() 
         {
             return mObsers;
         }

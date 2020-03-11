@@ -16,8 +16,8 @@ namespace Position
     class ORBKeyFrame : public IKeyFrame
     {
     public:
-        ORBKeyFrame(ORBFrame &F, IMap* pMap, KeyFrameDatabase* pKFDB);
 
+        ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, KeyFrameDatabase* pKFDB);
 
         //重载类型转换
         virtual operator IFrame*()const 
@@ -45,12 +45,12 @@ namespace Position
         //更新下一帧
         virtual void updateNext(IKeyFrame *next) 
         {
-            assert(NULL);
+            mpNext = next;
         }
         //更新上一帧
         virtual void updatePrev(IKeyFrame *pre) 
         {
-            assert(NULL);
+            mpPrev = pre;
         }
         //获取到下一帧
         virtual IKeyFrame* getNext();
@@ -221,7 +221,7 @@ namespace Position
 
         KeyFrameMap mConnectedKeyFrameWeights; //帧,共视点数(权值)
         std::vector<ORBKeyFrame*> mvpOrderedConnectedKeyFrames;//根据上权值排序的共视帧
-        std::vector<int> mvOrderedWeights;//排序权值
+        IntVector mvOrderedWeights;//排序权值
 
         // Spanning Tree and Loop Edges
         bool mbFirstConnection;
@@ -237,7 +237,7 @@ namespace Position
         bool mbToBeErased;
         bool mbBad;    
 
-        IMap* mpMap;
+        std::shared_ptr<IMap> mpMap;
 
         std::mutex mMutexPose;
         std::mutex mMutexConnections;

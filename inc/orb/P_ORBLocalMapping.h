@@ -20,7 +20,7 @@ namespace Position
     class LocalMapping
     {
     public:
-        LocalMapping(IMap* pMap, const float bMonocular);
+        LocalMapping(const std::shared_ptr<IMap>& pMap, const float bMonocular);
 
         void SetLoopCloser(LoopClosing* pLoopCloser);
 
@@ -79,7 +79,7 @@ namespace Position
         bool mbFinished;
         std::mutex mMutexFinish;
 
-        IMap* mpMap;
+        std::shared_ptr<IMap> mpMap;
 
         LoopClosing* mpLoopCloser;
         Tracking* mpTracker;
