@@ -259,9 +259,9 @@ namespace Position
     //跟踪状态
     enum eTrackStatus
     {   
-        eTrackPrepare,
-        eTrackReady,
-        eTrackOk,
+        eTrackNoImage = 0,
+        eTrackNoReady    ,
+        eTrackOk         ,
         eTrackLost
     };
 
@@ -269,6 +269,8 @@ namespace Position
     class ITrajProcesser : public IBase
     {
     public:
+        //获取地图
+        virtual const std::shared_ptr<IMap>& getMap() = 0;
         //处理
         virtual bool process(const FrameDataVector &framedatas) = 0;
         //跟踪
@@ -277,6 +279,8 @@ namespace Position
         virtual eTrackStatus status()const = 0;
         //重置
         virtual void reset() = 0;
+        //结束
+        virtual void over() = 0;
         //当前帧
         virtual IKeyFrame* current()const = 0;
         //上一帧

@@ -119,15 +119,17 @@ namespace Position
     /*
      * 创建跟踪对象
      */
-    ITrajProcesser* PFactory::CreateTrajProcesser(eTrajProcesserType type, const std::shared_ptr<IMap> &pmap)
+    ITrajProcesser* PFactory::CreateTrajProcesser(eTrajProcesserType type, 
+                                                  const std::shared_ptr<IConfig> &pcfg,
+                                                  const std::shared_ptr<IData> &pdata)
     {
         switch(type)
         {
             case eUniformSpeed:
-                return new UniformVTrajProcesser(pmap);
+                return new UniformVTrajProcesser(pcfg,pdata);
 
             default:
-                return new PTrajProcesser(pmap);
+                return new PTrajProcesser();
         }
     }
 

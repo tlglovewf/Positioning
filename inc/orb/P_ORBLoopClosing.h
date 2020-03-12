@@ -3,27 +3,18 @@
 #ifndef _ORBLOOPCLOSING_H_
 #define _ORBLOOPCLOSING_H_
 
-#include "P_ORBKeyFrame.h"
-#include "P_ORBLocalMapping.h"
+
 #include "P_ORBVocabulary.h"
-#include "P_ORBTracking.h"
-
-#include "P_ORBKeyFrameDatabase.h"
-
-#include <thread>
-#include <mutex>
-#include <unistd.h>
 #include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
-
+#include "P_Interface.h"
+#include <thread>
 namespace Position
 {
-
-    class Tracking;
-    class LocalMapping;
-    class KeyFrameDatabase;
-
-
-    class LoopClosing
+    class ORBKeyFrame;
+    class ORBLocalMapping;
+    class ORBTracking;
+    class ORBKeyFrameDatabase;
+    class ORBLoopClosing
     {
     public:
 
@@ -33,11 +24,12 @@ namespace Position
 
     public:
 
-        LoopClosing(const std::shared_ptr<IMap>& pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale);
+        ORBLoopClosing(const std::shared_ptr<IMap>& pMap, const std::shared_ptr<ORBKeyFrameDatabase>& pDB, 
+                       const std::shared_ptr<ORBVocabulary>& pVoc,const bool bFixScale);
 
-        void SetTracker(Tracking* pTracker);
+        void SetTracker(const std::shared_ptr<ORBTracking>& pTracker);
 
-        void SetLocalMapper(LocalMapping* pLocalMapper);
+        void SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalMapper);
 
         // Main function
         void Run();
@@ -87,12 +79,10 @@ namespace Position
         std::mutex mMutexFinish;
 
         std::shared_ptr<IMap> mpMap;
-        Tracking* mpTracker;
-
-        KeyFrameDatabase* mpKeyFrameDB;
-        ORBVocabulary* mpORBVocabulary;
-
-        LocalMapping *mpLocalMapper;
+        std::shared_ptr<ORBTracking>            mpTracker;
+        std::shared_ptr<ORBKeyFrameDatabase>    mpKeyFrameDB;
+        std::shared_ptr<ORBVocabulary>          mpORBVocabulary;
+        std::shared_ptr<ORBLocalMapping>        mpLocalMapper;
 
         std::list<ORBKeyFrame*> mlpLoopKeyFrameQueue;
 

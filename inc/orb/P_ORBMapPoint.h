@@ -3,15 +3,12 @@
 #ifndef _ORBMAPPOINT_H_
 #define _ORBMAPPOINT_H_
 
-#include"P_ORBKeyFrame.h"
-#include"P_ORBFrame.h"
+#include "P_ORBFrame.h"
 #include "P_Interface.h"
 
 namespace Position
-{
+{   
     class ORBKeyFrame;
-    class ORBFrame;
-
     class ORBMapPoint :public IMapPoint
     {
     public:

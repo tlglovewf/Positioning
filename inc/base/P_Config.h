@@ -137,6 +137,7 @@ namespace Position
         IntConfigParam      ImgWd;          //图像宽度
         IntConfigParam      ImgHg;          //图像长度
         IntConfigParam      ImgFps;         //图像帧率
+        IntConfigParam      ImgRgb;         //图像色彩
 
         IntConfigParam      FeatureCnt;     //特征点数量
         IntConfigParam      PyramidLevel;   //金字塔层数
@@ -148,7 +149,7 @@ namespace Position
         StringConfigParam   ImgPath;        //图片路径
         StringConfigParam   PosPath;        //数据路径
         StringConfigParam   OutPath;        //输出路径
-
+        StringConfigParam   VocPath;        //词典路径
         //可视化参数
         IntConfigParam      ViewEnable;     //是否使用可视化
         IntConfigParam      ViewerW;        //可视窗口宽

@@ -659,8 +659,8 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, const 
 
 
 void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKeyFrame* pLoopKF, ORBKeyFrame* pCurKF,
-                                       const LoopClosing::KeyFrameAndPose &NonCorrectedSim3,
-                                       const LoopClosing::KeyFrameAndPose &CorrectedSim3,
+                                       const ORBLoopClosing::KeyFrameAndPose &NonCorrectedSim3,
+                                       const ORBLoopClosing::KeyFrameAndPose &CorrectedSim3,
                                        const map<ORBKeyFrame *, set<ORBKeyFrame *> > &LoopConnections, const bool &bFixScale)
 {
     // Setup optimizer
@@ -695,7 +695,7 @@ void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKey
 
         const int nIDi = pKF->index();
 
-        LoopClosing::KeyFrameAndPose::const_iterator it = CorrectedSim3.find(ORBKEYFRAME(pKF));
+        ORBLoopClosing::KeyFrameAndPose::const_iterator it = CorrectedSim3.find(ORBKEYFRAME(pKF));
 
         if(it!=CorrectedSim3.end())
         {
@@ -768,7 +768,7 @@ void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKey
 
         g2o::Sim3 Swi;
 
-        LoopClosing::KeyFrameAndPose::const_iterator iti = NonCorrectedSim3.find(pKF);
+        ORBLoopClosing::KeyFrameAndPose::const_iterator iti = NonCorrectedSim3.find(pKF);
 
         if(iti!=NonCorrectedSim3.end())
             Swi = (iti->second).inverse();
@@ -784,7 +784,7 @@ void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKey
 
             g2o::Sim3 Sjw;
 
-            LoopClosing::KeyFrameAndPose::const_iterator itj = NonCorrectedSim3.find(pParentKF);
+            ORBLoopClosing::KeyFrameAndPose::const_iterator itj = NonCorrectedSim3.find(pParentKF);
 
             if(itj!=NonCorrectedSim3.end())
                 Sjw = itj->second;
@@ -811,7 +811,7 @@ void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKey
             {
                 g2o::Sim3 Slw;
 
-                LoopClosing::KeyFrameAndPose::const_iterator itl = NonCorrectedSim3.find(pLKF);
+                ORBLoopClosing::KeyFrameAndPose::const_iterator itl = NonCorrectedSim3.find(pLKF);
 
                 if(itl!=NonCorrectedSim3.end())
                     Slw = itl->second;
@@ -842,7 +842,7 @@ void Optimizer::OptimizeEssentialGraph(const std::shared_ptr<IMap> &pMap, ORBKey
 
                     g2o::Sim3 Snw;
 
-                    LoopClosing::KeyFrameAndPose::const_iterator itn = NonCorrectedSim3.find(pKFn);
+                    ORBLoopClosing::KeyFrameAndPose::const_iterator itn = NonCorrectedSim3.find(pKFn);
 
                     if(itn!=NonCorrectedSim3.end())
                         Snw = itn->second;

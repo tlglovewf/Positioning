@@ -15,39 +15,35 @@
 namespace Position
 {
 
-class ORBKeyFrame;
-class ORBFrame;
+    class ORBKeyFrameDatabase
+    {
+    public:
 
+      ORBKeyFrameDatabase( const std::shared_ptr<ORBVocabulary>& pvoc);
 
-class KeyFrameDatabase
-{
-public:
+      void add(ORBKeyFrame* pKF);
 
-    KeyFrameDatabase(const ORBVocabulary &voc);
+      void erase(ORBKeyFrame* pKF);
 
-   void add(ORBKeyFrame* pKF);
+      void clear();
 
-   void erase(ORBKeyFrame* pKF);
+      // Loop Detection
+      std::vector<ORBKeyFrame *> DetectLoopCandidates(ORBKeyFrame* pKF, float minScore);
 
-   void clear();
+      // Relocalization
+      std::vector<ORBKeyFrame*> DetectRelocalizationCandidates(ORBFrame* F);
 
-   // Loop Detection
-   std::vector<ORBKeyFrame *> DetectLoopCandidates(ORBKeyFrame* pKF, float minScore);
+    protected:
 
-   // Relocalization
-   std::vector<ORBKeyFrame*> DetectRelocalizationCandidates(ORBFrame* F);
+      // Associated vocabulary
+      std::shared_ptr<ORBVocabulary> mpVoc;
 
-protected:
+      // Inverted file
+      std::vector<list<ORBKeyFrame*> > mvInvertedFile;
 
-  // Associated vocabulary
-  const ORBVocabulary* mpVoc;
-
-  // Inverted file
-  std::vector<list<ORBKeyFrame*> > mvInvertedFile;
-
-  // Mutex
-  std::mutex mMutex;
-};
+      // Mutex
+      std::mutex mMutex;
+    };
 
 }
 

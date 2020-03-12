@@ -16,13 +16,15 @@ PositionController::PositionController(const shared_ptr<Position::IDetector> &pd
     assert(pcfg);
     assert(pdetecter);
 
-    mpMap = std::make_shared<Position::PMap>();
+    mpTrajProcesser.reset(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,pcfg,pdata));
+    mpMap = mpTrajProcesser->getMap();
+    assert(mpMap);
     if(GETCFGVALUE(mpConfig,ViewEnable,int))
     {
         mpViewer = std::unique_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg,mpMap));
     }
-    mpTrajProcesser.reset(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,mpMap));
-    mpChecker           = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
+    
+    mpChecker  = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
 }
 
 //初始化 

@@ -42,6 +42,10 @@ namespace Position
 #define RELEASEPT(X)  if(X){delete X; X = NULL;}
 #define RELEASEPTS(X) if(X){delete [] X;X = NULL;}
 
+//base type define 
+typedef unsigned char u8;
+typedef unsigned int  u32;
+typedef unsigned long u64;
 
 //经纬度
 struct BLHCoordinate
@@ -72,6 +76,9 @@ struct CameraParam
     Mat D;           //畸变参数
     Mat RCam2Imu;    //相机->IMU坐标系 旋转矩阵
     Mat TCam2Imu;    //相机->IMU坐标系 平移矩阵
+    u8 fps;          //相机帧率
+    u8 rgb;          //相机颜色值(1rgb 0gray)
+    CameraParam():fps(0),rgb(0){}
     //add more
 };
 
@@ -176,10 +183,6 @@ struct EpLine
     EpLine():a(0),b(0),c(0){}
     EpLine(double _a,double _b,double _c):a(_a),b(_b),c(_c){}
 };
-//base type define 
-typedef unsigned char u8;
-typedef unsigned int  u32;
-typedef unsigned long u64;
 
 typedef std::vector<PoseData>               PoseVector;
 typedef PoseVector::iterator                PoseVIter;

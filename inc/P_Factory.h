@@ -120,7 +120,9 @@ namespace Position
         /*
          * 创建轨迹处理对象
          */
-        static ITrajProcesser *CreateTrajProcesser(eTrajProcesserType type, const std::shared_ptr<IMap> &pmap);
+        static ITrajProcesser *CreateTrajProcesser(eTrajProcesserType type, 
+                                                   const std::shared_ptr<IConfig> &pcfg,
+                                                   const std::shared_ptr<IData> &pdata);
 
         /*
          * 位姿推算

@@ -3,28 +3,24 @@
 #ifndef _ORBLOCALMAPPING_H_
 #define _ORBLOCALMAPPING_H_
 
-#include "P_ORBKeyFrame.h"
-#include "P_ORBLoopClosing.h"
-#include "P_ORBTracking.h"
-#include "P_ORBKeyFrameDatabase.h"
-
-#include <mutex>
-
+#include "P_Interface.h"
 
 namespace Position
 {
+    class ORBLoopClosing;
+    class ORBTracking;
+    class ORBKeyFrameDatabase;
+    class ORBMapPoint;
+    class ORBKeyFrame;
 
-    class Tracking;
-    class LoopClosing;
-
-    class LocalMapping
+    class ORBLocalMapping
     {
     public:
-        LocalMapping(const std::shared_ptr<IMap>& pMap, const float bMonocular);
+        ORBLocalMapping(const std::shared_ptr<IMap>& pMap, const float bMonocular);
 
-        void SetLoopCloser(LoopClosing* pLoopCloser);
+        void SetLoopCloser(const std::shared_ptr<ORBLoopClosing>& pLoopCloser);
 
-        void SetTracker(Tracking* pTracker);
+        void SetTracker(const std::shared_ptr<ORBTracking>& pTracker);
 
         // Main function
         void Run();
@@ -81,8 +77,8 @@ namespace Position
 
         std::shared_ptr<IMap> mpMap;
 
-        LoopClosing* mpLoopCloser;
-        Tracking* mpTracker;
+        std::shared_ptr<ORBLoopClosing> mpLoopCloser;
+        std::shared_ptr<ORBTracking> mpTracker;
 
         std::list<ORBKeyFrame*> mlNewKeyFrames;
 

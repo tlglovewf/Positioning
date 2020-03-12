@@ -105,7 +105,6 @@ src/base/P_FeatureMatcher.cpp
 src/viewer/P_PangolinViewer.cpp
 src/orb/P_ORBFeature.cpp
 src/orb/P_UniformVTrajProcesser.cpp
-src/orb/P_ORBSystem.cpp
 src/orb/P_ORBTracking.cpp
 src/orb/P_ORBLocalMapping.cpp
 src/orb/P_ORBLoopClosing.cpp

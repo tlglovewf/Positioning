@@ -3,9 +3,8 @@
 
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
 #include "Thirdparty/DBoW2/DBoW2/FeatureVector.h"
-#include "P_ORBMapPoint.h"
+
 #include "P_ORBVocabulary.h"
-#include "P_ORBKeyFrame.h"
 #include "P_ORBFeature.h"
 #include "P_Interface.h"
 
@@ -13,10 +12,8 @@ namespace Position
 {
     #define FRAME_GRID_ROWS 48
     #define FRAME_GRID_COLS 64
-
     class ORBMapPoint;
     class ORBKeyFrame;
-
     class ORBFrame : public IFrame
     {
     public:

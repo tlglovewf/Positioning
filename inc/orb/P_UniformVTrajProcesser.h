@@ -7,21 +7,31 @@
 #ifndef __PUNIFORMVTRAJPROCESSER_H_H_
 #define __PUNIFORMVTRAJPROCESSER_H_H_
 #include "P_TrajProcesser.h"
+#include "P_ORBVocabulary.h"
+#include <thread>
 
 namespace Position
 {
+    class ORBTracking;
+    class ORBLocalMapping;
+    class ORBLoopClosing;
+    class ORBKeyFrameDatabase;
+
     //匀速跟踪
     class UniformVTrajProcesser : public PTrajProcesser
     {
     public:
         //构造
-        UniformVTrajProcesser(const std::shared_ptr<IMap> &pmap):PTrajProcesser(pmap){
-            mVelocity = cv::Mat::eye(4,4,MATCVTYPE);
-        }
-
+        UniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata);
+        ~UniformVTrajProcesser();
          //跟踪
         virtual cv::Mat track(const FrameData &data);
 
+        //重置
+        virtual void reset();
+
+        //结束
+        virtual void over();
     protected:
 
         //是否能创建新帧
@@ -31,8 +41,16 @@ namespace Position
         void trackWithMotionModel();
 
     private:
+       std::shared_ptr<ORBTracking>         mpTracker;
+       std::shared_ptr<ORBLocalMapping>     mpLocalMapper;
+       std::shared_ptr<ORBLoopClosing>      mpLoopCloser;
+       std::shared_ptr<ORBVocabulary>       mpVocabulary;
+       std::shared_ptr<ORBKeyFrameDatabase> mpKeyFrameDatabase;
 
-        cv::Mat     mVelocity;
+       std::unique_ptr<std::thread>        mptLocalMapping;
+       std::unique_ptr<std::thread>        mptLoopClosing;
+       
+       bool                 mbReset;
     };
 }
 

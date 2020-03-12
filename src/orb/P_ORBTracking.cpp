@@ -1,79 +1,34 @@
 #include "P_ORBTracking.h"
-
-
-#include"P_ORBmatcher.h"
-#include"P_Converter.h"
-#include"P_ORBInitializer.h"
-
-#include"P_ORBOptimizer.h"
-#include"P_ORBPnPsolver.h"
-
-#include<iostream>
-
-#include<mutex>
-
+#include "P_ORBmatcher.h"
+#include "P_Converter.h"
+#include "P_ORBInitializer.h"
+#include "P_ORBOptimizer.h"
+#include "P_ORBPnPsolver.h"
+#include <unistd.h>
 
 using namespace std;
 
 namespace Position
 {
 
-Tracking::Tracking(ORBVocabulary* pVoc, IViewer *pViewer, const shared_ptr<IMap>& pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath):
-    mState(NO_IMAGES_YET), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
+ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc, 
+                         const std::shared_ptr<IMap>& pMap, 
+                         const std::shared_ptr<ORBKeyFrameDatabase>& pKFDB,
+                         const std::shared_ptr<IConfig> &pcfg,
+                         const CameraParam &camparam):
+    mState(eTrackNoImage), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)),mpMap(pMap), mnLastRelocFrameId(0)
 {
     // Load camera parameters from settings file
+    mK = camparam.K;
 
-    cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
-    float fx = fSettings["Camera.fx"];
-    float fy = fSettings["Camera.fy"];
-    float cx = fSettings["Camera.cx"];
-    float cy = fSettings["Camera.cy"];
-
-    cv::Mat K = cv::Mat::eye(3,3,CV_32F);
-    K.at<float>(0,0) = fx;
-    K.at<float>(1,1) = fy;
-    K.at<float>(0,2) = cx;
-    K.at<float>(1,2) = cy;
-    K.copyTo(mK);
-
-    cv::Mat DistCoef(4,1,CV_32F);
-    DistCoef.at<float>(0) = fSettings["Camera.k1"];
-    DistCoef.at<float>(1) = fSettings["Camera.k2"];
-    DistCoef.at<float>(2) = fSettings["Camera.p1"];
-    DistCoef.at<float>(3) = fSettings["Camera.p2"];
-    const float k3 = fSettings["Camera.k3"];
-    if(k3!=0)
-    {
-        DistCoef.resize(5);
-        DistCoef.at<float>(4) = k3;
-    }
-    DistCoef.copyTo(mDistCoef);
-
-    float fps = fSettings["Camera.fps"];
-    if(fps==0)
-        fps=30;
+    mDistCoef = camparam.D;
 
     // Max/Min Frames to insert keyframes and to check relocalisation
     mMinFrames = 0;
-    mMaxFrames = fps;
+    mMaxFrames = camparam.fps;
 
-    cout << endl << "Camera Parameters: " << endl;
-    cout << "- fx: " << fx << endl;
-    cout << "- fy: " << fy << endl;
-    cout << "- cx: " << cx << endl;
-    cout << "- cy: " << cy << endl;
-    cout << "- k1: " << DistCoef.at<float>(0) << endl;
-    cout << "- k2: " << DistCoef.at<float>(1) << endl;
-    if(DistCoef.rows==5)
-        cout << "- k3: " << DistCoef.at<float>(4) << endl;
-    cout << "- p1: " << DistCoef.at<float>(2) << endl;
-    cout << "- p2: " << DistCoef.at<float>(3) << endl;
-    cout << "- fps: " << fps << endl;
-
-
-    int nRGB = fSettings["Camera.RGB"];
-    mbRGB = nRGB;
+    mbRGB = camparam.rgb;
 
     if(mbRGB)
         cout << "- color order: RGB (ignored if grayscale)" << endl;
@@ -82,11 +37,11 @@ Tracking::Tracking(ORBVocabulary* pVoc, IViewer *pViewer, const shared_ptr<IMap>
 
     // Load ORB parameters
 
-    int nFeatures = fSettings["ORBextractor.nFeatures"];
-    float fScaleFactor = fSettings["ORBextractor.scaleFactor"];
-    int nLevels = fSettings["ORBextractor.nLevels"];
-    int fIniThFAST = fSettings["ORBextractor.iniThFAST"];
-    int fMinThFAST = fSettings["ORBextractor.minThFAST"];
+    int nFeatures = 3000; 
+    float fScaleFactor = 1.3;
+    int nLevels = 8;
+    int fIniThFAST = 20;
+    int fMinThFAST = 7;
 
     mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
@@ -101,17 +56,17 @@ Tracking::Tracking(ORBVocabulary* pVoc, IViewer *pViewer, const shared_ptr<IMap>
 
 }
 
-void Tracking::SetLocalMapper(LocalMapping *pLocalMapper)
+void ORBTracking::SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalMapper)
 {
     mpLocalMapper=pLocalMapper;
 }
 
-void Tracking::SetLoopClosing(LoopClosing *pLoopClosing)
+void ORBTracking::SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClosing)
 {
     mpLoopClosing=pLoopClosing;
 }
 
-cv::Mat Tracking::track(const FrameData &data)
+cv::Mat ORBTracking::track(const FrameData &data)
 {
     mImGray = data._img;
 
@@ -130,37 +85,35 @@ cv::Mat Tracking::track(const FrameData &data)
             cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
     }
 
-    if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET)
-        mCurrentFrame = ORBFrame(mImGray,data._pos._t,mpIniORBextractor,mpORBVocabulary,mK,mDistCoef);
+    if(mState == eTrackNoReady || mState == eTrackNoImage)
+        mCurrentFrame = ORBFrame(mImGray,data._pos._t,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
     else
-        mCurrentFrame = ORBFrame(mImGray,data._pos._t,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef);
+        mCurrentFrame = ORBFrame(mImGray,data._pos._t,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
 
     Track();
 
     return mCurrentFrame.mTcw.clone();
 }
 
-void Tracking::Track()
+void ORBTracking::Track()
 {
     while(!mpLocalMapper->AcceptKeyFrames())
     {
         usleep(100);
     }
-    if(mState==NO_IMAGES_YET)
+    if(mState==eTrackNoImage)
     {
-        mState = NOT_INITIALIZED;
+        mState = eTrackNoReady;
     }
-
-    mLastProcessedState=mState;
 
     // Get Map Mutex -> Map cannot be changed
     unique_lock<mutex> lock(mpMap->mapUpdateMutex());
 
-    if(mState==NOT_INITIALIZED)
+    if(mState==eTrackNoReady)
     {
         MonocularInitialization();
 
-        if(mState!=OK)
+        if(mState != eTrackOk)
             return;
     }
     else
@@ -174,7 +127,7 @@ void Tracking::Track()
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
 
-            if(mState==OK)
+            if(mState == eTrackOk)
             {
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
@@ -199,7 +152,7 @@ void Tracking::Track()
         {
             // Localization Mode: Local Mapping is deactivated
 
-            if(mState==LOST)
+            if(mState == eTrackLost)
             {
                 bOK = Relocalization();
             }
@@ -287,9 +240,9 @@ void Tracking::Track()
         }
 
         if(bOK)
-            mState = OK;
+            mState = eTrackOk;
         else
-            mState=LOST;
+            mState = eTrackLost;
 
         // If tracking were good, check if we insert a keyframe
         if(bOK)
@@ -341,12 +294,11 @@ void Tracking::Track()
         }
 
         // Reset if the camera get lost soon after initialization
-        if(mState==LOST)
+        if(mState==eTrackLost)
         {
             if(mpMap->keyFrameInMap() <=5)
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
-                // mpSystem->Reset();
                 return;
             }
         }
@@ -364,7 +316,7 @@ void Tracking::Track()
         mlRelativeFramePoses.push_back(Tcr);
         mlpReferences.push_back(mpReferenceKF);
         mlFrameTimes.push_back(mCurrentFrame.mTimeStamp);
-        mlbLost.push_back(mState==LOST);
+        mlbLost.push_back(mState==eTrackLost);
     }
     else
     {
@@ -372,13 +324,13 @@ void Tracking::Track()
         mlRelativeFramePoses.push_back(mlRelativeFramePoses.back());
         mlpReferences.push_back(mlpReferences.back());
         mlFrameTimes.push_back(mlFrameTimes.back());
-        mlbLost.push_back(mState==LOST);
+        mlbLost.push_back(mState==eTrackLost);
     }
 
 }
 
 
-void Tracking::MonocularInitialization()
+void ORBTracking::MonocularInitialization()
 {
 
     if(!mpInitializer)
@@ -452,11 +404,11 @@ void Tracking::MonocularInitialization()
     }
 }
 
-void Tracking::CreateInitialMapMonocular()
+void ORBTracking::CreateInitialMapMonocular()
 {
     // Create KeyFrames
-    ORBKeyFrame* pKFini = new ORBKeyFrame(mInitialFrame,mpMap,mpKeyFrameDB);
-    ORBKeyFrame* pKFcur = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB);
+    ORBKeyFrame* pKFini = new ORBKeyFrame(mInitialFrame,mpMap,mpKeyFrameDB.get());
+    ORBKeyFrame* pKFcur = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
 
     pKFini->updateNext(pKFcur);
     pKFcur->updatePrev(pKFini);
@@ -551,10 +503,10 @@ void Tracking::CreateInitialMapMonocular()
 
     // mpMap->mvpKeyFrameOrigins.push_back(pKFini);
 
-    mState=OK;
+    mState = eTrackOk;
 }
 
-void Tracking::CheckReplacedInLastFrame()
+void ORBTracking::CheckReplacedInLastFrame()
 {
     for(int i =0; i<mLastFrame.N; i++)
     {
@@ -572,7 +524,7 @@ void Tracking::CheckReplacedInLastFrame()
 }
 
 
-bool Tracking::TrackReferenceKeyFrame()
+bool ORBTracking::TrackReferenceKeyFrame()
 {
     // Compute Bag of Words vector
     mCurrentFrame.ComputeBoW();
@@ -616,7 +568,7 @@ bool Tracking::TrackReferenceKeyFrame()
     return nmatchesMap>=10;
 }
 
-void Tracking::UpdateLastFrame()
+void ORBTracking::UpdateLastFrame()
 {
     // Update pose according to reference keyframe
     ORBKeyFrame* pRef = mLastFrame.mpReferenceKF;
@@ -625,7 +577,7 @@ void Tracking::UpdateLastFrame()
     mLastFrame.setPose(Tlr*pRef->getPose());
 }
 
-bool Tracking::TrackWithMotionModel()
+bool ORBTracking::TrackWithMotionModel()
 {
     ORBmatcher matcher(0.9,true);
 
@@ -685,7 +637,7 @@ bool Tracking::TrackWithMotionModel()
     return nmatchesMap>=10;
 }
 
-bool Tracking::TrackLocalMap()
+bool ORBTracking::TrackLocalMap()
 {
     // We have an estimation of the camera pose and some map points tracked in the frame.
     // We retrieve the local map and try to find matches to points in the local map.
@@ -729,7 +681,7 @@ bool Tracking::TrackLocalMap()
 }
 
 
-bool Tracking::NeedNewKeyFrame()
+bool ORBTracking::NeedNewKeyFrame()
 {
     if(mbOnlyTracking)
         return false;
@@ -796,12 +748,12 @@ bool Tracking::NeedNewKeyFrame()
         return false;
 }
 
-void Tracking::CreateNewKeyFrame()
+void ORBTracking::CreateNewKeyFrame()
 {
     if(!mpLocalMapper->SetNotStop(true))
         return;
 
-    ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB);
+    ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
     pKF->updatePrev(mpReferenceKF);
     mpReferenceKF = pKF;
     mCurrentFrame.mpReferenceKF = pKF;
@@ -814,7 +766,7 @@ void Tracking::CreateNewKeyFrame()
     mpLastKeyFrame = pKF;
 }
 
-void Tracking::SearchLocalPoints()
+void ORBTracking::SearchLocalPoints()
 {
     // Do not search map points already matched
     for(MapPtVIter vit=mCurrentFrame.mvpMapPoints.begin(), vend=mCurrentFrame.mvpMapPoints.end(); vit!=vend; vit++)
@@ -864,7 +816,7 @@ void Tracking::SearchLocalPoints()
     }
 }
 
-void Tracking::UpdateLocalMap()
+void ORBTracking::UpdateLocalMap()
 {
     mpMap->setReferenceMapPoints(mvpLocalMapPoints);
 
@@ -873,7 +825,7 @@ void Tracking::UpdateLocalMap()
     UpdateLocalPoints();
 }
 
-void Tracking::UpdateLocalPoints()
+void ORBTracking::UpdateLocalPoints()
 {
     mvpLocalMapPoints.clear();
 
@@ -899,7 +851,7 @@ void Tracking::UpdateLocalPoints()
 }
 
 
-void Tracking::UpdateLocalKeyFrames()
+void ORBTracking::UpdateLocalKeyFrames()
 {
     // Each map point vote for the keyframes in which it has been observed
     KeyFrameMap keyframeCounter;
@@ -1009,7 +961,7 @@ void Tracking::UpdateLocalKeyFrames()
     }
 }
 //重定位(当运动模型跟踪丢失 且追参考帧追踪也丢失了 才进行)
-bool Tracking::Relocalization()
+bool ORBTracking::Relocalization()
 {
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
@@ -1174,7 +1126,7 @@ bool Tracking::Relocalization()
 
 }
 
-void Tracking::Reset()
+void ORBTracking::Reset()
 {
 
     cout << "System Reseting" << endl;
@@ -1199,7 +1151,7 @@ void Tracking::Reset()
 
     ORBKeyFrame::nNextId = 0;
     ORBFrame::nNextId = 0;
-    mState = NO_IMAGES_YET;
+    mState = eTrackNoImage;
 
     if(mpInitializer)
     {
@@ -1213,7 +1165,7 @@ void Tracking::Reset()
     mlbLost.clear();
 }
 
-void Tracking::InformOnlyTracking(const bool &flag)
+void ORBTracking::InformOnlyTracking(const bool &flag)
 {
     mbOnlyTracking = flag;
 }

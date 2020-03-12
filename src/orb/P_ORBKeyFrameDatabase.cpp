@@ -10,14 +10,14 @@ using namespace std;
 namespace Position
 {
 
-KeyFrameDatabase::KeyFrameDatabase (const ORBVocabulary &voc):
-    mpVoc(&voc)
+ORBKeyFrameDatabase::ORBKeyFrameDatabase ( const std::shared_ptr<ORBVocabulary>& pvoc):
+    mpVoc(pvoc)
 {
-    mvInvertedFile.resize(voc.size());
+    mvInvertedFile.resize(pvoc->size());
 }
 
 
-void KeyFrameDatabase::add(ORBKeyFrame *pKF)
+void ORBKeyFrameDatabase::add(ORBKeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutex);
 
@@ -25,7 +25,7 @@ void KeyFrameDatabase::add(ORBKeyFrame *pKF)
         mvInvertedFile[vit->first].push_back(pKF);
 }
 
-void KeyFrameDatabase::erase(ORBKeyFrame* pKF)
+void ORBKeyFrameDatabase::erase(ORBKeyFrame* pKF)
 {
     unique_lock<mutex> lock(mMutex);
 
@@ -46,14 +46,14 @@ void KeyFrameDatabase::erase(ORBKeyFrame* pKF)
     }
 }
 
-void KeyFrameDatabase::clear()
+void ORBKeyFrameDatabase::clear()
 {
     mvInvertedFile.clear();
     mvInvertedFile.resize(mpVoc->size());
 }
 
 
-vector<ORBKeyFrame*> KeyFrameDatabase::DetectLoopCandidates(ORBKeyFrame* pKF, float minScore)
+vector<ORBKeyFrame*> ORBKeyFrameDatabase::DetectLoopCandidates(ORBKeyFrame* pKF, float minScore)
 {
     set<ORBKeyFrame*> spConnectedKeyFrames = pKF->GetConnectedKeyFrames();
     list<ORBKeyFrame*> lKFsSharingWords;
@@ -176,7 +176,7 @@ vector<ORBKeyFrame*> KeyFrameDatabase::DetectLoopCandidates(ORBKeyFrame* pKF, fl
     return vpLoopCandidates;
 }
 
-vector<ORBKeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(ORBFrame *F)
+vector<ORBKeyFrame*> ORBKeyFrameDatabase::DetectRelocalizationCandidates(ORBFrame *F)
 {
     list<ORBKeyFrame*> lKFsSharingWords;
 

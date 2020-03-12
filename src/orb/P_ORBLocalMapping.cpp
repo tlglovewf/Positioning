@@ -1,31 +1,31 @@
 
 #include "P_ORBLocalMapping.h"
-#include "P_ORBLoopClosing.h"
 #include "P_ORBmatcher.h"
 #include "P_ORBOptimizer.h"
-
-#include<mutex>
-
+#include "P_ORBKeyFrame.h"
+#include "P_ORBLoopClosing.h"
+#include "P_ORBTracking.h"
+#include <unistd.h>
 namespace Position
 {
 
-LocalMapping::LocalMapping(const std::shared_ptr<IMap> &pMap, const float bMonocular):
+ORBLocalMapping::ORBLocalMapping(const std::shared_ptr<IMap> &pMap, const float bMonocular):
     mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true)
 {
 }
 
-void LocalMapping::SetLoopCloser(LoopClosing* pLoopCloser)
+void ORBLocalMapping::SetLoopCloser(const std::shared_ptr<ORBLoopClosing>& pLoopCloser)
 {
     mpLoopCloser = pLoopCloser;
 }
 
-void LocalMapping::SetTracker(Tracking *pTracker)
+void ORBLocalMapping::SetTracker(const std::shared_ptr<ORBTracking>& pTracker)
 {
     mpTracker=pTracker;
 }
 
-void LocalMapping::Run()
+void ORBLocalMapping::Run()
 {
 
     mbFinished = false;
@@ -92,7 +92,7 @@ void LocalMapping::Run()
     SetFinish();
 }
 
-void LocalMapping::InsertKeyFrame(ORBKeyFrame *pKF)
+void ORBLocalMapping::InsertKeyFrame(ORBKeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexNewKFs);
     mlNewKeyFrames.push_back(pKF);
@@ -100,13 +100,13 @@ void LocalMapping::InsertKeyFrame(ORBKeyFrame *pKF)
 }
 
 
-bool LocalMapping::CheckNewKeyFrames()
+bool ORBLocalMapping::CheckNewKeyFrames()
 {
     unique_lock<mutex> lock(mMutexNewKFs);
     return(!mlNewKeyFrames.empty());
 }
 
-void LocalMapping::ProcessNewKeyFrame()
+void ORBLocalMapping::ProcessNewKeyFrame()
 {
     {
         unique_lock<mutex> lock(mMutexNewKFs);
@@ -148,7 +148,7 @@ void LocalMapping::ProcessNewKeyFrame()
     mpMap->addKeyFrame(mpCurrentKeyFrame);
 }
 
-void LocalMapping::MapPointCulling()
+void ORBLocalMapping::MapPointCulling()
 {
     // Check Recent Added MapPoints
     list<ORBMapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
@@ -185,7 +185,7 @@ void LocalMapping::MapPointCulling()
     }
 }
 
-void LocalMapping::CreateNewMapPoints()
+void ORBLocalMapping::CreateNewMapPoints()
 {
     // Retrieve neighbor keyframes in covisibility graph
     int nn = 10;
@@ -380,7 +380,7 @@ void LocalMapping::CreateNewMapPoints()
     }
 }
 
-void LocalMapping::SearchInNeighbors()
+void ORBLocalMapping::SearchInNeighbors()
 {
     // Retrieve neighbor keyframes
     int nn = 10;
@@ -462,7 +462,7 @@ void LocalMapping::SearchInNeighbors()
     mpCurrentKeyFrame->UpdateConnections();
 }
 
-cv::Mat LocalMapping::ComputeF12(IKeyFrame *pKF1, IKeyFrame *pKF2)
+cv::Mat ORBLocalMapping::ComputeF12(IKeyFrame *pKF1, IKeyFrame *pKF2)
 {
     cv::Mat R1w = pKF1->getRotation();
     cv::Mat t1w = pKF1->getTranslation();
@@ -481,7 +481,7 @@ cv::Mat LocalMapping::ComputeF12(IKeyFrame *pKF1, IKeyFrame *pKF2)
     return K1.t().inv()*t12x*R12*K2.inv();
 }
 
-void LocalMapping::RequestStop()
+void ORBLocalMapping::RequestStop()
 {
     unique_lock<mutex> lock(mMutexStop);
     mbStopRequested = true;
@@ -489,7 +489,7 @@ void LocalMapping::RequestStop()
     mbAbortBA = true;
 }
 
-bool LocalMapping::Stop()
+bool ORBLocalMapping::Stop()
 {
     unique_lock<mutex> lock(mMutexStop);
     if(mbStopRequested && !mbNotStop)
@@ -502,19 +502,19 @@ bool LocalMapping::Stop()
     return false;
 }
 
-bool LocalMapping::isStopped()
+bool ORBLocalMapping::isStopped()
 {
     unique_lock<mutex> lock(mMutexStop);
     return mbStopped;
 }
 
-bool LocalMapping::stopRequested()
+bool ORBLocalMapping::stopRequested()
 {
     unique_lock<mutex> lock(mMutexStop);
     return mbStopRequested;
 }
 
-void LocalMapping::Release()
+void ORBLocalMapping::Release()
 {
     unique_lock<mutex> lock(mMutexStop);
     unique_lock<mutex> lock2(mMutexFinish);
@@ -529,19 +529,19 @@ void LocalMapping::Release()
     cout << "Local Mapping RELEASE" << endl;
 }
 
-bool LocalMapping::AcceptKeyFrames()
+bool ORBLocalMapping::AcceptKeyFrames()
 {
     unique_lock<mutex> lock(mMutexAccept);
     return mbAcceptKeyFrames;
 }
 
-void LocalMapping::SetAcceptKeyFrames(bool flag)
+void ORBLocalMapping::SetAcceptKeyFrames(bool flag)
 {
     unique_lock<mutex> lock(mMutexAccept);
     mbAcceptKeyFrames=flag;
 }
 
-bool LocalMapping::SetNotStop(bool flag)
+bool ORBLocalMapping::SetNotStop(bool flag)
 {
     unique_lock<mutex> lock(mMutexStop);
 
@@ -553,12 +553,12 @@ bool LocalMapping::SetNotStop(bool flag)
     return true;
 }
 
-void LocalMapping::InterruptBA()
+void ORBLocalMapping::InterruptBA()
 {
     mbAbortBA = true;
 }
 
-void LocalMapping::KeyFrameCulling()
+void ORBLocalMapping::KeyFrameCulling()
 {
     // Check redundant keyframes (only local keyframes)
     // A keyframe is considered redundant if the 90% of the MapPoints it sees, are seen
@@ -618,14 +618,14 @@ void LocalMapping::KeyFrameCulling()
     }
 }
 
-cv::Mat LocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
+cv::Mat ORBLocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
 {
     return (cv::Mat_<float>(3,3) <<             0, -v.at<float>(2), v.at<float>(1),
             v.at<float>(2),               0,-v.at<float>(0),
             -v.at<float>(1),  v.at<float>(0),              0);
 }
 
-void LocalMapping::RequestReset()
+void ORBLocalMapping::RequestReset()
 {
     {
         unique_lock<mutex> lock(mMutexReset);
@@ -643,7 +643,7 @@ void LocalMapping::RequestReset()
     }
 }
 
-void LocalMapping::ResetIfRequested()
+void ORBLocalMapping::ResetIfRequested()
 {
     unique_lock<mutex> lock(mMutexReset);
     if(mbResetRequested)
@@ -654,19 +654,19 @@ void LocalMapping::ResetIfRequested()
     }
 }
 
-void LocalMapping::RequestFinish()
+void ORBLocalMapping::RequestFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
     mbFinishRequested = true;
 }
 
-bool LocalMapping::CheckFinish()
+bool ORBLocalMapping::CheckFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
     return mbFinishRequested;
 }
 
-void LocalMapping::SetFinish()
+void ORBLocalMapping::SetFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
     mbFinished = true;    
@@ -674,7 +674,7 @@ void LocalMapping::SetFinish()
     mbStopped = true;
 }
 
-bool LocalMapping::isFinished()
+bool ORBLocalMapping::isFinished()
 {
     unique_lock<mutex> lock(mMutexFinish);
     return mbFinished;

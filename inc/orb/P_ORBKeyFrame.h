@@ -9,15 +9,13 @@
 
 namespace Position
 {
-    class ORBMapPoint;
     class ORBFrame;
-    class KeyFrameDatabase;
-
+    class ORBKeyFrameDatabase;
     class ORBKeyFrame : public IKeyFrame
     {
     public:
 
-        ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, KeyFrameDatabase* pKFDB);
+        ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, ORBKeyFrameDatabase* pKFDB);
 
         //重载类型转换
         virtual operator IFrame*()const 
@@ -213,7 +211,7 @@ namespace Position
         MapPtVector mvpMapPoints;
 
         // BoW
-        KeyFrameDatabase* mpKeyFrameDB;
+        ORBKeyFrameDatabase* mpKeyFrameDB;
         ORBVocabulary* mpORBvocabulary;
 
         // Grid over the image to speed up feature matching

@@ -7,7 +7,7 @@
 #ifndef __PTRAJPROCESSER_H_H_
 #define __PTRAJPROCESSER_H_H_
 #include "P_Interface.h"
-
+#include "P_Map.h"
 namespace Position
 {
 
@@ -15,12 +15,23 @@ namespace Position
     class PTrajProcesser : public ITrajProcesser
     {
     public:
+        PTrajProcesser(const std::shared_ptr<IMap> &pMap):
+        mpMap(pMap),mStatus(eTrackNoImage),mpCurrent(NULL),mpLast(NULL),mpCurrentKeyFm(NULL),mpLastKeyFm(NULL)
+        {
+
+        }
+
         //构造
-        PTrajProcesser( const std::shared_ptr<IMap> &pmap):
-        mpMap(pmap),mStatus(eTrackPrepare),mpCurrent(NULL),
+        PTrajProcesser():
+        mpMap(new PMap()),mStatus(eTrackNoImage),mpCurrent(NULL),
         mpLast(NULL),mpCurrentKeyFm(NULL),mpLastKeyFm(NULL)
         {
 
+        }
+        //获取地图
+        virtual const std::shared_ptr<IMap>& getMap() 
+        {
+            return mpMap;
         }
         //跟踪
         virtual cv::Mat track(const FrameData &data)
@@ -48,13 +59,19 @@ namespace Position
         //重置
         virtual void reset()
         {//重置 地图清空 状态复位
-            mStatus         = eTrackPrepare;
+            mStatus         = eTrackNoImage;
             mpCurrent       = NULL;
             mpLast          = NULL;
             mpCurrentKeyFm  = NULL;
             mpLastKeyFm     = NULL;
 
             mpMap->clear();
+        }
+
+        //结束
+        virtual void over() 
+        {
+            assert(NULL);
         }
 
          //处理

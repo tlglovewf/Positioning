@@ -18,23 +18,21 @@
 
 namespace Position
 {
-
-    class LocalMapping;
-    class LoopClosing;
-
-    class IViewer;
-    class Tracking
+    class ORBTracking
     {  
 
     public:
-        Tracking(ORBVocabulary* pVoc, IViewer *pViewer, const shared_ptr<IMap>& pMap,
-                KeyFrameDatabase* pKFDB, const string &strSettingPath);
-
+        ORBTracking( const std::shared_ptr<ORBVocabulary>& pVoc, 
+                    const std::shared_ptr<IMap>& pMap,
+                    const std::shared_ptr<ORBKeyFrameDatabase>& pKFDB,
+                    const std::shared_ptr<IConfig> &pcfg,
+                    const CameraParam &camparam);
+ 
         // Preprocess the input and call Track(). Extract features and performs stereo matching.
         cv::Mat track(const FrameData &data);
 
-        void SetLocalMapper(LocalMapping* pLocalMapper);
-        void SetLoopClosing(LoopClosing* pLoopClosing);
+        void SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalMapper);
+        void SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClosing);
 
         // Use this function if you have deactivated local mapping and you only want to localize the camera.
         void InformOnlyTracking(const bool &flag);
@@ -42,18 +40,7 @@ namespace Position
 
     public:
 
-        // Tracking states
-        enum eTrackingState{
-            SYSTEM_NOT_READY=-1,
-            NO_IMAGES_YET=0,
-            NOT_INITIALIZED=1,
-            OK=2,
-            LOST=3
-        };
-
-        eTrackingState mState;
-        eTrackingState mLastProcessedState;
-
+        eTrackStatus mState;
         // Current Frame
         ORBFrame mCurrentFrame;
         cv::Mat mImGray;
@@ -61,8 +48,8 @@ namespace Position
         // Initialization Variables (Monocular)
         IntVector mvIniLastMatches;
         IntVector mvIniMatches;
-        std::vector<cv::Point2f> mvbPrevMatched;
-        std::vector<cv::Point3f> mvIniP3D;
+        PtVector  mvbPrevMatched;
+        Pt3Vector mvIniP3D;
         ORBFrame mInitialFrame;
 
         // Lists used to recover the full camera trajectory at the end of the execution.
@@ -110,16 +97,16 @@ namespace Position
         bool mbVO;
 
         //Other Thread Pointers
-        LocalMapping* mpLocalMapper;
-        LoopClosing* mpLoopClosing;
+        std::shared_ptr<ORBLocalMapping> mpLocalMapper;
+        std::shared_ptr<ORBLoopClosing> mpLoopClosing;
 
         //ORB
         ORBextractor* mpORBextractorLeft;
         ORBextractor* mpIniORBextractor;
 
         //BoW
-        ORBVocabulary* mpORBVocabulary;
-        KeyFrameDatabase* mpKeyFrameDB;
+        std::shared_ptr<ORBVocabulary>       mpORBVocabulary;
+        std::shared_ptr<ORBKeyFrameDatabase> mpKeyFrameDB;
 
         // Initalization (only for monocular)
         Initializer* mpInitializer;

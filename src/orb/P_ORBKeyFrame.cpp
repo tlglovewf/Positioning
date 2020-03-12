@@ -12,7 +12,7 @@ namespace Position
 
     u64 ORBKeyFrame::nNextId=0;
 
-    ORBKeyFrame::ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, KeyFrameDatabase *pKFDB):
+    ORBKeyFrame::ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, ORBKeyFrameDatabase *pKFDB):
         mnFrameId(F.mnId),  mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
         mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
         mnTrackReferenceForFrame(0), mnFuseTargetForKF(0), mnBALocalForKF(0), mnBAFixedForKF(0),

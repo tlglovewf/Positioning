@@ -9,7 +9,6 @@
 
 namespace Position
 {
-
     class ORBPnPsolver {
     public:
       ORBPnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatches);
