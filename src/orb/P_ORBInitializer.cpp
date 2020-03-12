@@ -93,9 +93,9 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.40)
-        return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,1.0,50);
+        return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,0.0,50);
     else //if(pF_HF>0.6)
-        return ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,1.0,50);
+        return ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,0.0,50);
 
     return false;
 }
@@ -207,7 +207,7 @@ cv::Mat Initializer::ComputeH21(const vector<cv::Point2f> &vP1, const vector<cv:
 {
     const int N = vP1.size();
 
-    cv::Mat A(2*N,9,CV_32F);
+    cv::Mat A(2*N,9,MATCVTYPE);
 
     for(int i=0; i<N; i++)
     {
@@ -216,25 +216,25 @@ cv::Mat Initializer::ComputeH21(const vector<cv::Point2f> &vP1, const vector<cv:
         const float u2 = vP2[i].x;
         const float v2 = vP2[i].y;
 
-        A.at<float>(2*i,0) = 0.0;
-        A.at<float>(2*i,1) = 0.0;
-        A.at<float>(2*i,2) = 0.0;
-        A.at<float>(2*i,3) = -u1;
-        A.at<float>(2*i,4) = -v1;
-        A.at<float>(2*i,5) = -1;
-        A.at<float>(2*i,6) = v2*u1;
-        A.at<float>(2*i,7) = v2*v1;
-        A.at<float>(2*i,8) = v2;
+        A.at<MATTYPE>(2*i,0) = 0.0;
+        A.at<MATTYPE>(2*i,1) = 0.0;
+        A.at<MATTYPE>(2*i,2) = 0.0;
+        A.at<MATTYPE>(2*i,3) = -u1;
+        A.at<MATTYPE>(2*i,4) = -v1;
+        A.at<MATTYPE>(2*i,5) = -1;
+        A.at<MATTYPE>(2*i,6) = v2*u1;
+        A.at<MATTYPE>(2*i,7) = v2*v1;
+        A.at<MATTYPE>(2*i,8) = v2;
 
-        A.at<float>(2*i+1,0) = u1;
-        A.at<float>(2*i+1,1) = v1;
-        A.at<float>(2*i+1,2) = 1;
-        A.at<float>(2*i+1,3) = 0.0;
-        A.at<float>(2*i+1,4) = 0.0;
-        A.at<float>(2*i+1,5) = 0.0;
-        A.at<float>(2*i+1,6) = -u2*u1;
-        A.at<float>(2*i+1,7) = -u2*v1;
-        A.at<float>(2*i+1,8) = -u2;
+        A.at<MATTYPE>(2*i+1,0) = u1;
+        A.at<MATTYPE>(2*i+1,1) = v1;
+        A.at<MATTYPE>(2*i+1,2) = 1;
+        A.at<MATTYPE>(2*i+1,3) = 0.0;
+        A.at<MATTYPE>(2*i+1,4) = 0.0;
+        A.at<MATTYPE>(2*i+1,5) = 0.0;
+        A.at<MATTYPE>(2*i+1,6) = -u2*u1;
+        A.at<MATTYPE>(2*i+1,7) = -u2*v1;
+        A.at<MATTYPE>(2*i+1,8) = -u2;
 
     }
 
@@ -249,7 +249,7 @@ cv::Mat Initializer::ComputeF21(const vector<cv::Point2f> &vP1,const vector<cv::
 {
     const int N = vP1.size();
 
-    cv::Mat A(N,9,CV_32F);
+    cv::Mat A(N,9,MATCVTYPE);
 
     for(int i=0; i<N; i++)
     {
@@ -258,15 +258,15 @@ cv::Mat Initializer::ComputeF21(const vector<cv::Point2f> &vP1,const vector<cv::
         const float u2 = vP2[i].x;
         const float v2 = vP2[i].y;
 
-        A.at<float>(i,0) = u2*u1;
-        A.at<float>(i,1) = u2*v1;
-        A.at<float>(i,2) = u2;
-        A.at<float>(i,3) = v2*u1;
-        A.at<float>(i,4) = v2*v1;
-        A.at<float>(i,5) = v2;
-        A.at<float>(i,6) = u1;
-        A.at<float>(i,7) = v1;
-        A.at<float>(i,8) = 1;
+        A.at<MATTYPE>(i,0) = u2*u1;
+        A.at<MATTYPE>(i,1) = u2*v1;
+        A.at<MATTYPE>(i,2) = u2;
+        A.at<MATTYPE>(i,3) = v2*u1;
+        A.at<MATTYPE>(i,4) = v2*v1;
+        A.at<MATTYPE>(i,5) = v2;
+        A.at<MATTYPE>(i,6) = u1;
+        A.at<MATTYPE>(i,7) = v1;
+        A.at<MATTYPE>(i,8) = 1;
     }
 
     cv::Mat u,w,vt;
@@ -277,7 +277,7 @@ cv::Mat Initializer::ComputeF21(const vector<cv::Point2f> &vP1,const vector<cv::
 
     cv::SVDecomp(Fpre,w,u,vt,cv::SVD::MODIFY_A | cv::SVD::FULL_UV);
 
-    w.at<float>(2)=0;
+    w.at<MATTYPE>(2)=0;
 
     return  u*cv::Mat::diag(w)*vt;
 }
@@ -286,25 +286,25 @@ float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVe
 {   
     const int N = mvMatches12.size();
 
-    const float h11 = H21.at<float>(0,0);
-    const float h12 = H21.at<float>(0,1);
-    const float h13 = H21.at<float>(0,2);
-    const float h21 = H21.at<float>(1,0);
-    const float h22 = H21.at<float>(1,1);
-    const float h23 = H21.at<float>(1,2);
-    const float h31 = H21.at<float>(2,0);
-    const float h32 = H21.at<float>(2,1);
-    const float h33 = H21.at<float>(2,2);
+    const float h11 = H21.at<MATTYPE>(0,0);
+    const float h12 = H21.at<MATTYPE>(0,1);
+    const float h13 = H21.at<MATTYPE>(0,2);
+    const float h21 = H21.at<MATTYPE>(1,0);
+    const float h22 = H21.at<MATTYPE>(1,1);
+    const float h23 = H21.at<MATTYPE>(1,2);
+    const float h31 = H21.at<MATTYPE>(2,0);
+    const float h32 = H21.at<MATTYPE>(2,1);
+    const float h33 = H21.at<MATTYPE>(2,2);
 
-    const float h11inv = H12.at<float>(0,0);
-    const float h12inv = H12.at<float>(0,1);
-    const float h13inv = H12.at<float>(0,2);
-    const float h21inv = H12.at<float>(1,0);
-    const float h22inv = H12.at<float>(1,1);
-    const float h23inv = H12.at<float>(1,2);
-    const float h31inv = H12.at<float>(2,0);
-    const float h32inv = H12.at<float>(2,1);
-    const float h33inv = H12.at<float>(2,2);
+    const float h11inv = H12.at<MATTYPE>(0,0);
+    const float h12inv = H12.at<MATTYPE>(0,1);
+    const float h13inv = H12.at<MATTYPE>(0,2);
+    const float h21inv = H12.at<MATTYPE>(1,0);
+    const float h22inv = H12.at<MATTYPE>(1,1);
+    const float h23inv = H12.at<MATTYPE>(1,2);
+    const float h31inv = H12.at<MATTYPE>(2,0);
+    const float h32inv = H12.at<MATTYPE>(2,1);
+    const float h33inv = H12.at<MATTYPE>(2,2);
 
     vbMatchesInliers.resize(N);
 
@@ -371,15 +371,15 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
 {
     const int N = mvMatches12.size();
 
-    const float f11 = F21.at<float>(0,0);
-    const float f12 = F21.at<float>(0,1);
-    const float f13 = F21.at<float>(0,2);
-    const float f21 = F21.at<float>(1,0);
-    const float f22 = F21.at<float>(1,1);
-    const float f23 = F21.at<float>(1,2);
-    const float f31 = F21.at<float>(2,0);
-    const float f32 = F21.at<float>(2,1);
-    const float f33 = F21.at<float>(2,2);
+    const MATTYPE f11 = F21.at<MATTYPE>(0,0);
+    const MATTYPE f12 = F21.at<MATTYPE>(0,1);
+    const MATTYPE f13 = F21.at<MATTYPE>(0,2);
+    const MATTYPE f21 = F21.at<MATTYPE>(1,0);
+    const MATTYPE f22 = F21.at<MATTYPE>(1,1);
+    const MATTYPE f23 = F21.at<MATTYPE>(1,2);
+    const MATTYPE f31 = F21.at<MATTYPE>(2,0);
+    const MATTYPE f32 = F21.at<MATTYPE>(2,1);
+    const MATTYPE f33 = F21.at<MATTYPE>(2,2);
 
     vbMatchesInliers.resize(N);
 
@@ -405,15 +405,15 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
         // Reprojection error in second image
         // l2=F21x1=(a2,b2,c2)
 
-        const float a2 = f11*u1+f12*v1+f13;
-        const float b2 = f21*u1+f22*v1+f23;
-        const float c2 = f31*u1+f32*v1+f33;
+        const MATTYPE a2 = f11*u1+f12*v1+f13;
+        const MATTYPE b2 = f21*u1+f22*v1+f23;
+        const MATTYPE c2 = f31*u1+f32*v1+f33;
 
-        const float num2 = a2*u2+b2*v2+c2;
+        const MATTYPE num2 = a2*u2+b2*v2+c2;
 
-        const float squareDist1 = num2*num2/(a2*a2+b2*b2);
+        const MATTYPE squareDist1 = num2*num2/(a2*a2+b2*b2);
 
-        const float chiSquare1 = squareDist1*invSigmaSquare;
+        const MATTYPE chiSquare1 = squareDist1*invSigmaSquare;
 
         if(chiSquare1>th)
             bIn = false;
@@ -423,15 +423,15 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
         // Reprojection error in second image
         // l1 =x2tF21=(a1,b1,c1)
 
-        const float a1 = f11*u2+f21*v2+f31;
-        const float b1 = f12*u2+f22*v2+f32;
-        const float c1 = f13*u2+f23*v2+f33;
+        const MATTYPE a1 = f11*u2+f21*v2+f31;
+        const MATTYPE b1 = f12*u2+f22*v2+f32;
+        const MATTYPE c1 = f13*u2+f23*v2+f33;
 
-        const float num1 = a1*u1+b1*v1+c1;
+        const MATTYPE num1 = a1*u1+b1*v1+c1;
 
-        const float squareDist2 = num1*num1/(a1*a1+b1*b1);
+        const MATTYPE squareDist2 = num1*num1/(a1*a1+b1*b1);
 
-        const float chiSquare2 = squareDist2*invSigmaSquare;
+        const MATTYPE chiSquare2 = squareDist2*invSigmaSquare;
 
         if(chiSquare2>th)
             bIn = false;
@@ -568,11 +568,11 @@ bool Initializer::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Ma
     cv::SVD::compute(A,w,U,Vt,cv::SVD::FULL_UV);
     V=Vt.t();
 
-    float s = cv::determinant(U)*cv::determinant(Vt);
+    MATTYPE s = cv::determinant(U)*cv::determinant(Vt);
 
-    float d1 = w.at<float>(0);
-    float d2 = w.at<float>(1);
-    float d3 = w.at<float>(2);
+    MATTYPE d1 = w.at<MATTYPE>(0);
+    MATTYPE d2 = w.at<MATTYPE>(1);
+    MATTYPE d3 = w.at<MATTYPE>(2);
 
     if(d1/d2<1.00001 || d2/d3<1.00001)
     {
@@ -598,69 +598,69 @@ bool Initializer::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Ma
 
     for(int i=0; i<4; i++)
     {
-        cv::Mat Rp=cv::Mat::eye(3,3,CV_32F);
-        Rp.at<float>(0,0)=ctheta;
-        Rp.at<float>(0,2)=-stheta[i];
-        Rp.at<float>(2,0)=stheta[i];
-        Rp.at<float>(2,2)=ctheta;
+        cv::Mat Rp=cv::Mat::eye(3,3,MATCVTYPE);
+        Rp.at<MATTYPE>(0,0)=ctheta;
+        Rp.at<MATTYPE>(0,2)=-stheta[i];
+        Rp.at<MATTYPE>(2,0)=stheta[i];
+        Rp.at<MATTYPE>(2,2)=ctheta;
 
         cv::Mat R = s*U*Rp*Vt;
         vR.push_back(R);
 
-        cv::Mat tp(3,1,CV_32F);
-        tp.at<float>(0)=x1[i];
-        tp.at<float>(1)=0;
-        tp.at<float>(2)=-x3[i];
+        cv::Mat tp(3,1,MATCVTYPE);
+        tp.at<MATTYPE>(0)=x1[i];
+        tp.at<MATTYPE>(1)=0;
+        tp.at<MATTYPE>(2)=-x3[i];
         tp*=d1-d3;
 
         cv::Mat t = U*tp;
         vt.push_back(t/cv::norm(t));
 
-        cv::Mat np(3,1,CV_32F);
-        np.at<float>(0)=x1[i];
-        np.at<float>(1)=0;
-        np.at<float>(2)=x3[i];
+        cv::Mat np(3,1,MATCVTYPE);
+        np.at<MATTYPE>(0)=x1[i];
+        np.at<MATTYPE>(1)=0;
+        np.at<MATTYPE>(2)=x3[i];
 
         cv::Mat n = V*np;
-        if(n.at<float>(2)<0)
+        if(n.at<MATTYPE>(2)<0)
             n=-n;
         vn.push_back(n);
     }
 
     //case d'=-d2
-    float aux_sphi = sqrt((d1*d1-d2*d2)*(d2*d2-d3*d3))/((d1-d3)*d2);
+    MATTYPE aux_sphi = sqrt((d1*d1-d2*d2)*(d2*d2-d3*d3))/((d1-d3)*d2);
 
-    float cphi = (d1*d3-d2*d2)/((d1-d3)*d2);
-    float sphi[] = {aux_sphi, -aux_sphi, -aux_sphi, aux_sphi};
+    MATTYPE cphi = (d1*d3-d2*d2)/((d1-d3)*d2);
+    MATTYPE sphi[] = {aux_sphi, -aux_sphi, -aux_sphi, aux_sphi};
 
     for(int i=0; i<4; i++)
     {
-        cv::Mat Rp=cv::Mat::eye(3,3,CV_32F);
-        Rp.at<float>(0,0)=cphi;
-        Rp.at<float>(0,2)=sphi[i];
-        Rp.at<float>(1,1)=-1;
-        Rp.at<float>(2,0)=sphi[i];
-        Rp.at<float>(2,2)=-cphi;
+        cv::Mat Rp=cv::Mat::eye(3,3,MATCVTYPE);
+        Rp.at<MATTYPE>(0,0)=cphi;
+        Rp.at<MATTYPE>(0,2)=sphi[i];
+        Rp.at<MATTYPE>(1,1)=-1;
+        Rp.at<MATTYPE>(2,0)=sphi[i];
+        Rp.at<MATTYPE>(2,2)=-cphi;
 
         cv::Mat R = s*U*Rp*Vt;
         vR.push_back(R);
 
-        cv::Mat tp(3,1,CV_32F);
-        tp.at<float>(0)=x1[i];
-        tp.at<float>(1)=0;
-        tp.at<float>(2)=x3[i];
+        cv::Mat tp(3,1,MATCVTYPE);
+        tp.at<MATTYPE>(0)=x1[i];
+        tp.at<MATTYPE>(1)=0;
+        tp.at<MATTYPE>(2)=x3[i];
         tp*=d1+d3;
 
         cv::Mat t = U*tp;
         vt.push_back(t/cv::norm(t));
 
-        cv::Mat np(3,1,CV_32F);
-        np.at<float>(0)=x1[i];
-        np.at<float>(1)=0;
-        np.at<float>(2)=x3[i];
+        cv::Mat np(3,1,MATCVTYPE);
+        np.at<MATTYPE>(0)=x1[i];
+        np.at<MATTYPE>(1)=0;
+        np.at<MATTYPE>(2)=x3[i];
 
         cv::Mat n = V*np;
-        if(n.at<float>(2)<0)
+        if(n.at<MATTYPE>(2)<0)
             n=-n;
         vn.push_back(n);
     }
@@ -713,7 +713,7 @@ bool Initializer::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Ma
 
 void Initializer::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, const cv::Mat &P1, const cv::Mat &P2, cv::Mat &x3D)
 {
-    cv::Mat A(4,4,CV_32F);
+    cv::Mat A(4,4,MATCVTYPE);
 
     A.row(0) = kp1.pt.x*P1.row(2)-P1.row(0);
     A.row(1) = kp1.pt.y*P1.row(2)-P1.row(1);
@@ -723,7 +723,7 @@ void Initializer::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, 
     cv::Mat u,w,vt;
     cv::SVD::compute(A,w,u,vt,cv::SVD::MODIFY_A| cv::SVD::FULL_UV);
     x3D = vt.row(3).t();
-    x3D = x3D.rowRange(0,3)/x3D.at<float>(3);
+    x3D = x3D.rowRange(0,3)/x3D.at<MATTYPE>(3);
 }
 
 void Initializer::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
@@ -767,11 +767,11 @@ void Initializer::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNorm
         vNormalizedPoints[i].y = vNormalizedPoints[i].y * sY;
     }
 
-    T = cv::Mat::eye(3,3,CV_32F);
-    T.at<float>(0,0) = sX;
-    T.at<float>(1,1) = sY;
-    T.at<float>(0,2) = -meanX*sX;
-    T.at<float>(1,2) = -meanY*sY;
+    T = cv::Mat::eye(3,3,MATCVTYPE);
+    T.at<MATTYPE>(0,0) = sX;
+    T.at<MATTYPE>(1,1) = sY;
+    T.at<MATTYPE>(0,2) = -meanX*sX;
+    T.at<MATTYPE>(1,2) = -meanY*sY;
 }
 
 
@@ -780,10 +780,11 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
                        const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, BolVector &vbGood, float &parallax)
 {
     // Calibration parameters
-    const float fx = K.at<float>(0,0);
-    const float fy = K.at<float>(1,1);
-    const float cx = K.at<float>(0,2);
-    const float cy = K.at<float>(1,2);
+    const float thparallax = 0.9999;//8;
+    const float fx = K.at<MATTYPE>(0,0);
+    const float fy = K.at<MATTYPE>(1,1);
+    const float cx = K.at<MATTYPE>(0,2);
+    const float cy = K.at<MATTYPE>(1,2);
 
     vbGood = BolVector(vKeys1.size(),false);
     vP3D.resize(vKeys1.size());
@@ -792,13 +793,13 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
     vCosParallax.reserve(vKeys1.size());
 
     // Camera 1 Projection Matrix K[I|0]
-    cv::Mat P1(3,4,CV_32F,cv::Scalar(0));
+    cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
     K.copyTo(P1.rowRange(0,3).colRange(0,3));
 
-    cv::Mat O1 = cv::Mat::zeros(3,1,CV_32F);
+    cv::Mat O1 = cv::Mat::zeros(3,1,MATCVTYPE);
 
     // Camera 2 Projection Matrix K[R|t]
-    cv::Mat P2(3,4,CV_32F);
+    cv::Mat P2(3,4,MATCVTYPE);
     R.copyTo(P2.rowRange(0,3).colRange(0,3));
     t.copyTo(P2.rowRange(0,3).col(3));
     P2 = K*P2;
@@ -818,7 +819,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
 
         Triangulate(kp1,kp2,P1,P2,p3dC1);
 
-        if(!isfinite(p3dC1.at<float>(0)) || !isfinite(p3dC1.at<float>(1)) || !isfinite(p3dC1.at<float>(2)))
+        if(!isfinite(p3dC1.at<MATTYPE>(0)) || !isfinite(p3dC1.at<MATTYPE>(1)) || !isfinite(p3dC1.at<MATTYPE>(2)))
         {
             vbGood[vMatches12[i].first]=false;
             continue;
@@ -834,20 +835,20 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
         float cosParallax = normal1.dot(normal2)/(dist1*dist2);
 
         // Check depth in front of first camera (only if enough parallax, as "infinite" points can easily go to negative depth)
-        if(p3dC1.at<float>(2)<=0 && cosParallax<0.99998)
+        if(p3dC1.at<MATTYPE>(2)<=0 && cosParallax < thparallax)
             continue;
 
         // Check depth in front of second camera (only if enough parallax, as "infinite" points can easily go to negative depth)
         cv::Mat p3dC2 = R*p3dC1+t;
 
-        if(p3dC2.at<float>(2)<=0 && cosParallax<0.99998)
+        if(p3dC2.at<MATTYPE>(2)<=0 && cosParallax < thparallax)
             continue;
 
         // Check reprojection error in first image
         float im1x, im1y;
-        float invZ1 = 1.0/p3dC1.at<float>(2);
-        im1x = fx*p3dC1.at<float>(0)*invZ1+cx;
-        im1y = fy*p3dC1.at<float>(1)*invZ1+cy;
+        float invZ1 = 1.0/p3dC1.at<MATTYPE>(2);
+        im1x = fx*p3dC1.at<MATTYPE>(0)*invZ1+cx;
+        im1y = fy*p3dC1.at<MATTYPE>(1)*invZ1+cy;
 
         float squareError1 = (im1x-kp1.pt.x)*(im1x-kp1.pt.x)+(im1y-kp1.pt.y)*(im1y-kp1.pt.y);
 
@@ -856,9 +857,9 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
 
         // Check reprojection error in second image
         float im2x, im2y;
-        float invZ2 = 1.0/p3dC2.at<float>(2);
-        im2x = fx*p3dC2.at<float>(0)*invZ2+cx;
-        im2y = fy*p3dC2.at<float>(1)*invZ2+cy;
+        float invZ2 = 1.0/p3dC2.at<MATTYPE>(2);
+        im2x = fx*p3dC2.at<MATTYPE>(0)*invZ2+cx;
+        im2y = fy*p3dC2.at<MATTYPE>(1)*invZ2+cy;
 
         float squareError2 = (im2x-kp2.pt.x)*(im2x-kp2.pt.x)+(im2y-kp2.pt.y)*(im2y-kp2.pt.y);
 
@@ -866,10 +867,10 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
             continue;
 
         vCosParallax.push_back(cosParallax);
-        vP3D[vMatches12[i].first] = cv::Point3f(p3dC1.at<float>(0),p3dC1.at<float>(1),p3dC1.at<float>(2));
+        vP3D[vMatches12[i].first] = cv::Point3f(p3dC1.at<MATTYPE>(0),p3dC1.at<MATTYPE>(1),p3dC1.at<MATTYPE>(2));
         nGood++;
 
-        if(cosParallax<0.99998)
+        // if(cosParallax < thparallax)
             vbGood[vMatches12[i].first]=true;
     }
 
@@ -894,10 +895,10 @@ void Initializer::DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat
     u.col(2).copyTo(t);
     t=t/cv::norm(t);
 
-    cv::Mat W(3,3,CV_32F,cv::Scalar(0));
-    W.at<float>(0,1)=-1;
-    W.at<float>(1,0)=1;
-    W.at<float>(2,2)=1;
+    cv::Mat W(3,3,MATCVTYPE,cv::Scalar(0));
+    W.at<MATTYPE>(0,1)=-1;
+    W.at<MATTYPE>(1,0)=1;
+    W.at<MATTYPE>(2,2)=1;
 
     R1 = u*W*vt;
     if(cv::determinant(R1)<0)

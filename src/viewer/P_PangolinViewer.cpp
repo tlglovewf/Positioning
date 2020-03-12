@@ -1,5 +1,5 @@
 #include "P_PangolinViewer.h"
-
+#include "P_Writer.h"
 
 namespace Position
 {
@@ -17,16 +17,15 @@ namespace Position
     }
 
      //构造函数
-    Pangolin_Viwer::Pangolin_Viwer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap):
+    Pangolin_Viewer::Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap):
     mCfg(pCfg),mMap(pMap), mFDrawer(new CVFrameDrawer()), mbInit(false)
     {
         mWinW = GETCFGVALUE(mCfg,ViewerW,int);
         mWinH = GETCFGVALUE(mCfg,ViewerH,int);
-        init();
     }
 
         //初始化
-    void Pangolin_Viwer::init()
+    void Pangolin_Viewer::init()
     {
         if(mbInit)
             return;
@@ -44,44 +43,50 @@ namespace Position
                                     SetBounds(pangolin::Attach::Pix(0),pangolin::Attach::Pix(25),0.0,pangolin::Attach::Pix(mWinW));
 
         menuPanel.SetLayout(pangolin::LayoutEqualHorizontal);
+        
+        mViewF =  GETCFGVALUE(mCfg,ViewptF,float);
+        mViewX =  GETCFGVALUE(mCfg,ViewptX,float);
+        mViewY =  GETCFGVALUE(mCfg,ViewptY,float);
+        mViewZ =  GETCFGVALUE(mCfg,ViewptZ,float);
+
+        mCam = pangolin::OpenGlRenderState(
+                    pangolin::ProjectionMatrix(mWinW,mWinH,mViewF,mViewF,(mWinW >> 1),(mWinH >> 1),0.1,5000),
+                    pangolin::ModelViewLookAt(mViewX,mViewY,mViewZ, 0,0,0,0.0,-1.0, 0.0)
+                    );
+
+        // Add named OpenGL viewport to window and provide 3D Handler
+        mpView = &pangolin::CreateDisplay()
+                .SetBounds(pangolin::Attach::Pix(25), 1.0, 0, 1.0, -(float)mWinW/mWinH)
+                .SetHandler(new pangolin::Handler3D(mCam));
+        
         mbInit = true;
+    }
+    void Pangolin_Viewer::renderLoop()
+    {
+        while(renderOnce())
+        {
+            ;
+        }
+        PROMT_S("Render Over !!!");
     }
 
         //绘制
-    bool Pangolin_Viwer::render()
+    bool Pangolin_Viewer::renderOnce()
     {
         if(!mbInit)
             return false;
 
-        pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
-        pangolin::Var<bool> menuShowPoints("menu.MapPoints",true,true);
-        pangolin::Var<bool> menuShowKeyFrames("menu.MapFrames",true,true);
-        pangolin::Var<bool> menuShowGraph("menu.CovGraph",true,true);
-        pangolin::Var<bool> menuShowLines("menu.RelLines",true,true);
-
-        // Define Camera Render Object (for view / scene browsing)
-        // 
-        float ViewptF =  GETCFGVALUE(mCfg,ViewptF,float);
-        float ViewptX =  GETCFGVALUE(mCfg,ViewptX,float);
-        float ViewptY =  GETCFGVALUE(mCfg,ViewptY,float);
-        float ViewptZ =  GETCFGVALUE(mCfg,ViewptZ,float);
-
-        pangolin::OpenGlRenderState s_cam(
-                    pangolin::ProjectionMatrix(mWinW,mWinH,ViewptF,ViewptF,(mWinW >> 1),(mWinH >> 1),0.1,5000),
-                    pangolin::ModelViewLookAt(ViewptX,ViewptY,ViewptZ, 0,0,0,0.0,-1.0, 0.0)
-                    );
-
-        // Add named OpenGL viewport to window and provide 3D Handler
-        pangolin::View& d_cam = pangolin::CreateDisplay()
-                .SetBounds(pangolin::Attach::Pix(25), 1.0, 0, 1.0, -(float)mWinW/mWinH)
-                .SetHandler(new pangolin::Handler3D(s_cam));
+        static pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
+        static pangolin::Var<bool> menuShowPoints("menu.MapPoints",true,true);
+        static pangolin::Var<bool> menuShowKeyFrames("menu.MapFrames",true,true);
+        static pangolin::Var<bool> menuShowGraph("menu.CovGraph",true,true);
+        static pangolin::Var<bool> menuShowLines("menu.RelLines",true,true);
 
         pangolin::OpenGlMatrix Twc;
         Twc.SetIdentity();
 
-        bool bFollow = true;
+        static bool bFollow = true;
 
-        while(!pangolin::ShouldQuit())
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
            
@@ -90,19 +95,19 @@ namespace Position
             
             if(menuFollowCamera && bFollow)
             {
-                s_cam.Follow(Twc);
+                mCam.Follow(Twc);
             }
             else if(menuFollowCamera && !bFollow) 
             {
-                s_cam.SetModelViewMatrix(pangolin::ModelViewLookAt(ViewptX, ViewptY, ViewptZ, 0, 0, 0, 0.0, -1.0, 0.0));
-                s_cam.Follow(Twc);
+                mCam.SetModelViewMatrix(pangolin::ModelViewLookAt(mViewX, mViewY, mViewZ, 0, 0, 0, 0.0, -1.0, 0.0));
+                mCam.Follow(Twc);
                 bFollow = true;
             }
             else
             {
                 bFollow = false;
             }
-            d_cam.Activate(s_cam);
+            mpView->Activate(mCam);
 
             if(menuShowKeyFrames)
             {
@@ -124,7 +129,7 @@ namespace Position
             // cv::waitKey(1);
         }
 
-        return true;
+        return !pangolin::ShouldQuit();
     }
 
     void Nor(Mat &pt)
@@ -201,7 +206,7 @@ namespace Position
         cv::Mat Rwc = Rcw.t();
         cv::Mat Ow = -Rwc*tcw;
         
-        cv::Mat mWorldPosInv = cv::Mat::eye(4,4,CV_32F);
+        cv::Mat mWorldPosInv = cv::Mat::eye(4,4,MATCVTYPE);
         Rwc.copyTo(mWorldPosInv.rowRange(0,3).colRange(0,3));
         Ow.copyTo(mWorldPosInv.rowRange(0,3).col(3));
 
@@ -236,7 +241,7 @@ namespace Position
     }
 
     //绘制帧
-    void Pangolin_Viwer::drawFrames()
+    void Pangolin_Viewer::drawFrames()
     {
         drawCoordinateAxis(Point3f(0,0,0));
 
@@ -287,7 +292,7 @@ namespace Position
     }
 
     //绘制地图
-    void Pangolin_Viwer::drawMapPoints()
+    void Pangolin_Viewer::drawMapPoints()
     {
        const MapPtVector mpts = mMap->getAllMapPts();
        if(mpts.empty())
@@ -312,7 +317,7 @@ namespace Position
     }
 
      //绘制关联线
-    void Pangolin_Viwer::drawRelLines()
+    void Pangolin_Viewer::drawRelLines()
     {
 
     }

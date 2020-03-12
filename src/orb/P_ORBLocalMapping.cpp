@@ -198,7 +198,7 @@ void ORBLocalMapping::CreateNewMapPoints()
     cv::Mat Rcw1 = mpCurrentKeyFrame->getRotation();
     cv::Mat Rwc1 = Rcw1.t();
     cv::Mat tcw1 = mpCurrentKeyFrame->getTranslation();
-    cv::Mat Tcw1(3,4,CV_32F);
+    cv::Mat Tcw1(3,4,MATCVTYPE);
     Rcw1.copyTo(Tcw1.colRange(0,3));
     tcw1.copyTo(Tcw1.col(3));
     cv::Mat Ow1 = mpCurrentKeyFrame->GetCameraCenter();
@@ -245,7 +245,7 @@ void ORBLocalMapping::CreateNewMapPoints()
         cv::Mat Rcw2 = pKF2->getRotation();
         cv::Mat Rwc2 = Rcw2.t();
         cv::Mat tcw2 = pKF2->getTranslation();
-        cv::Mat Tcw2(3,4,CV_32F);
+        cv::Mat Tcw2(3,4,MATCVTYPE);
         Rcw2.copyTo(Tcw2.colRange(0,3));
         tcw2.copyTo(Tcw2.col(3));
 
@@ -268,8 +268,8 @@ void ORBLocalMapping::CreateNewMapPoints()
             const cv::KeyPoint &kp2 = pKF2->mvKeysUn[idx2];
 
             // Check parallax between rays
-            cv::Mat xn1 = (cv::Mat_<float>(3,1) << (kp1.pt.x-cx1)*invfx1, (kp1.pt.y-cy1)*invfy1, 1.0);
-            cv::Mat xn2 = (cv::Mat_<float>(3,1) << (kp2.pt.x-cx2)*invfx2, (kp2.pt.y-cy2)*invfy2, 1.0);
+            cv::Mat xn1 = (cv::Mat_<MATTYPE>(3,1) << (kp1.pt.x-cx1)*invfx1, (kp1.pt.y-cy1)*invfy1, 1.0);
+            cv::Mat xn2 = (cv::Mat_<MATTYPE>(3,1) << (kp2.pt.x-cx2)*invfx2, (kp2.pt.y-cy2)*invfy2, 1.0);
 
             cv::Mat ray1 = Rwc1*xn1;
             cv::Mat ray2 = Rwc2*xn2;
@@ -279,22 +279,22 @@ void ORBLocalMapping::CreateNewMapPoints()
             if( cosParallaxRays>0 &&  (cosParallaxRays<0.9998))
             {
                 // Linear Triangulation Method
-                cv::Mat A(4,4,CV_32F);
-                A.row(0) = xn1.at<float>(0)*Tcw1.row(2)-Tcw1.row(0);
-                A.row(1) = xn1.at<float>(1)*Tcw1.row(2)-Tcw1.row(1);
-                A.row(2) = xn2.at<float>(0)*Tcw2.row(2)-Tcw2.row(0);
-                A.row(3) = xn2.at<float>(1)*Tcw2.row(2)-Tcw2.row(1);
+                cv::Mat A(4,4,MATCVTYPE);
+                A.row(0) = xn1.at<MATTYPE>(0)*Tcw1.row(2)-Tcw1.row(0);
+                A.row(1) = xn1.at<MATTYPE>(1)*Tcw1.row(2)-Tcw1.row(1);
+                A.row(2) = xn2.at<MATTYPE>(0)*Tcw2.row(2)-Tcw2.row(0);
+                A.row(3) = xn2.at<MATTYPE>(1)*Tcw2.row(2)-Tcw2.row(1);
 
                 cv::Mat w,u,vt;
                 cv::SVD::compute(A,w,u,vt,cv::SVD::MODIFY_A| cv::SVD::FULL_UV);
 
                 x3D = vt.row(3).t();
 
-                if(x3D.at<float>(3)==0)
+                if(x3D.at<MATTYPE>(3)==0)
                     continue;
 
                 // Euclidean coordinates
-                x3D = x3D.rowRange(0,3)/x3D.at<float>(3);
+                x3D = x3D.rowRange(0,3)/x3D.at<MATTYPE>(3);
 
             }
             else
@@ -303,18 +303,18 @@ void ORBLocalMapping::CreateNewMapPoints()
             cv::Mat x3Dt = x3D.t();
 
             //Check triangulation in front of cameras
-            float z1 = Rcw1.row(2).dot(x3Dt)+tcw1.at<float>(2);
+            float z1 = Rcw1.row(2).dot(x3Dt)+tcw1.at<MATTYPE>(2);
             if(z1<=0)
                 continue;
 
-            float z2 = Rcw2.row(2).dot(x3Dt)+tcw2.at<float>(2);
+            float z2 = Rcw2.row(2).dot(x3Dt)+tcw2.at<MATTYPE>(2);
             if(z2<=0)
                 continue;
 
             //Check reprojection error in first keyframe
             const float &sigmaSquare1 = mpCurrentKeyFrame->mvLevelSigma2[kp1.octave];
-            const float x1 = Rcw1.row(0).dot(x3Dt)+tcw1.at<float>(0);
-            const float y1 = Rcw1.row(1).dot(x3Dt)+tcw1.at<float>(1);
+            const float x1 = Rcw1.row(0).dot(x3Dt)+tcw1.at<MATTYPE>(0);
+            const float y1 = Rcw1.row(1).dot(x3Dt)+tcw1.at<MATTYPE>(1);
             const float invz1 = 1.0/z1;
 
             {
@@ -328,8 +328,8 @@ void ORBLocalMapping::CreateNewMapPoints()
 
             //Check reprojection error in second keyframe
             const float sigmaSquare2 = pKF2->mvLevelSigma2[kp2.octave];
-            const float x2 = Rcw2.row(0).dot(x3Dt)+tcw2.at<float>(0);
-            const float y2 = Rcw2.row(1).dot(x3Dt)+tcw2.at<float>(1);
+            const float x2 = Rcw2.row(0).dot(x3Dt)+tcw2.at<MATTYPE>(0);
+            const float y2 = Rcw2.row(1).dot(x3Dt)+tcw2.at<MATTYPE>(1);
             const float invz2 = 1.0/z2;
 
             {
@@ -620,9 +620,9 @@ void ORBLocalMapping::KeyFrameCulling()
 
 cv::Mat ORBLocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
 {
-    return (cv::Mat_<float>(3,3) <<             0, -v.at<float>(2), v.at<float>(1),
-            v.at<float>(2),               0,-v.at<float>(0),
-            -v.at<float>(1),  v.at<float>(0),              0);
+    return (cv::Mat_<MATTYPE>(3,3) <<             0, -v.at<MATTYPE>(2), v.at<MATTYPE>(1),
+            v.at<MATTYPE>(2),               0,-v.at<MATTYPE>(0),
+            -v.at<MATTYPE>(1),  v.at<MATTYPE>(0),              0);
 }
 
 void ORBLocalMapping::RequestReset()

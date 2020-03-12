@@ -250,7 +250,7 @@ void ORBTracking::Track()
             // Update motion model
             if(!mLastFrame.mTcw.empty())
             {
-                cv::Mat LastTwc = cv::Mat::eye(4,4,CV_32F);
+                cv::Mat LastTwc = cv::Mat::eye(4,4,MATCVTYPE);
                 mLastFrame.GetRotationInverse().copyTo(LastTwc.rowRange(0,3).colRange(0,3));
                 mLastFrame.getCameraCenter().copyTo(LastTwc.rowRange(0,3).col(3));
                 mVelocity = mCurrentFrame.mTcw*LastTwc;
@@ -347,7 +347,7 @@ void ORBTracking::MonocularInitialization()
             if(mpInitializer)
                 delete mpInitializer;
 
-            mpInitializer =  new Initializer(mCurrentFrame,1.0,200);
+            mpInitializer =  new Initializer(mCurrentFrame,2.0,200);
 
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
 
@@ -367,7 +367,7 @@ void ORBTracking::MonocularInitialization()
 
         // Find correspondences
         ORBmatcher matcher(0.9,true);
-        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,100);
+        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,300);
 
         // Check if there are enough correspondences
         if(nmatches<100)
@@ -393,11 +393,13 @@ void ORBTracking::MonocularInitialization()
             }
 
             // Set ORBFrame Poses
-            mInitialFrame.setPose(cv::Mat::eye(4,4,CV_32F));
-            cv::Mat Tcw = cv::Mat::eye(4,4,CV_32F);
+            mInitialFrame.setPose(cv::Mat::eye(4,4,MATCVTYPE));
+            cv::Mat Tcw = cv::Mat::eye(4,4,MATCVTYPE);
             Rcw.copyTo(Tcw.rowRange(0,3).colRange(0,3));
             tcw.copyTo(Tcw.rowRange(0,3).col(3));
             mCurrentFrame.setPose(Tcw);
+
+            mVelocity = Tcw;
 
             CreateInitialMapMonocular();
         }
@@ -453,16 +455,23 @@ void ORBTracking::CreateInitialMapMonocular()
     pKFcur->UpdateConnections();
 
     // Bundle Adjustment
-    cout << "New Map created with " << mpMap->mapptCount() << " points" << endl;
+    cout << "New Map created with " << mpMap->mapPointsInMap() << " points" << endl;
 
     Optimizer::GlobalBundleAdjustemnt(mpMap,20);
 
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
-    float invMedianDepth = 1.0f/medianDepth;
+    cout << "median depath is " << medianDepth << endl;
+    cv::Mat tmp = pKFcur->getPose().col(3);
+   //add by tu  初始化第二帧距离第一帧位置
+    float len = sqrt(tmp.at<MATTYPE>(0) * tmp.at<MATTYPE>(0) + 
+                     tmp.at<MATTYPE>(1) * tmp.at<MATTYPE>(1) +
+                     tmp.at<MATTYPE>(2) * tmp.at<MATTYPE>(2));
+    float invMedianDepth = 1.0f / len ;
 
-    if(medianDepth<0 || pKFcur->TrackedMapPoints(1)<100)
+    if(medianDepth<0 || pKFcur->TrackedMapPoints(1) < 80)
     {
+        cout << "Only " << pKFcur->TrackedMapPoints(1) << "points tracked~~" << endl;
         cout << "Wrong initialization, reseting..." << endl;
         Reset();
         return;
@@ -590,12 +599,12 @@ bool ORBTracking::TrackWithMotionModel()
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<ORBMapPoint*>(NULL));
 
     // Project points seen in previous frame
-    int th = 7;
+    int th = 50;
     
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,true);
 
     // If few matches, uses a wider window search
-    if(nmatches<20)
+    if(nmatches<15)
     {
         fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<ORBMapPoint*>(NULL));
         nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,2*th,true);

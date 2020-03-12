@@ -29,6 +29,15 @@ namespace Position
 			{
 				mCamera.K = mCamera.K.colRange(0, 3);
 			}
+
+            if(mCamera.K.type() != MATCVTYPE)
+            {
+                mCamera.K.convertTo(mCamera.K,MATCVTYPE);
+                mCamera.RCam2Imu.convertTo(mCamera.RCam2Imu,MATCVTYPE);
+                mCamera.TCam2Imu.convertTo(mCamera.TCam2Imu,MATCVTYPE);
+            }
+
+
             PROMT_S("Camera params >>>>>>>>>>>>>>>>>>>>>>>>>");
             PROMT_V("K ",mCamera.K);
             PROMT_S("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
@@ -82,7 +91,7 @@ namespace Position
             pstfile.open(pstpath);
 
             int index = stno;
-            bool allimg = (stno == edno);
+            bool allimg = (stno >= edno);
             std::string pststr;
             //read headline
             getline(pstfile, pststr);
@@ -105,13 +114,9 @@ namespace Position
                                                                         &pose._yaw,
                                                                         &pose._roll);
 
-                string picpath = imgpath + "/" + filename;
-                //PROMT_S(picpath);
-                framedata._img = imread(picpath);
-                if(mpChecker->check(framedata))
-                {
-                    mFrameDatas.emplace_back(framedata);
-                }
+                PROMT_V("Load",filename);
+                framedata._name = filename;
+                mFrameDatas.emplace_back(framedata);
             }
 
             pstfile.close();

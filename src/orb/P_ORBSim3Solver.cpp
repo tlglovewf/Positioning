@@ -129,8 +129,8 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers
 
     SzVector vAvailableIndices;
 
-    cv::Mat P3Dc1i(3,3,CV_32F);
-    cv::Mat P3Dc2i(3,3,CV_32F);
+    cv::Mat P3Dc1i(3,3,MATCVTYPE);
+    cv::Mat P3Dc2i(3,3,MATCVTYPE);
 
     int nCurrentIterations = 0;
     while(mnIterations<mRansacMaxIts && nCurrentIterations<nIterations)
@@ -226,18 +226,18 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 
     cv::Mat N(4,4,P1.type());
 
-    N11 = M.at<float>(0,0)+M.at<float>(1,1)+M.at<float>(2,2);
-    N12 = M.at<float>(1,2)-M.at<float>(2,1);
-    N13 = M.at<float>(2,0)-M.at<float>(0,2);
-    N14 = M.at<float>(0,1)-M.at<float>(1,0);
-    N22 = M.at<float>(0,0)-M.at<float>(1,1)-M.at<float>(2,2);
-    N23 = M.at<float>(0,1)+M.at<float>(1,0);
-    N24 = M.at<float>(2,0)+M.at<float>(0,2);
-    N33 = -M.at<float>(0,0)+M.at<float>(1,1)-M.at<float>(2,2);
-    N34 = M.at<float>(1,2)+M.at<float>(2,1);
-    N44 = -M.at<float>(0,0)-M.at<float>(1,1)+M.at<float>(2,2);
+    N11 = M.at<MATTYPE>(0,0)+M.at<MATTYPE>(1,1)+M.at<MATTYPE>(2,2);
+    N12 = M.at<MATTYPE>(1,2)-M.at<MATTYPE>(2,1);
+    N13 = M.at<MATTYPE>(2,0)-M.at<MATTYPE>(0,2);
+    N14 = M.at<MATTYPE>(0,1)-M.at<MATTYPE>(1,0);
+    N22 = M.at<MATTYPE>(0,0)-M.at<MATTYPE>(1,1)-M.at<MATTYPE>(2,2);
+    N23 = M.at<MATTYPE>(0,1)+M.at<MATTYPE>(1,0);
+    N24 = M.at<MATTYPE>(2,0)+M.at<MATTYPE>(0,2);
+    N33 = -M.at<MATTYPE>(0,0)+M.at<MATTYPE>(1,1)-M.at<MATTYPE>(2,2);
+    N34 = M.at<MATTYPE>(1,2)+M.at<MATTYPE>(2,1);
+    N44 = -M.at<MATTYPE>(0,0)-M.at<MATTYPE>(1,1)+M.at<MATTYPE>(2,2);
 
-    N = (cv::Mat_<float>(4,4) << N11, N12, N13, N14,
+    N = (cv::Mat_<MATTYPE>(4,4) << N11, N12, N13, N14,
                                  N12, N22, N23, N24,
                                  N13, N23, N33, N34,
                                  N14, N24, N34, N44);
@@ -253,7 +253,7 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     (evec.row(0).colRange(1,4)).copyTo(vec); //extract imaginary part of the quaternion (sin*axis)
 
     // Rotation angle. sin is the norm of the imaginary part, cos is the real part
-    double ang=atan2(norm(vec),evec.at<float>(0,0));
+    double ang=atan2(norm(vec),evec.at<MATTYPE>(0,0));
 
     vec = 2*ang*vec/norm(vec); //Angle-axis representation. quaternion angle is the half
 
@@ -279,7 +279,7 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
         {
             for(int j=0; j<aux_P3.cols; j++)
             {
-                den+=aux_P3.at<float>(i,j);
+                den+=aux_P3.at<MATTYPE>(i,j);
             }
         }
 
@@ -361,10 +361,10 @@ void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv
 {
     cv::Mat Rcw = Tcw.rowRange(0,3).colRange(0,3);
     cv::Mat tcw = Tcw.rowRange(0,3).col(3);
-    const float &fx = K.at<float>(0,0);
-    const float &fy = K.at<float>(1,1);
-    const float &cx = K.at<float>(0,2);
-    const float &cy = K.at<float>(1,2);
+    const float &fx = K.at<MATTYPE>(0,0);
+    const float &fy = K.at<MATTYPE>(1,1);
+    const float &cx = K.at<MATTYPE>(0,2);
+    const float &cy = K.at<MATTYPE>(1,2);
 
     vP2D.clear();
     vP2D.reserve(vP3Dw.size());
@@ -372,31 +372,31 @@ void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv
     for(size_t i=0, iend=vP3Dw.size(); i<iend; i++)
     {
         cv::Mat P3Dc = Rcw*vP3Dw[i]+tcw;
-        const float invz = 1/(P3Dc.at<float>(2));
-        const float x = P3Dc.at<float>(0)*invz;
-        const float y = P3Dc.at<float>(1)*invz;
+        const float invz = 1/(P3Dc.at<MATTYPE>(2));
+        const float x = P3Dc.at<MATTYPE>(0)*invz;
+        const float y = P3Dc.at<MATTYPE>(1)*invz;
 
-        vP2D.push_back((cv::Mat_<float>(2,1) << fx*x+cx, fy*y+cy));
+        vP2D.push_back((cv::Mat_<MATTYPE>(2,1) << fx*x+cx, fy*y+cy));
     }
 }
 
 void Sim3Solver::FromCameraToImage(const vector<cv::Mat> &vP3Dc, vector<cv::Mat> &vP2D, cv::Mat K)
 {
-    const float &fx = K.at<float>(0,0);
-    const float &fy = K.at<float>(1,1);
-    const float &cx = K.at<float>(0,2);
-    const float &cy = K.at<float>(1,2);
+    const float &fx = K.at<MATTYPE>(0,0);
+    const float &fy = K.at<MATTYPE>(1,1);
+    const float &cx = K.at<MATTYPE>(0,2);
+    const float &cy = K.at<MATTYPE>(1,2);
 
     vP2D.clear();
     vP2D.reserve(vP3Dc.size());
 
     for(size_t i=0, iend=vP3Dc.size(); i<iend; i++)
     {
-        const float invz = 1/(vP3Dc[i].at<float>(2));
-        const float x = vP3Dc[i].at<float>(0)*invz;
-        const float y = vP3Dc[i].at<float>(1)*invz;
+        const float invz = 1/(vP3Dc[i].at<MATTYPE>(2));
+        const float x = vP3Dc[i].at<MATTYPE>(0)*invz;
+        const float y = vP3Dc[i].at<MATTYPE>(1)*invz;
 
-        vP2D.push_back((cv::Mat_<float>(2,1) << fx*x+cx, fy*y+cy));
+        vP2D.push_back((cv::Mat_<MATTYPE>(2,1) << fx*x+cx, fy*y+cy));
     }
 }
 

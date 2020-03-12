@@ -41,7 +41,7 @@ ORBPnPsolver::ORBPnPsolver(const ORBFrame &F, const MapPtVector &vpMapPointMatch
                 mvSigma2.push_back(F.mvLevelSigma2[kp.octave]);
 
                 cv::Mat Pos = pMP->getWorldPos();
-                mvP3Dw.push_back(cv::Point3f(Pos.at<float>(0),Pos.at<float>(1), Pos.at<float>(2)));
+                mvP3Dw.push_back(cv::Point3f(Pos.at<MATTYPE>(0),Pos.at<MATTYPE>(1), Pos.at<MATTYPE>(2)));
 
                 mvKeyPointIndices.push_back(i);
                 mvAllIndices.push_back(idx);               
@@ -167,9 +167,9 @@ cv::Mat ORBPnPsolver::iterate(int nIterations, bool &bNoMore, BolVector &vbInlie
 
                 cv::Mat Rcw(3,3,CV_64F,mRi);
                 cv::Mat tcw(3,1,CV_64F,mti);
-                Rcw.convertTo(Rcw,CV_32F);
-                tcw.convertTo(tcw,CV_32F);
-                mBestTcw = cv::Mat::eye(4,4,CV_32F);
+                Rcw.convertTo(Rcw,MATCVTYPE);
+                tcw.convertTo(tcw,MATCVTYPE);
+                mBestTcw = cv::Mat::eye(4,4,MATCVTYPE);
                 Rcw.copyTo(mBestTcw.rowRange(0,3).colRange(0,3));
                 tcw.copyTo(mBestTcw.rowRange(0,3).col(3));
             }
@@ -244,9 +244,9 @@ bool ORBPnPsolver::Refine()
     {
         cv::Mat Rcw(3,3,CV_64F,mRi);
         cv::Mat tcw(3,1,CV_64F,mti);
-        Rcw.convertTo(Rcw,CV_32F);
-        tcw.convertTo(tcw,CV_32F);
-        mRefinedTcw = cv::Mat::eye(4,4,CV_32F);
+        Rcw.convertTo(Rcw,MATCVTYPE);
+        tcw.convertTo(tcw,MATCVTYPE);
+        mRefinedTcw = cv::Mat::eye(4,4,MATCVTYPE);
         Rcw.copyTo(mRefinedTcw.rowRange(0,3).colRange(0,3));
         tcw.copyTo(mRefinedTcw.rowRange(0,3).col(3));
         return true;

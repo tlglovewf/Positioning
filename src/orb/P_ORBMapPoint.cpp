@@ -15,8 +15,16 @@ ORBMapPoint::ORBMapPoint(const cv::Mat &Pos, ORBKeyFrame *pRefKF, const std::sha
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(pRefKF), mnVisible(1), mnFound(1), mbBad(false),
     mpReplaced(static_cast<ORBMapPoint*>(NULL)), mfMinDistance(0), mfMaxDistance(0), mpMap(pMap)
 {
-    Pos.copyTo(mWorldPos);
-    mNormalVector = cv::Mat::zeros(3,1,CV_32F);
+    if(Pos.type() == MATCVTYPE)
+    {
+        Pos.copyTo(mWorldPos);
+    }
+    else
+    {
+        Pos.convertTo(mWorldPos,MATCVTYPE);
+    }
+    
+    mNormalVector = cv::Mat::zeros(3,1,MATCVTYPE);
 
     // MapPoints can be created from Tracking and Local Mapping. This mutex avoid conflicts with id.
     unique_lock<mutex> lock( ORBMAP(mpMap.get())->mMutexPointCreation);
@@ -292,7 +300,7 @@ void ORBMapPoint::UpdateNormalAndDepth()
     if(observations.empty())
         return;
 
-    cv::Mat normal = cv::Mat::zeros(3,1,CV_32F);
+    cv::Mat normal = cv::Mat::zeros(3,1,MATCVTYPE);
     int n=0;
     for(KeyFrameMap::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
     {

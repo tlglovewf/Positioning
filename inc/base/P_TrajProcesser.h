@@ -86,11 +86,19 @@ namespace Position
                 for(size_t i = 0; i < framedatas.size(); ++i)
                 {
                     track(framedatas[i]);
+                    if(mpViewer)
+                    {
+                        mpViewer->renderOnce();
+                    }
                 }
                 return true;
             }
         }
-
+         //设置可视接口
+        virtual void setViewer(const std::shared_ptr<IViewer> &viewer) 
+        {
+            mpViewer = viewer;
+        }
     protected:
 
         //是否能创建新帧
@@ -114,15 +122,16 @@ namespace Position
     
     protected:
 
-        std::shared_ptr<IMap> mpMap;
+        std::shared_ptr<IMap>       mpMap;
+        std::shared_ptr<IViewer>    mpViewer;
 
-        eTrackStatus          mStatus;
+        eTrackStatus                mStatus;
 
-        IFrame               *mpCurrent;
-        IFrame               *mpLast;
-
-        IKeyFrame            *mpCurrentKeyFm;
-        IKeyFrame            *mpLastKeyFm;
+        IFrame                     *mpCurrent;
+        IFrame                     *mpLast;
+    
+        IKeyFrame                  *mpCurrentKeyFm;
+        IKeyFrame                  *mpLastKeyFm;
     };
 }
 

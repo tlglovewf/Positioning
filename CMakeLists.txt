@@ -137,7 +137,7 @@ if(CMAKE_HOST_APPLE)
    else()
       target_link_libraries(${Positioning}
          ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.dylib
-         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib)
+         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2d.dylib)
    endif()
 else()
    if(CMAKE_BUILD_TYPE EQUAL Release)

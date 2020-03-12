@@ -72,10 +72,10 @@ namespace Position
             mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/static_cast<float>(mnMaxX-mnMinX);
             mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/static_cast<float>(mnMaxY-mnMinY);
 
-            fx = K.at<float>(0,0);
-            fy = K.at<float>(1,1);
-            cx = K.at<float>(0,2);
-            cy = K.at<float>(1,2);
+            fx = K.at<MATTYPE>(0,0);
+            fy = K.at<MATTYPE>(1,1);
+            cx = K.at<MATTYPE>(0,2);
+            cy = K.at<MATTYPE>(1,2);
             invfx = 1.0f/fx;
             invfy = 1.0f/fy;
 
@@ -130,18 +130,18 @@ namespace Position
 
         // 3D in camera coordinates
         const cv::Mat Pc = mRcw*P+mtcw;
-        const float &PcX = Pc.at<float>(0);
-        const float &PcY= Pc.at<float>(1);
-        const float &PcZ = Pc.at<float>(2);
+        const MATTYPE &PcX = Pc.at<MATTYPE>(0);
+        const MATTYPE &PcY= Pc.at<MATTYPE>(1);
+        const MATTYPE &PcZ = Pc.at<MATTYPE>(2);
 
         // Check positive depth
         if(PcZ<0.0f)
             return false;
 
         // Project in image and check it is not outside
-        const float invz = 1.0f/PcZ;
-        const float u=fx*PcX*invz+cx;
-        const float v=fy*PcY*invz+cy;
+        const MATTYPE invz = 1.0f/PcZ;
+        const MATTYPE u=fx*PcX*invz+cx;
+        const MATTYPE v=fy*PcY*invz+cy;
 
         if(u<mnMinX || u>mnMaxX)
             return false;
@@ -259,18 +259,18 @@ namespace Position
 
     void ORBFrame::UndistortKeyPoints()
     {
-        if(mDistCoef.at<float>(0)==0.0)
+        if( mDistCoef.empty() || mDistCoef.at<MATTYPE>(0)==0.0)
         {
             mvKeysUn=mvKeys;
             return;
         }
 
         // Fill matrix with points
-        cv::Mat mat(N,2,CV_32F);
+        cv::Mat mat(N,2,MATCVTYPE);
         for(int i=0; i<N; i++)
         {
-            mat.at<float>(i,0)=mvKeys[i].pt.x;
-            mat.at<float>(i,1)=mvKeys[i].pt.y;
+            mat.at<MATTYPE>(i,0)=mvKeys[i].pt.x;
+            mat.at<MATTYPE>(i,1)=mvKeys[i].pt.y;
         }
 
         // Undistort points
@@ -283,31 +283,31 @@ namespace Position
         for(int i=0; i<N; i++)
         {
             cv::KeyPoint kp = mvKeys[i];
-            kp.pt.x=mat.at<float>(i,0);
-            kp.pt.y=mat.at<float>(i,1);
+            kp.pt.x=mat.at<MATTYPE>(i,0);
+            kp.pt.y=mat.at<MATTYPE>(i,1);
             mvKeysUn[i]=kp;
         }
     }
 
     void ORBFrame::ComputeImageBounds(const cv::Mat &imLeft)
     {
-        if(mDistCoef.at<float>(0)!=0.0)
+        if(mDistCoef.empty() || mDistCoef.at<MATTYPE>(0)!=0.0)
         {
-            cv::Mat mat(4,2,CV_32F);
-            mat.at<float>(0,0)=0.0; mat.at<float>(0,1)=0.0;
-            mat.at<float>(1,0)=imLeft.cols; mat.at<float>(1,1)=0.0;
-            mat.at<float>(2,0)=0.0; mat.at<float>(2,1)=imLeft.rows;
-            mat.at<float>(3,0)=imLeft.cols; mat.at<float>(3,1)=imLeft.rows;
+            cv::Mat mat(4,2,MATCVTYPE);
+            mat.at<MATTYPE>(0,0)=0.0; mat.at<MATTYPE>(0,1)=0.0;
+            mat.at<MATTYPE>(1,0)=imLeft.cols; mat.at<MATTYPE>(1,1)=0.0;
+            mat.at<MATTYPE>(2,0)=0.0; mat.at<MATTYPE>(2,1)=imLeft.rows;
+            mat.at<MATTYPE>(3,0)=imLeft.cols; mat.at<MATTYPE>(3,1)=imLeft.rows;
 
             // Undistort corners
             mat=mat.reshape(2);
             cv::undistortPoints(mat,mat,mK,mDistCoef,cv::Mat(),mK);
             mat=mat.reshape(1);
 
-            mnMinX = min(mat.at<float>(0,0),mat.at<float>(2,0));
-            mnMaxX = max(mat.at<float>(1,0),mat.at<float>(3,0));
-            mnMinY = min(mat.at<float>(0,1),mat.at<float>(1,1));
-            mnMaxY = max(mat.at<float>(2,1),mat.at<float>(3,1));
+            mnMinX = min(mat.at<MATTYPE>(0,0),mat.at<MATTYPE>(2,0));
+            mnMaxX = max(mat.at<MATTYPE>(1,0),mat.at<MATTYPE>(3,0));
+            mnMinY = min(mat.at<MATTYPE>(0,1),mat.at<MATTYPE>(1,1));
+            mnMaxY = max(mat.at<MATTYPE>(2,1),mat.at<MATTYPE>(3,1));
 
         }
         else

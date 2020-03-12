@@ -115,9 +115,9 @@ float ORBmatcher::RadiusByViewingCos(const float &viewCos)
 bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoint &kp2,const cv::Mat &F12,const ORBKeyFrame* pKF2)
 {
     // Epipolar line in second image l = x1'F12 = [a b c]
-    const float a = kp1.pt.x*F12.at<float>(0,0)+kp1.pt.y*F12.at<float>(1,0)+F12.at<float>(2,0);
-    const float b = kp1.pt.x*F12.at<float>(0,1)+kp1.pt.y*F12.at<float>(1,1)+F12.at<float>(2,1);
-    const float c = kp1.pt.x*F12.at<float>(0,2)+kp1.pt.y*F12.at<float>(1,2)+F12.at<float>(2,2);
+    const float a = kp1.pt.x*F12.at<MATTYPE>(0,0)+kp1.pt.y*F12.at<MATTYPE>(1,0)+F12.at<MATTYPE>(2,0);
+    const float b = kp1.pt.x*F12.at<MATTYPE>(0,1)+kp1.pt.y*F12.at<MATTYPE>(1,1)+F12.at<MATTYPE>(2,1);
+    const float c = kp1.pt.x*F12.at<MATTYPE>(0,2)+kp1.pt.y*F12.at<MATTYPE>(1,2)+F12.at<MATTYPE>(2,2);
 
     const float num = a*kp2.pt.x+b*kp2.pt.y+c;
 
@@ -202,7 +202,7 @@ int ORBmatcher::SearchByBoW(ORBKeyFrame* pKF,ORBFrame &F, MapPtVector &vpMapPoin
 
                 if(bestDist1<=TH_LOW)
                 {
-                    if(static_cast<float>(bestDist1)<mfNNratio*static_cast<float>(bestDist2))
+                    if(static_cast<MATTYPE>(bestDist1)<mfNNratio*static_cast<MATTYPE>(bestDist2))
                     {
                         vpMapPointMatches[bestIdxF]=pMP;
 
@@ -299,13 +299,13 @@ int ORBmatcher::SearchByProjection(ORBKeyFrame* pKF, cv::Mat Scw, const MapPtVec
         cv::Mat p3Dc = Rcw*p3Dw+tcw;
 
         // Depth must be positive
-        if(p3Dc.at<float>(2)<0.0)
+        if(p3Dc.at<MATTYPE>(2)<0.0)
             continue;
 
         // Project into Image
-        const float invz = 1/p3Dc.at<float>(2);
-        const float x = p3Dc.at<float>(0)*invz;
-        const float y = p3Dc.at<float>(1)*invz;
+        const float invz = 1/p3Dc.at<MATTYPE>(2);
+        const float x = p3Dc.at<MATTYPE>(0)*invz;
+        const float y = p3Dc.at<MATTYPE>(1)*invz;
 
         const float u = fx*x+cx;
         const float v = fy*y+cy;
@@ -572,7 +572,7 @@ int ORBmatcher::SearchByBoW(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &v
 
                 if(bestDist1<TH_LOW)
                 {
-                    if(static_cast<float>(bestDist1)<mfNNratio*static_cast<float>(bestDist2))
+                    if(static_cast<MATTYPE>(bestDist1)<mfNNratio*static_cast<MATTYPE>(bestDist2))
                     {
                         vpMatches12[idx1]= vpMapPoints2[bestIdx2];
                         vbMatched2[bestIdx2]=true;
@@ -640,9 +640,9 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
     cv::Mat R2w = pKF2->getRotation();
     cv::Mat t2w = pKF2->getTranslation();
     cv::Mat C2 = R2w*Cw+t2w;
-    const float invz = 1.0f/C2.at<float>(2);
-    const float ex =pKF2->fx*C2.at<float>(0)*invz+pKF2->cx;
-    const float ey =pKF2->fy*C2.at<float>(1)*invz+pKF2->cy;
+    const float invz = 1.0f/C2.at<MATTYPE>(2);
+    const float ex =pKF2->fx*C2.at<MATTYPE>(0)*invz+pKF2->cx;
+    const float ey =pKF2->fy*C2.at<MATTYPE>(1)*invz+pKF2->cy;
 
     // Find matches between not tracked keypoints
     // Matching speed-up by ORB Vocabulary
@@ -814,15 +814,15 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
         cv::Mat p3Dc = Rcw*p3Dw + tcw;
 
         // Depth must be positive
-        if(p3Dc.at<float>(2)<0.0f)
+        if(p3Dc.at<MATTYPE>(2)<0.0f)
             continue;
 
-        const float invz = 1/p3Dc.at<float>(2);
-        const float x = p3Dc.at<float>(0)*invz;
-        const float y = p3Dc.at<float>(1)*invz;
+        const MATTYPE invz = 1/p3Dc.at<MATTYPE>(2);
+        const MATTYPE x = p3Dc.at<MATTYPE>(0)*invz;
+        const MATTYPE y = p3Dc.at<MATTYPE>(1)*invz;
 
-        const float u = fx*x+cx;
-        const float v = fy*y+cy;
+        const MATTYPE u = fx*x+cx;
+        const MATTYPE v = fy*y+cy;
 
         // Point must be inside the image
         if(!pKF->IsInImage(u,v))
@@ -956,16 +956,16 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
         cv::Mat p3Dc = Rcw*p3Dw+tcw;
 
         // Depth must be positive
-        if(p3Dc.at<float>(2)<0.0f)
+        if(p3Dc.at<MATTYPE>(2)<0.0f)
             continue;
 
         // Project into Image
-        const float invz = 1.0/p3Dc.at<float>(2);
-        const float x = p3Dc.at<float>(0)*invz;
-        const float y = p3Dc.at<float>(1)*invz;
+        const MATTYPE invz = 1.0/p3Dc.at<MATTYPE>(2);
+        const MATTYPE x = p3Dc.at<MATTYPE>(0)*invz;
+        const MATTYPE y = p3Dc.at<MATTYPE>(1)*invz;
 
-        const float u = fx*x+cx;
-        const float v = fy*y+cy;
+        const MATTYPE u = fx*x+cx;
+        const MATTYPE v = fy*y+cy;
 
         // Point must be inside the image
         if(!pKF->IsInImage(u,v))
@@ -1104,12 +1104,12 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
         cv::Mat p3Dc2 = sR21*p3Dc1 + t21;
 
         // Depth must be positive
-        if(p3Dc2.at<float>(2)<0.0)
+        if(p3Dc2.at<MATTYPE>(2)<0.0)
             continue;
 
-        const float invz = 1.0/p3Dc2.at<float>(2);
-        const float x = p3Dc2.at<float>(0)*invz;
-        const float y = p3Dc2.at<float>(1)*invz;
+        const float invz = 1.0/p3Dc2.at<MATTYPE>(2);
+        const float x = p3Dc2.at<MATTYPE>(0)*invz;
+        const float y = p3Dc2.at<MATTYPE>(1)*invz;
 
         const float u = fx*x+cx;
         const float v = fy*y+cy;
@@ -1184,12 +1184,12 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
         cv::Mat p3Dc1 = sR12*p3Dc2 + t12;
 
         // Depth must be positive
-        if(p3Dc1.at<float>(2)<0.0)
+        if(p3Dc1.at<MATTYPE>(2)<0.0)
             continue;
 
-        const float invz = 1.0/p3Dc1.at<float>(2);
-        const float x = p3Dc1.at<float>(0)*invz;
-        const float y = p3Dc1.at<float>(1)*invz;
+        const float invz = 1.0/p3Dc1.at<MATTYPE>(2);
+        const float x = p3Dc1.at<MATTYPE>(0)*invz;
+        const float y = p3Dc1.at<MATTYPE>(1)*invz;
 
         const float u = fx*x+cx;
         const float v = fy*y+cy;
@@ -1294,9 +1294,9 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, const ORBFrame &LastF
                 cv::Mat x3Dw = pMP->getWorldPos();
                 cv::Mat x3Dc = Rcw*x3Dw+tcw;
 
-                const float xc = x3Dc.at<float>(0);
-                const float yc = x3Dc.at<float>(1);
-                const float invzc = 1.0/x3Dc.at<float>(2);
+                const float xc = x3Dc.at<MATTYPE>(0);
+                const float yc = x3Dc.at<MATTYPE>(1);
+                const float invzc = 1.0/x3Dc.at<MATTYPE>(2);
 
                 if(invzc<0)
                     continue;
@@ -1419,9 +1419,9 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, ORBKeyFrame *pKF, con
                 cv::Mat x3Dw = pMP->getWorldPos();
                 cv::Mat x3Dc = Rcw*x3Dw+tcw;
 
-                const float xc = x3Dc.at<float>(0);
-                const float yc = x3Dc.at<float>(1);
-                const float invzc = 1.0/x3Dc.at<float>(2);
+                const float xc = x3Dc.at<MATTYPE>(0);
+                const float yc = x3Dc.at<MATTYPE>(1);
+                const float invzc = 1.0/x3Dc.at<MATTYPE>(2);
 
                 const float u = CurrentFrame.fx*xc*invzc+CurrentFrame.cx;
                 const float v = CurrentFrame.fy*yc*invzc+CurrentFrame.cy;

@@ -281,7 +281,7 @@ namespace Position
             }
             else
             {
-                // pKF->mTcwGBA.create(4,4,CV_32F);
+                // pKF->mTcwGBA.create(4,4,MATCVTYPE);
                 // PConverter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
                 // pKF->mnBAGlobalForKF = nLoopKF;
             }
@@ -307,7 +307,7 @@ namespace Position
             }
             else
             {
-                // pMP->mPosGBA.create(3,1,CV_32F);
+                // pMP->mPosGBA.create(3,1,MATCVTYPE);
                 // PConverter::toCvMat(vPoint->estimate()).copyTo(pMP->mPosGBA);
                 // pMP->mnBAGlobalForKF = nLoopKF;
             }

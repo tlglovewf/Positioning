@@ -24,7 +24,7 @@ ExtriPath: "/Users/TLG/Downloads/data/weiya/20191105/extrinsics.xml"
 BsPath:    "/Users/TLG/Downloads/data/weiya/20191105/BS_0001_20191105.bs"
 
 #vocabulary path 
-VocPath: ""
+VocPath: "/Users/TLG/Documents/Positioning/Vocabulary/ORBvoc.txt"
 
 #feature params
 FeatureCnt:   3000

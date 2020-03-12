@@ -216,6 +216,12 @@ namespace Position
     class IViewer : public IBase
     {
     public:
+        //初始化
+        virtual void init() = 0;
+        //绘制一次
+        virtual bool renderOnce() = 0;
+        //绘制循环
+        virtual void renderLoop() = 0;
     };
 
     //检测对象
@@ -269,6 +275,8 @@ namespace Position
     class ITrajProcesser : public IBase
     {
     public:
+        //设置可视接口
+        virtual void setViewer(const std::shared_ptr<IViewer> &viewer) = 0;
         //获取地图
         virtual const std::shared_ptr<IMap>& getMap() = 0;
         //处理

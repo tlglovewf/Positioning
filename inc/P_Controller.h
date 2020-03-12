@@ -17,14 +17,8 @@ public:
                        const shared_ptr<Position::IData> &pdata,
                        const shared_ptr<Position::IConfig> &pcfg);
 
-    //初始化
-    bool init(); 
-
     //运行
     void run();
-
-    //处理位姿
-    void handlePose();
 
 protected:
     //输出
@@ -36,8 +30,8 @@ protected:
     std::shared_ptr<Position::IDetector>        mpDetector;
     std::shared_ptr<Position::IMap>             mpMap;
     std::shared_ptr<Position::ITrajProcesser>   mpTrajProcesser;
-
-    std::unique_ptr<Position::IViewer>          mpViewer;
+    std::shared_ptr<Position::IViewer>          mpViewer;
+    
     std::unique_ptr<Position::IChecker>         mpChecker;
     std::unique_ptr<Position::IPositioning>     mpMulPositioner;
     std::unique_ptr<Position::IPositioning>     mpSinglePositioner;

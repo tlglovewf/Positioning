@@ -152,7 +152,7 @@ void Optimizer::BundleAdjustment(const KeyFrameVector &vpKFs, const MapPtVector 
         }
         else
         {
-            pKF->mTcwGBA.create(4,4,CV_32F);
+            pKF->mTcwGBA.create(4,4,MATCVTYPE);
             PConverter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
             pKF->mnBAGlobalForKF = nLoopKF;
         }
@@ -177,7 +177,7 @@ void Optimizer::BundleAdjustment(const KeyFrameVector &vpKFs, const MapPtVector 
         }
         else
         {
-            pMP->mPosGBA.create(3,1,CV_32F);
+            pMP->mPosGBA.create(3,1,MATCVTYPE);
             PConverter::toCvMat(vPoint->estimate()).copyTo(pMP->mPosGBA);
             pMP->mnBAGlobalForKF = nLoopKF;
         }
@@ -256,9 +256,9 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
                 e->cx = pFrame->cx;
                 e->cy = pFrame->cy;
                 cv::Mat Xw = pMP->getWorldPos();
-                e->Xw[0] = Xw.at<float>(0);
-                e->Xw[1] = Xw.at<float>(1);
-                e->Xw[2] = Xw.at<float>(2);
+                e->Xw[0] = Xw.at<MATTYPE>(0);
+                e->Xw[1] = Xw.at<MATTYPE>(1);
+                e->Xw[2] = Xw.at<MATTYPE>(2);
 
                 optimizer.addEdge(e);
 
@@ -951,14 +951,14 @@ int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &v
     vSim3->setEstimate(g2oS12);
     vSim3->setId(0);
     vSim3->setFixed(false);
-    vSim3->_principle_point1[0] = K1.at<float>(0,2);
-    vSim3->_principle_point1[1] = K1.at<float>(1,2);
-    vSim3->_focal_length1[0] = K1.at<float>(0,0);
-    vSim3->_focal_length1[1] = K1.at<float>(1,1);
-    vSim3->_principle_point2[0] = K2.at<float>(0,2);
-    vSim3->_principle_point2[1] = K2.at<float>(1,2);
-    vSim3->_focal_length2[0] = K2.at<float>(0,0);
-    vSim3->_focal_length2[1] = K2.at<float>(1,1);
+    vSim3->_principle_point1[0] = K1.at<MATTYPE>(0,2);
+    vSim3->_principle_point1[1] = K1.at<MATTYPE>(1,2);
+    vSim3->_focal_length1[0] = K1.at<MATTYPE>(0,0);
+    vSim3->_focal_length1[1] = K1.at<MATTYPE>(1,1);
+    vSim3->_principle_point2[0] = K2.at<MATTYPE>(0,2);
+    vSim3->_principle_point2[1] = K2.at<MATTYPE>(1,2);
+    vSim3->_focal_length2[0] = K2.at<MATTYPE>(0,0);
+    vSim3->_focal_length2[1] = K2.at<MATTYPE>(1,1);
     optimizer.addVertex(vSim3);
 
     // Set ORBMapPoint vertices

@@ -27,7 +27,7 @@ int main(void)
 
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config.yaml"); 
     std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
-    // std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
+    std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
     // std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
     // system->run();
@@ -163,8 +163,8 @@ int main(void)
             cout << "pose estimate failed." << endl;
         }
       }
-    Position::Pangolin_Viwer *pv = new Position::Pangolin_Viwer(pCfg,map);
-    pv->render();
+    Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg,map);
+    pv->renderLoop();
 
     return 0;
 }

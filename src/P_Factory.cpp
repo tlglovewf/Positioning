@@ -110,7 +110,7 @@ namespace Position
         switch(type)
         {
             case eVPangolin:
-                return new Pangolin_Viwer(pcfg,pmap);
+                return new Pangolin_Viewer(pcfg,pmap);
             default:
                 assert(NULL);
         }

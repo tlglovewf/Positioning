@@ -13,18 +13,17 @@ namespace Position
     UniformVTrajProcesser::UniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata):PTrajProcesser(std::make_shared<ORBMap>()),mbReset(false)
     {
 
-        std::shared_ptr<IConfig> mpCfg;
-
-        std::string vocpath = GETCFGVALUE(mpCfg,VocPath,string);
+        std::string vocpath = GETCFGVALUE(pcfg,VocPath,string);
 
         mpVocabulary = std::make_shared<ORBVocabulary>();
-        bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
-        if(bVocLoad)
-        {
-            PROMT_S("vocabulary path error~!");
-            PROMT_V("Failed to open at: ",vocpath.c_str());
-            exit(-1);
-        }
+        PROMT_S("Begin to load vocabulary!")
+        // bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
+        // if(!bVocLoad)
+        // {
+        //     PROMT_S("vocabulary path error~!");
+        //     PROMT_V("Failed to open at: ",vocpath.c_str());
+        //     exit(-1);
+        // }
         PROMT_S("Vocabulary loaded !!!");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
@@ -49,7 +48,7 @@ namespace Position
 
     UniformVTrajProcesser::~UniformVTrajProcesser()
     {
-        over();
+        // over();
     }
 
     //匀速运动模型跟踪

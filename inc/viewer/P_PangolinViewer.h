@@ -38,18 +38,19 @@ namespace Position
         eTrackStatus mStatus;
     };
     //pangolin可视化
-    class Pangolin_Viwer : public IViewer
+    class Pangolin_Viewer : public IViewer
     {
     public:
         //构造函数
-        Pangolin_Viwer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap);
+        Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap);
 
-        //初始化
+         //初始化
         virtual void init();
+        //绘制一次
+        virtual bool renderOnce();
+        //绘制循环
+        virtual void renderLoop();
 
-        //绘制
-        virtual bool render();
-    
     protected:
         //绘制帧
         void drawFrames();
@@ -62,6 +63,14 @@ namespace Position
         std::shared_ptr<IMap>           mMap;
 
         std::unique_ptr<IFrameDrawer>   mFDrawer;
+
+        pangolin::View                 *mpView;
+        pangolin::OpenGlRenderState     mCam;
+
+        float                           mViewF;
+        float                           mViewX;
+        float                           mViewY;
+        float                           mViewZ;
 
         bool                            mbInit;
         int                             mWinW;
