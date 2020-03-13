@@ -24,7 +24,9 @@ ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbChec
 {
 }
 
-int ORBmatcher::SearchByProjection(ORBFrame &F, const MapPtVector &vpMapPoints, const float th)
+//根据地图点vpMapPoints查询在帧F中的匹配对
+//有查询到匹配对,且对应有效地图点,设置帧对应的点值
+int ORBmatcher::SearchByProjection(ORBFrame &F, const MapPtVector &vpMapPoints, const float th /* = 3*/)
 {
     int nmatches=0;
 
@@ -46,7 +48,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &F, const MapPtVector &vpMapPoints, 
 
         if(bFactor)
             r*=th;
-
+        //根据地图点在当前帧的投影计算匹配对
         const SzVector vIndices =
                 F.GetFeaturesInArea(pMP->mTrackProjX,pMP->mTrackProjY,r*F.mvScaleFactors[nPredictedLevel],nPredictedLevel-1,nPredictedLevel);
 
@@ -127,7 +129,7 @@ bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoin
         return false;
 
     const float dsqr = num*num/den;
-
+    //3.84 卡方检验？ 
     return dsqr<3.84*pKF2->mvLevelSigma2[kp2.octave];
 }
 
@@ -394,7 +396,7 @@ int ORBmatcher::SearchForInitialization(ORBFrame &F1, ORBFrame &F2, vector<cv::P
     {
         cv::KeyPoint kp1 = F1.mvKeysUn[i1];
         int level1 = kp1.octave;
-        if(level1>1) //在第n层返回 不进行下层的判断 数字越大 获得的匹配点越多
+        if(level1>0) //在第n层返回 不进行下层的判断 数字越大 获得的匹配点越多
             continue;
 
         SzVector vIndices2 = F2.GetFeaturesInArea(vbPrevMatched[i1].x,vbPrevMatched[i1].y, windowSize,level1,level1);
@@ -629,8 +631,9 @@ int ORBmatcher::SearchByBoW(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &v
     return nmatches;
 }
 
+//匹配pkf1 和 pkf2 之间未被匹配的点 通过bow加速,并校验对极约束
 int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv::Mat F12,
-                                       vector<pair<size_t, size_t> > &vMatchedPairs, const bool bOnlyStereo)
+                                       vector<pair<size_t, size_t> > &vMatchedPairs)
 {    
     const DBoW2::FeatureVector &vFeatVec1 = pKF1->mFeatVec;
     const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;
@@ -639,8 +642,9 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
     cv::Mat Cw = pKF1->GetCameraCenter();
     cv::Mat R2w = pKF2->getRotation();
     cv::Mat t2w = pKF2->getTranslation();
-    cv::Mat C2 = R2w*Cw+t2w;
+    cv::Mat C2 = R2w*Cw+t2w; //计算pkf1 在pkf2相机坐标系的坐标
     const float invz = 1.0f/C2.at<MATTYPE>(2);
+    //计算pkf1 相机在 pkf2中的像素坐标
     const float ex =pKF2->fx*C2.at<MATTYPE>(0)*invz+pKF2->cx;
     const float ey =pKF2->fy*C2.at<MATTYPE>(1)*invz+pKF2->cy;
 
@@ -663,10 +667,11 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
     DBoW2::FeatureVector::const_iterator f1end = vFeatVec1.end();
     DBoW2::FeatureVector::const_iterator f2end = vFeatVec2.end();
 
+    //遍历kf1 和 kf2 的bow 特征点
     while(f1it!=f1end && f2it!=f2end)
-    {
+    {   //nodeid一致性的校验
         if(f1it->first == f2it->first)
-        {
+        {   //遍历同nodeid 下的所有kf1中的特征点
             for(size_t i1=0, iend1=f1it->second.size(); i1<iend1; i1++)
             {
                 const size_t idx1 = f1it->second[i1];
@@ -676,14 +681,14 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
                 // If there is already a ORBMapPoint skip
                 if(pMP1)
                     continue;
-                
+                //获取对应的特征点
                 const cv::KeyPoint &kp1 = pKF1->mvKeysUn[idx1];
-                
+                //以及当前特征点对应的描述子
                 const cv::Mat &d1 = pKF1->mDescriptors.row(idx1);
                 
                 int bestDist = TH_LOW;
                 int bestIdx2 = -1;
-                
+                //遍历kf2中 nodeid下的所有特征点信息
                 for(size_t i2=0, iend2=f2it->second.size(); i2<iend2; i2++)
                 {
                     size_t idx2 = f2it->second[i2];
@@ -706,10 +711,11 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
                     {
                         const float distex = ex-kp2.pt.x;
                         const float distey = ey-kp2.pt.y;
+                        //特征点 到光心的距离平方  要大于特征点所在pkf2缩放比例系数的100倍
                         if(distex*distex+distey*distey<100*pKF2->mvScaleFactors[kp2.octave])
                             continue;
                     }
-
+                    //查询kp1 kp2是否满足对极约束
                     if(CheckDistEpipolarLine(kp1,kp2,F12,pKF2))
                     {
                         bestIdx2 = idx2;
@@ -749,7 +755,7 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
             f2it = vFeatVec2.lower_bound(f1it->first);
         }
     }
-
+    //剔除方向不一致的特征点
     if(mbCheckOrientation)
     {
         int ind1=-1;
@@ -783,8 +789,9 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
 
     return nmatches;
 }
-
-int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const float th)
+//vpMapPoints 需要融合的地图点集合
+//遍历点集,寻找每个点在pkf中是否有对应的匹配关键点,若有查询到匹配点,若匹配点已有关联地图点则进行择一融合替换,若没有则pkf新增关键点连接
+int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const float th /* =3 */)
 {
     cv::Mat Rcw = pKF->getRotation();
     cv::Mat tcw = pKF->getTranslation();
@@ -799,17 +806,17 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
     int nFused=0;
 
     const int nMPs = vpMapPoints.size();
-
+    //遍历地图点集合
     for(int i=0; i<nMPs; i++)
     {
         ORBMapPoint* pMP = ORBMAPPOINT(vpMapPoints[i]);
 
         if(!pMP)
             continue;
-
+        //若为坏点或者点已经在此帧中 跳至下一帧
         if(pMP->isBad() || pMP->isInFrame(pKF))
             continue;
-
+        //计算地图点 在当前帧相机坐标系的坐标
         cv::Mat p3Dw = pMP->getWorldPos();
         cv::Mat p3Dc = Rcw*p3Dw + tcw;
 
@@ -820,17 +827,18 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
         const MATTYPE invz = 1/p3Dc.at<MATTYPE>(2);
         const MATTYPE x = p3Dc.at<MATTYPE>(0)*invz;
         const MATTYPE y = p3Dc.at<MATTYPE>(1)*invz;
-
+        //计算像素坐标
         const MATTYPE u = fx*x+cx;
         const MATTYPE v = fy*y+cy;
 
         // Point must be inside the image
         if(!pKF->IsInImage(u,v))
             continue;
-
+        //获取地图的视锥体的可视距离 范围
         const float maxDistance = pMP->GetMaxDistanceInvariance();
         const float minDistance = pMP->GetMinDistanceInvariance();
         cv::Mat PO = p3Dw-Ow;
+        //计算地图点 到光心距离
         const float dist3D = cv::norm(PO);
 
         // Depth must be inside the scale pyramid of the image
@@ -839,15 +847,18 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
 
         // Viewing angle must be less than 60 deg
         cv::Mat Pn = pMP->normal();
-
+        //地图点的法线是所有与点关联帧的连线方向 取中值
+        //地图点法线与点到光心的夹角要小于60度
         if(PO.dot(Pn)<0.5*dist3D)
             continue;
 
+        //根据距离计算大概的特征层级
         int nPredictedLevel = pMP->PredictScale(dist3D,pKF);
 
         // Search in a radius
+        //根据层级计算搜索半径
         const float radius = th*pKF->mvScaleFactors[nPredictedLevel];
-
+        //根据搜索半径搜索匹配点
         const SzVector vIndices = pKF->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
@@ -859,6 +870,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
 
         int bestDist = 256;
         int bestIdx = -1;
+        //寻找最佳匹配点
         for(SzVector::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
             const size_t idx = *vit;
@@ -877,7 +889,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
                 const float ey = v-kpy;
                 const float e2 = ex*ex+ey*ey;
 
-                if(e2*pKF->mvInvLevelSigma2[kpLevel]>5.99)
+                if(e2*pKF->mvInvLevelSigma2[kpLevel]>CHITH)
                     continue;
             }
 
@@ -895,6 +907,9 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
         // If there is already a ORBMapPoint replace otherwise add new measurement
         if(bestDist<=TH_LOW)
         {
+            //通过匹配的点进行判断
+            //如果在匹配帧中没有关联上,则建立关联
+            //如果已存在,切不为坏点时  取与探测点钟最大关联数量的点进行替代融合
             ORBMapPoint* pMPinKF = pKF->GetMapPoint(bestIdx);
             if(pMPinKF)
             {
@@ -914,10 +929,13 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
             nFused++;
         }
     }
-
+    //返回匹配到点的融合数量(融合/新增 都算)
     return nFused;
 }
 
+//同上fuse函数
+//只是用scw来替代pkf原有的姿态,进行融合判定
+//且需要替换的点不直接进行替换,而是加入到替换列表replacepoint中,新增点依旧采用直接建立关联
 int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints, float th, MapPtVector &vpReplacePoint)
 {
     // Get Calibration Parameters for later projection
@@ -928,6 +946,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
 
     // Decompose Scw
     cv::Mat sRcw = Scw.rowRange(0,3).colRange(0,3);
+    //计算距离 单位化
     const float scw = sqrt(sRcw.row(0).dot(sRcw.row(0)));
     cv::Mat Rcw = sRcw/scw;
     cv::Mat tcw = Scw.rowRange(0,3).col(3)/scw;
@@ -1027,12 +1046,12 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, cv::Mat Scw, const MapPtVector &vpPoints,
         {
             ORBMapPoint* pMPinKF = pKF->GetMapPoint(bestIdx);
             if(pMPinKF)
-            {
+            {//若地图点在当前帧存在,且不为坏点 加入到替换列表
                 if(!pMPinKF->isBad())
                     vpReplacePoint[iMP] = pMPinKF;
             }
             else
-            {
+            {//若地图点不存在,则将地图点与地图点对应的特征点进行关联
                 pMP->addObservation(pKF,bestIdx);
                 pKF->addMapPoint(pMP,bestIdx);
             }

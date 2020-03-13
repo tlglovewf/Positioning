@@ -148,8 +148,8 @@ namespace Position
         vbMatchesInliers.resize(N);
 
         float score = 0;
-
-        const float th = 5.991;
+         //卡方 阈值
+        const float th = CHITH;
 
         const float invSigmaSquare = 1.0/(sigma*sigma);
 
@@ -225,7 +225,8 @@ namespace Position
         float score = 0;
 
         const float th = 3.841;
-        const float thScore = 5.991;
+        
+        const float thScore = CHITH;
 
         const float invSigmaSquare = 1.0/(sigma*sigma);
 

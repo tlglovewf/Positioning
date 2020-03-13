@@ -117,7 +117,8 @@ namespace Position
         //获取旋转 平移分量
         virtual Mat getRotation() = 0;
         virtual Mat getTranslation() = 0;
-
+        //获取数据
+        virtual FrameData getData()const = 0;
         //更新下一帧
         virtual void updateNext(IKeyFrame *next) = 0;
         //更新上一帧

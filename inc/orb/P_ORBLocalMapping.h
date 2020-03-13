@@ -16,7 +16,7 @@ namespace Position
     class ORBLocalMapping
     {
     public:
-        ORBLocalMapping(const std::shared_ptr<IMap>& pMap, const float bMonocular);
+        ORBLocalMapping(const std::shared_ptr<IMap>& pMap);
 
         void SetLoopCloser(const std::shared_ptr<ORBLoopClosing>& pLoopCloser);
 
@@ -62,8 +62,6 @@ namespace Position
         cv::Mat ComputeF12(IKeyFrame* pKF1, IKeyFrame* pKF2);
 
         cv::Mat SkewSymmetricMatrix(const cv::Mat &v);
-
-        bool mbMonocular;
 
         void ResetIfRequested();
         bool mbResetRequested;

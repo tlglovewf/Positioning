@@ -175,19 +175,20 @@ bool ORBMapPoint::isBad()
     unique_lock<mutex> lock2(mMutexPos);
     return mbBad;
 }
-
+//可见关键帧的数量
 void ORBMapPoint::IncreaseVisible(int n)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     mnVisible+=n;
 }
 
+//属于关键帧的数量
 void ORBMapPoint::IncreaseFound(int n)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     mnFound+=n;
 }
-
+//可见/属于 的比例
 float ORBMapPoint::GetFoundRatio()
 {
     unique_lock<mutex> lock(mMutexFeatures);

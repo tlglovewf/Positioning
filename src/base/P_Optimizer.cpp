@@ -45,7 +45,7 @@ namespace Position
         vpEdgesMono.reserve(N);
         vnIndexEdgeMono.reserve(N);
 
-        const float deltaMono = sqrt(5.991);
+        const float deltaMono = sqrt(CHITH);
 
         {
             // std::unique_lock<mutex> lock(MapPoint::mGlobalMutex);
@@ -98,7 +98,7 @@ namespace Position
         
         // We perform 4 optimizations, after each optimization we classify observation as inlier/outlier
         // At the next optimization, outliers are not included, but at the end they can be classified as inliers again.
-        const float chi2Mono[4]={5.991,5.991,5.991,5.991};
+        const float chi2Mono[4]={CHITH,CHITH,CHITH,CHITH};
         const int its[4]={10,10,10,10};    
 
         int nBad=0;
@@ -191,7 +191,7 @@ namespace Position
         }
 
         //卡方测试参数
-        const float thHuber2D = sqrt(5.99);
+        const float thHuber2D = sqrt(CHITH);
 
         for(size_t i = 0; i < mappts.size(); ++i)
         {

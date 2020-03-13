@@ -17,7 +17,7 @@
 #include "P_Config.h"
 #include "P_Data.h"
 #include "P_Detector.h"
-
+#include "P_Writer.h"
 using namespace std;
 using namespace cv;
 

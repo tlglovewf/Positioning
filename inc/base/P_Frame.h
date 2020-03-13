@@ -103,7 +103,12 @@ namespace Position
     public:
       
         friend class PMap;
-
+        
+         //获取数据
+        virtual FrameData getData()const 
+        {
+            return mpFrame->getData();
+        }
         //设置位置
         virtual void setPose(const cv::Mat &pose)
         {

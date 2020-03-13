@@ -22,7 +22,11 @@ namespace Position
         {
             assert(NULL);
         }
-
+         //获取数据
+        virtual FrameData getData()const 
+        {
+            return mData;
+        }
         //设置位置(R|t 矩阵)
         virtual void setPose(const cv::Mat &Tcw);
         //获取位置
@@ -37,7 +41,7 @@ namespace Position
         //帧目标
         virtual TargetVector& getTargets() 
         {
-            assert(NULL);
+             return mData._targets;
         }
 
         //更新下一帧
@@ -135,9 +139,6 @@ namespace Position
         static u64 nNextId;
         u64 mnId;
         const u64 mnFrameId;
-
-        const double mTimeStamp;
-
         // Grid (to speed up feature matching)
         const int mnGridCols;
         const int mnGridRows;
@@ -190,7 +191,8 @@ namespace Position
         const FloatVector mvScaleFactors;
         const FloatVector mvLevelSigma2;
         const FloatVector mvInvLevelSigma2;
-
+        
+        
         // Image bounds and calibration
         const int mnMinX;
         const int mnMinY;
@@ -236,7 +238,7 @@ namespace Position
         bool mbBad;    
 
         std::shared_ptr<IMap> mpMap;
-
+        FrameData         mData;
         std::mutex mMutexPose;
         std::mutex mMutexConnections;
         std::mutex mMutexFeatures;

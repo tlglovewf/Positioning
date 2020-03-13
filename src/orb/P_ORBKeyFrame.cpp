@@ -13,7 +13,7 @@ namespace Position
     u64 ORBKeyFrame::nNextId=0;
 
     ORBKeyFrame::ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, ORBKeyFrameDatabase *pKFDB):
-        mnFrameId(F.mnId),  mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
+        mnFrameId(F.mnId), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
         mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
         mnTrackReferenceForFrame(0), mnFuseTargetForKF(0), mnBALocalForKF(0), mnBAFixedForKF(0),
         mnLoopQuery(0), mnLoopWords(0), mnRelocQuery(0), mnRelocWords(0), mnBAGlobalForKF(0),
@@ -25,7 +25,7 @@ namespace Position
         mvInvLevelSigma2(F.mvInvLevelSigma2), mnMinX(F.mnMinX), mnMinY(F.mnMinY), mnMaxX(F.mnMaxX),
         mnMaxY(F.mnMaxY), mK(F.mK), mvpMapPoints(F.mvpMapPoints), mpKeyFrameDB(pKFDB),
         mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL),mpPrev(NULL),mpNext(NULL),mbNotErase(false),
-        mbToBeErased(false), mbBad(false), mpMap(pMap)
+        mbToBeErased(false), mbBad(false), mpMap(pMap),mData(std::move(F.getData()))
     {
         mnId=nNextId++;
 
@@ -440,6 +440,7 @@ namespace Position
 
         if(mbToBeErased)
         {
+            PROMT_S("Set Bad from Erased!")
             setBadFlag();
         }
     }
@@ -454,17 +455,17 @@ namespace Position
             mbToBeErased = true;
             return;
         }
-        PROMTD_V("Bad Frame",mnId);
-        //抹除关联帧 关于次帧的连接
+
+        //抹除关联帧 关于此帧的连接
         for(KeyFrameMap::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
-        ORBKEYFRAME(mit->first)->EraseConnection(this);
+            ORBKEYFRAME(mit->first)->EraseConnection(this);
 
         for(size_t i=0; i<mvpMapPoints.size(); i++)
             if(mvpMapPoints[i])
                 mvpMapPoints[i]->rmObservation(this);
 
         {
-            unique_lock<mutex> lock(mMutexConnections);
+            // unique_lock<mutex> lock(mMutexConnections);
             unique_lock<mutex> lock1(mMutexFeatures);
 
             mConnectedKeyFrameWeights.clear();

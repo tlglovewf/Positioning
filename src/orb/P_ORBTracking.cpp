@@ -80,9 +80,9 @@ cv::Mat ORBTracking::track(const FrameData &data)
     }
 
     if(mState == eTrackNoReady || mState == eTrackNoImage)
-        mCurrentFrame = ORBFrame(mImGray,data._pos._t,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
+        mCurrentFrame = ORBFrame(data,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
     else
-        mCurrentFrame = ORBFrame(mImGray,data._pos._t,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
+        mCurrentFrame = ORBFrame(data,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
 
     Track();
 
@@ -292,7 +292,7 @@ void ORBTracking::Track()
         {
             if(mpMap->keyFrameInMap() <=5)
             {
-                PROMT_S("Track Lost,and no enough frame track again reseting ...");
+                PROMT_S("Track Lost,Not enough frame can track again. reseting ...");
                 return;
             }
         }
@@ -309,7 +309,6 @@ void ORBTracking::Track()
         cv::Mat Tcr = mCurrentFrame.mTcw*mCurrentFrame.mpReferenceKF->GetPoseInverse();
         mlRelativeFramePoses.push_back(Tcr);
         mlpReferences.push_back(mpReferenceKF);
-        mlFrameTimes.push_back(mCurrentFrame.mTimeStamp);
         mlbLost.push_back(mState==eTrackLost);
     }
     else
@@ -317,7 +316,6 @@ void ORBTracking::Track()
         // This can happen if tracking is lost
         mlRelativeFramePoses.push_back(mlRelativeFramePoses.back());
         mlpReferences.push_back(mlpReferences.back());
-        mlFrameTimes.push_back(mlFrameTimes.back());
         mlbLost.push_back(mState==eTrackLost);
     }
 
@@ -540,7 +538,7 @@ bool ORBTracking::TrackReferenceKeyFrame()
 
     // We perform first an ORB matching with the reference keyframe
     // If enough matches are found we setup a PnP solver
-    ORBmatcher matcher(0.7,true);
+    ORBmatcher matcher(0.85,true);
     MapPtVector vpMapPointMatches;
 
     int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
@@ -611,7 +609,11 @@ bool ORBTracking::TrackWithMotionModel()
     }
 
     if(nmatches<20)
+    {
+        PROMTD_V("track with motion lost, ",nmatches);
         return false;
+    }
+        
 
     // Optimize frame pose with all matches
     Optimizer::PoseOptimization(&mCurrentFrame);
@@ -656,6 +658,7 @@ bool ORBTracking::TrackLocalMap()
     SearchLocalPoints();
 
     // Optimize Pose
+    //上一步有新点加入了,要重新单帧优化
     Optimizer::PoseOptimization(&mCurrentFrame);
     mnMatchesInliers = 0;
 
@@ -665,7 +668,7 @@ bool ORBTracking::TrackLocalMap()
         if(mCurrentFrame.mvpMapPoints[i])
         {
             if(!mCurrentFrame.mvbOutlier[i])
-            {
+            {   
                 ORBMAPPOINT(mCurrentFrame.mvpMapPoints[i])->IncreaseFound();
                 if(!mbOnlyTracking)
                 {
@@ -767,10 +770,10 @@ bool ORBTracking::NeedNewKeyFrame()
 
 void ORBTracking::CreateNewKeyFrame()
 {
-    PROMTD_V("Creat New Frame No",mCurrentFrame.mnId);
-
     if(!mpLocalMapper->SetNotStop(true))
         return;
+
+     PROMTD_V("Creat New Frame ",mCurrentFrame.getData()._name);
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
     pKF->updatePrev(mpReferenceKF);
@@ -785,7 +788,8 @@ void ORBTracking::CreateNewKeyFrame()
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF;
 }
-
+//遍历当前帧地图点列表
+//
 void ORBTracking::SearchLocalPoints()
 {
     // Do not search map points already matched
@@ -810,6 +814,7 @@ void ORBTracking::SearchLocalPoints()
     int nToMatch=0;
 
     // Project points in frame and check its visibility
+    //遍历所有局部地图点,判断在当前帧视锥体点的数量
     for(MapPtVIter vit=mvpLocalMapPoints.begin(), vend=mvpLocalMapPoints.end(); vit!=vend; vit++)
     {
         ORBMapPoint* pMP = ORBMAPPOINT(*vit);
@@ -824,7 +829,7 @@ void ORBTracking::SearchLocalPoints()
             nToMatch++;
         }
     }
-
+    //若查询到有匹配的点,则用局部地图点与当前帧进行匹配 查找新点
     if(nToMatch>0)
     {
         ORBmatcher matcher(0.8);
@@ -845,6 +850,8 @@ void ORBTracking::UpdateLocalMap()
     UpdateLocalPoints();
 }
 
+//根据刷新的共视关键帧列表
+//将所有地图点加入到当前本地地图点列表
 void ORBTracking::UpdateLocalPoints()
 {
     mvpLocalMapPoints.clear();
@@ -870,11 +877,12 @@ void ORBTracking::UpdateLocalPoints()
     }
 }
 
-
+//根据当前帧共视关系,刷新localkeyframe列表
 void ORBTracking::UpdateLocalKeyFrames()
 {
     // Each map point vote for the keyframes in which it has been observed
     KeyFrameMap keyframeCounter;
+    //遍历当前帧地图点,获取共视关键帧的权值(共视点数)
     for(int i=0; i<mCurrentFrame.N; i++)
     {
         if(mCurrentFrame.mvpMapPoints[i])
@@ -901,7 +909,7 @@ void ORBTracking::UpdateLocalKeyFrames()
 
     mvpLocalKeyFrames.clear();
     mvpLocalKeyFrames.reserve(3*keyframeCounter.size());
-
+    
     // All keyframes that observe a map point are included in the local map. Also check which keyframe shares most points
     for(KeyFrameMap::const_iterator it=keyframeCounter.begin(), itEnd=keyframeCounter.end(); it!=itEnd; it++)
     {
@@ -925,6 +933,7 @@ void ORBTracking::UpdateLocalKeyFrames()
     for(KeyFrameVector::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
     {
         // Limit the number of keyframes
+        //限制共视关键帧的数量
         if(mvpLocalKeyFrames.size()>80)
             break;
 
@@ -1027,7 +1036,7 @@ bool ORBTracking::Relocalization()
             else
             {
                 ORBPnPsolver* pSolver = new ORBPnPsolver(mCurrentFrame,vvpMapPointMatches[i]);
-                pSolver->SetRansacParameters(0.99,10,300,4,0.5,5.991);
+                pSolver->SetRansacParameters(0.99,10,300,4,0.5,CHITH);
                 vpPnPsolvers[i] = pSolver;
                 nCandidates++;
             }
@@ -1180,7 +1189,6 @@ void ORBTracking::Reset()
 
     mlRelativeFramePoses.clear();
     mlpReferences.clear();
-    mlFrameTimes.clear();
     mlbLost.clear();
 }
 

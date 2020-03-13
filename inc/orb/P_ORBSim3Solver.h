@@ -97,7 +97,7 @@ namespace Position
         // RANSAC max iterations
         int mRansacMaxIts;
 
-        // Threshold inlier/outlier. e = dist(Pi,T_ij*Pj)^2 < 5.991*mSigma2
+        // Threshold inlier/outlier. e = dist(Pi,T_ij*Pj)^2 < CHITH*mSigma2
         float mTh;
         float mSigma2;
 

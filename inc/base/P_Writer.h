@@ -72,7 +72,7 @@ protected:
     static void promt_vs(V v,Args ...args)
     {
         cout << v << " ";
-        promt_vs();
+        promt_vs(args...);
     }
   };
 } // namespace Position

@@ -310,7 +310,7 @@ float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVe
 
     float score = 0;
 
-    const float th = 5.991;
+    const float th = CHITH;
 
     const float invSigmaSquare = 1.0/(sigma*sigma);
 
@@ -386,7 +386,8 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
     float score = 0;
 
     const float th = 3.841;
-    const float thScore = 5.991;
+   
+    const float thScore = CHITH;
 
     const float invSigmaSquare = 1.0/(sigma*sigma);
 
@@ -484,7 +485,7 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     int nMinGood = max(static_cast<int>(0.9*N),minTriangulated);
 
     int nsimilar = 0;
-    const int  thMxGood = 0.8 * maxGood;
+    const int  thMxGood = 0.9 * maxGood;
     if(nGood1 > thMxGood)
         nsimilar++;
     if(nGood2 > thMxGood)

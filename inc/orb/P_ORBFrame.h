@@ -23,7 +23,7 @@ namespace Position
         ORBFrame(const ORBFrame &frame);
 
         // Constructor for Monocular cameras.
-        ORBFrame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef);
+        ORBFrame( const FrameData &data , ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef);
 
 
         //帧序号
@@ -34,7 +34,7 @@ namespace Position
         //获取帧数据
         virtual FrameData getData()const
         {
-            assert(NULL);
+            return mData;
         }
         //获取关键点
         virtual const KeyPtVector& getKeys()const {return mvKeysUn;}
@@ -86,9 +86,6 @@ namespace Position
 
         // Feature extractor. The right is used only in the stereo case.
         ORBextractor* mpORBextractorLeft;
-
-        // Frame timestamp.
-        double mTimeStamp;
 
         // Calibration matrix and OpenCV distortion parameters.
         cv::Mat mK;
@@ -176,6 +173,7 @@ namespace Position
         cv::Mat mtcw;
         cv::Mat mRwc;
         cv::Mat mOw; //==mtwc
+        FrameData  mData;
     };
 
 }

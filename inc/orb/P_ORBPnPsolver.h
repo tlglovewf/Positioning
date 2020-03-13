@@ -16,7 +16,7 @@ namespace Position
       ~ORBPnPsolver();
 
       void SetRansacParameters(double probability = 0.99, int minInliers = 8 , int maxIterations = 300, int minSet = 4, float epsilon = 0.4,
-                              float th2 = 5.991);
+                              float th2 = CHITH);
 
       cv::Mat find(BolVector &vbInliers, int &nInliers);
 

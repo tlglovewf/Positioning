@@ -56,7 +56,6 @@ namespace Position
         // Basically we store the reference keyframe for each frame and its relative transformation
         list<cv::Mat> mlRelativeFramePoses;
         list<ORBKeyFrame*> mlpReferences;
-        list<double> mlFrameTimes;
         list<bool> mlbLost;
 
         // True if local mapping is deactivated and we are performing only localization

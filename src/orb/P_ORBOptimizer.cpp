@@ -60,8 +60,7 @@ void Optimizer::BundleAdjustment(const KeyFrameVector &vpKFs, const MapPtVector 
             maxKFid=pKF->index();
     }
 
-    const float thHuber2D = sqrt(5.99);
-    const float thHuber3D = sqrt(7.815);
+    const float thHuber2D = sqrt(CHITH);
 
     // Set ORBMapPoint vertices
     for(size_t i=0; i<vpMP.size(); i++)
@@ -219,8 +218,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
     vpEdgesStereo.reserve(N);
     vnIndexEdgeStereo.reserve(N);
 
-    const float deltaMono = sqrt(5.991);
-    const float deltaStereo = sqrt(7.815);
+    const float deltaMono = sqrt(CHITH);
 
 
     {
@@ -277,8 +275,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
 
     // We perform 4 optimizations, after each optimization we classify observation as inlier/outlier
     // At the next optimization, outliers are not included, but at the end they can be classified as inliers again.
-    const float chi2Mono[4]={5.991,5.991,5.991,5.991};
-    const float chi2Stereo[4]={7.815,7.815,7.815, 7.815};
+    const float chi2Mono[4]={CHITH,CHITH,CHITH,CHITH};
     const int its[4]={10,10,10,10};    
 
     int nBad=0;
@@ -313,35 +310,6 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
             {
                 pFrame->mvbOutlier[idx]=false;
                 e->setLevel(0);
-            }
-
-            if(it==2)
-                e->setRobustKernel(0);
-        }
-
-        for(size_t i=0, iend=vpEdgesStereo.size(); i<iend; i++)
-        {
-            g2o::EdgeStereoSE3ProjectXYZOnlyPose* e = vpEdgesStereo[i];
-
-            const size_t idx = vnIndexEdgeStereo[i];
-
-            if(pFrame->mvbOutlier[idx])
-            {
-                e->computeError();
-            }
-
-            const float chi2 = e->chi2();
-
-            if(chi2>chi2Stereo[it])
-            {
-                pFrame->mvbOutlier[idx]=true;
-                e->setLevel(1);
-                nBad++;
-            }
-            else
-            {                
-                e->setLevel(0);
-                pFrame->mvbOutlier[idx]=false;
             }
 
             if(it==2)
@@ -477,7 +445,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, const 
     vector<ORBMapPoint*> vpMapPointEdgeStereo;
     vpMapPointEdgeStereo.reserve(nExpectedSize);
 
-    const float thHuberMono = sqrt(5.991);
+    const float thHuberMono = sqrt(CHITH);
     const float thHuberStereo = sqrt(7.815);
 
     for(list<ORBMapPoint*>::iterator lit=lLocalMapPoints.begin(), lend=lLocalMapPoints.end(); lit!=lend; lit++)
@@ -557,7 +525,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, const 
         if(pMP->isBad())
             continue;
 
-        if(e->chi2()>5.991 || !e->isDepthPositive())
+        if(e->chi2()>CHITH || !e->isDepthPositive())
         {
             e->setLevel(1);
         }
@@ -600,7 +568,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, const 
         if(pMP->isBad())
             continue;
 
-        if(e->chi2()>5.991 || !e->isDepthPositive())
+        if(e->chi2()>CHITH || !e->isDepthPositive())
         {
             ORBKeyFrame* pKFi = vpEdgeKFMono[i];
             vToErase.push_back(make_pair(pKFi,pMP));

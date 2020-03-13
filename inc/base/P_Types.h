@@ -42,6 +42,8 @@ namespace Position
 #define RELEASEPT(X)  if(X){delete X; X = NULL;}
 #define RELEASEPTS(X) if(X){delete [] X;X = NULL;}
 
+ #define  CHITH  5.991  //卡方阈值 
+
 //base type define 
 typedef unsigned char u8;
 typedef unsigned int  u32;

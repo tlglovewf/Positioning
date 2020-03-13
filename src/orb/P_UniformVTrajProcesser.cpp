@@ -30,7 +30,7 @@ namespace Position
 
         mpTracker = std::make_shared<ORBTracking>(mpVocabulary,mpMap,mpKeyFrameDatabase,pcfg,pdata->getCamera());
 
-        mpLocalMapper = std::make_shared<ORBLocalMapping>(mpMap, true);
+        mpLocalMapper = std::make_shared<ORBLocalMapping>(mpMap);
         mptLocalMapping = std::unique_ptr<thread>( new thread(&Position::ORBLocalMapping::Run,mpLocalMapper.get()));
         mptLocalMapping->detach();
         mpLoopCloser = std::make_shared<ORBLoopClosing>(mpMap, mpKeyFrameDatabase, mpVocabulary, false);

@@ -5,12 +5,15 @@
 #include "P_ORBKeyFrame.h"
 #include "P_ORBLoopClosing.h"
 #include "P_ORBTracking.h"
+#include "P_Writer.h"
 #include <unistd.h>
 namespace Position
 {
 
-ORBLocalMapping::ORBLocalMapping(const std::shared_ptr<IMap> &pMap, const float bMonocular):
-    mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
+#define  SEARCHFMNO   10
+
+ORBLocalMapping::ORBLocalMapping(const std::shared_ptr<IMap> &pMap):
+    mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true)
 {
 }
@@ -39,17 +42,21 @@ void ORBLocalMapping::Run()
         if(CheckNewKeyFrames())
         {
             // BoW conversion and insertion in Map
+            //处理新帧,主要是计算bow 建立各种连接
             ProcessNewKeyFrame();
 
             // Check recent MapPoints
+            //剔除部分地图点
             MapPointCulling();
 
             // Triangulate new MapPoints
+            //查询共视帧,通过极线匹配,三角化新地图点
             CreateNewMapPoints();
 
             if(!CheckNewKeyFrames())
             {
                 // Find more matches in neighbor keyframes and fuse point duplications
+                //搜索共视帧,融合地图点
                 SearchInNeighbors();
             }
 
@@ -58,10 +65,12 @@ void ORBLocalMapping::Run()
             if(!CheckNewKeyFrames() && !stopRequested())
             {
                 // Local BA
+                //局部地图优化(与当前帧有共视关系的,简历优化图，进行优化)
                 if(mpMap->keyFrameInMap() >2)
                     Optimizer::LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
 
                 // Check redundant local Keyframes
+                //剔除 地图点重复率较高的关键帧(90%的点关联至少3个关键帧)
                 KeyFrameCulling();
             }
 
@@ -105,7 +114,8 @@ bool ORBLocalMapping::CheckNewKeyFrames()
     unique_lock<mutex> lock(mMutexNewKFs);
     return(!mlNewKeyFrames.empty());
 }
-
+//有新的关键生成时 先处理新帧
+//遍历所有有效的地图点,检查与当前新帧的关联性,如果没有关联上 建立关联关系 并刷新mappoint的状态
 void ORBLocalMapping::ProcessNewKeyFrame()
 {
     {
@@ -134,7 +144,7 @@ void ORBLocalMapping::ProcessNewKeyFrame()
                     pMP->ComputeDistinctiveDescriptors();
                 }
                 else // this can only happen for new stereo points inserted by the Tracking
-                {
+                {//地图点已经与当前帧建立了关联
                     mlpRecentAddedMapPoints.push_back(pMP);
                 }
             }
@@ -148,18 +158,15 @@ void ORBLocalMapping::ProcessNewKeyFrame()
     mpMap->addKeyFrame(mpCurrentKeyFrame);
 }
 
+//地图点剔除
 void ORBLocalMapping::MapPointCulling()
 {
     // Check Recent Added MapPoints
+    //遍历原来就和新帧关联上的地图点
     list<ORBMapPoint*>::iterator lit = mlpRecentAddedMapPoints.begin();
     const unsigned long int nCurrentKFid = mpCurrentKeyFrame->mnId;
 
-    int nThObs;
-    if(mbMonocular)
-        nThObs = 2;
-    else
-        nThObs = 3;
-    const int cnThObs = nThObs;
+    const int cnThObs = 2;
 
     while(lit!=mlpRecentAddedMapPoints.end())
     {
@@ -169,12 +176,12 @@ void ORBLocalMapping::MapPointCulling()
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(pMP->GetFoundRatio()<0.25f )
-        {
+        {//地图点所属/能被观测到的地图比例小于 1/4认为为坏点, 及地图点被太少的帧观测到了
             pMP->setBadFlag();
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->observations()<=cnThObs)
-        {
+        {//当前帧与地图点第一次观测到的帧距离超过2帧,且当前点关联的帧少于2帧
             pMP->setBadFlag();
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
@@ -185,14 +192,11 @@ void ORBLocalMapping::MapPointCulling()
     }
 }
 
+//创建新地图点
+//遍历所有与当前帧公视的关键帧,通过bow检查出新的特征点
+//计算该点的空间坐标,并检查其尺度、极线约束、重投误差后方可生成新地图点
 void ORBLocalMapping::CreateNewMapPoints()
 {
-    // Retrieve neighbor keyframes in covisibility graph
-    int nn = 10;
-    if(mbMonocular)
-        nn=20;
-    const vector<ORBKeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
-
     ORBmatcher matcher(0.6,false);
 
     cv::Mat Rcw1 = mpCurrentKeyFrame->getRotation();
@@ -210,11 +214,17 @@ void ORBLocalMapping::CreateNewMapPoints()
     const float &invfx1 = mpCurrentKeyFrame->invfx;
     const float &invfy1 = mpCurrentKeyFrame->invfy;
 
-    const float ratioFactor = 1.5f*mpCurrentKeyFrame->mfScaleFactor;
+    const float ratioFactor = /*1.5f* */mpCurrentKeyFrame->mfScaleFactor;
 
     int nnew=0;
 
+     // Retrieve neighbor keyframes in covisibility graph
+    int nn = SEARCHFMNO;
+    //获取当前帧 共视系数最好的前n帧
+    const vector<ORBKeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
+
     // Search matches with epipolar restriction and triangulate
+    //遍历这些关联的公视帧, 通过bow信息 和对极约束  生成新的地图点
     for(size_t i=0; i<vpNeighKFs.size(); i++)
     {
         if(i>0 && CheckNewKeyFrames())
@@ -224,14 +234,19 @@ void ORBLocalMapping::CreateNewMapPoints()
 
         // Check first that baseline is not too short
         cv::Mat Ow2 = pKF2->GetCameraCenter();
+        //获取与当前帧基线长
         cv::Mat vBaseline = Ow2-Ow1;
+        //范化
         const float baseline = cv::norm(vBaseline);
 
         {
+            //计算pKF2帧的中深度
             const float medianDepthKF2 = pKF2->ComputeSceneMedianDepth(2);
+            
             const float ratioBaselineDepth = baseline/medianDepthKF2;
-
-            if(ratioBaselineDepth<0.01)
+            // 基线 / 中深度  小于某个阈值 视为无效 进入下一帧
+            // 如果地图深度太大(点都特别远) 剔除  
+            if(ratioBaselineDepth< 0.01) 
                 continue;
         }
 
@@ -240,7 +255,8 @@ void ORBLocalMapping::CreateNewMapPoints()
 
         // Search matches that fullfil epipolar constraint
         vector<pair<size_t,size_t> > vMatchedIndices;
-        matcher.SearchForTriangulation(mpCurrentKeyFrame,pKF2,F12,vMatchedIndices,false);
+        //匹配curfm 和 pkf2 满足极线约束的匹配对
+        matcher.SearchForTriangulation(mpCurrentKeyFrame,pKF2,F12,vMatchedIndices);
 
         cv::Mat Rcw2 = pKF2->getRotation();
         cv::Mat Rwc2 = Rcw2.t();
@@ -322,7 +338,7 @@ void ORBLocalMapping::CreateNewMapPoints()
                 float v1 = fy1*y1*invz1+cy1;
                 float errX1 = u1 - kp1.pt.x;
                 float errY1 = v1 - kp1.pt.y;
-                if((errX1*errX1+errY1*errY1)>5.991*sigmaSquare1)
+                if((errX1*errX1+errY1*errY1)>CHITH*sigmaSquare1)
                     continue;
             }
 
@@ -337,7 +353,7 @@ void ORBLocalMapping::CreateNewMapPoints()
                 float v2 = fy2*y2*invz2+cy2;
                 float errX2 = u2 - kp2.pt.x;
                 float errY2 = v2 - kp2.pt.y;
-                if((errX2*errX2+errY2*errY2)>5.991*sigmaSquare2)
+                if((errX2*errX2+errY2*errY2)>CHITH*sigmaSquare2)
                     continue;
             }
 
@@ -351,11 +367,12 @@ void ORBLocalMapping::CreateNewMapPoints()
             if(dist1==0 || dist2==0)
                 continue;
 
+            //d2 / d1 的比例
             const float ratioDist = dist2/dist1;
+            //特征点层级的比例
             const float ratioOctave = mpCurrentKeyFrame->mvScaleFactors[kp1.octave]/pKF2->mvScaleFactors[kp2.octave];
 
-            /*if(fabs(ratioDist-ratioOctave)>ratioFactor)
-                continue;*/
+            // 实际空间比例系数要介于 特征点成绩比 /与* 缩放系数 之间
             if(ratioDist*ratioFactor<ratioOctave || ratioDist>ratioOctave*ratioFactor)
                 continue;
 
@@ -378,14 +395,15 @@ void ORBLocalMapping::CreateNewMapPoints()
             nnew++;
         }
     }
+    PROMTD_V(mpCurrentKeyFrame->getData()._name,"Create New Points", nnew);
 }
 
+//搜索邻近帧,取所有共视帧以及共视帧关联的最最佳的几个共视帧,简历邻近搜索列表
+//先用当前帧地图点集合与所有目标帧进行融合, 在将所有领近帧的所有地图点与当前帧进行一次匹配融合
 void ORBLocalMapping::SearchInNeighbors()
 {
     // Retrieve neighbor keyframes
-    int nn = 10;
-    if(mbMonocular)
-        nn=20;
+    int nn = SEARCHFMNO;
     const vector<ORBKeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
     vector<ORBKeyFrame*> vpTargetKFs;
     for(vector<ORBKeyFrame*>::const_iterator vit=vpNeighKFs.begin(), vend=vpNeighKFs.end(); vit!=vend; vit++)
@@ -398,6 +416,7 @@ void ORBLocalMapping::SearchInNeighbors()
 
         // Extend to some second neighbors
         const vector<ORBKeyFrame*> vpSecondNeighKFs = pKFi->GetBestCovisibilityKeyFrames(5);
+        //遍历此帧共视的帧,寻找融合帧id不是当前帧的帧 加入到目标列表
         for(vector<ORBKeyFrame*>::const_iterator vit2=vpSecondNeighKFs.begin(), vend2=vpSecondNeighKFs.end(); vit2!=vend2; vit2++)
         {
             ORBKeyFrame* pKFi2 = *vit2;
@@ -411,17 +430,19 @@ void ORBLocalMapping::SearchInNeighbors()
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
     const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getPoints();
+    //遍历所有关键帧,进行点的融合
     for(vector<ORBKeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
         ORBKeyFrame* pKFi = *vit;
-
+        //用当前帧的地图点,与目标帧进行融合操作
         matcher.Fuse(pKFi,vpMapPointMatches);
     }
 
     // Search matches by projection from target KFs in current KF
     MapPtVector vpFuseCandidates;
     vpFuseCandidates.reserve(vpTargetKFs.size()*vpMapPointMatches.size());
-
+    //再次遍历目标帧,获取每帧的地图点集
+    //将所有点都加入到候选融合点列表中
     for(vector<ORBKeyFrame*>::iterator vitKF=vpTargetKFs.begin(), vendKF=vpTargetKFs.end(); vitKF!=vendKF; vitKF++)
     {
         ORBKeyFrame* pKFi = *vitKF;
@@ -439,7 +460,7 @@ void ORBLocalMapping::SearchInNeighbors()
             vpFuseCandidates.push_back(pMP);
         }
     }
-
+    //将所有点与当前帧进行一次融合
     matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates);
 
 
@@ -558,6 +579,7 @@ void ORBLocalMapping::InterruptBA()
     mbAbortBA = true;
 }
 
+//主要剔除,当前帧中90%的点有至少三帧其他帧观测到的帧
 void ORBLocalMapping::KeyFrameCulling()
 {
     // Check redundant keyframes (only local keyframes)
@@ -603,7 +625,7 @@ void ORBLocalMapping::KeyFrameCulling()
                             const int &scaleLeveli = pKFi->mvKeysUn[mit->second].octave;
                             
                             if(scaleLeveli<=scaleLevel+1)
-                            {//关联该点其他特征点的层级应该小于或者等于这帧的层级
+                            {//关联该点其他特征点的层级应该小于或者等于这帧的层级+1
                                 nObs++;
                                 if(nObs>=thObs)
                                     break;
@@ -618,9 +640,13 @@ void ORBLocalMapping::KeyFrameCulling()
                 }
             }
         }  
-        //当前帧关联的地图点 有90%的点被其他至少3帧以上的帧观测到了  则认为为无效帧
+        //当前帧关联的有效地图点 有90%的点至少有三个关联有效帧  则认为此帧为无效帧
         if(nRedundantObservations>0.9*nMPs)
+        {
+            PROMT_V("Set Bad From RedundataObs,No.",pKF->mnId);
             pKF->setBadFlag();
+        }
+            
     }
 }
 

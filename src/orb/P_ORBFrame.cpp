@@ -17,7 +17,7 @@ namespace Position
     //Copy Constructor
     ORBFrame::ORBFrame(const ORBFrame &frame)
         :mpORBvocabulary(frame.mpORBvocabulary), mpORBextractorLeft(frame.mpORBextractorLeft),
-        mTimeStamp(frame.mTimeStamp), mK(frame.mK.clone()), mDistCoef(frame.mDistCoef.clone()),
+        mData(frame.mData), mK(frame.mK.clone()), mDistCoef(frame.mDistCoef.clone()),
         N(frame.N), mvKeys(frame.mvKeys),
         mvKeysUn(frame.mvKeysUn), mBowVec(frame.mBowVec), mFeatVec(frame.mFeatVec),
         mDescriptors(frame.mDescriptors.clone()),
@@ -35,9 +35,9 @@ namespace Position
             setPose(frame.mTcw);
     }
 
-    ORBFrame::ORBFrame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef)
+    ORBFrame::ORBFrame(const FrameData &data, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef)
         :mpORBvocabulary(voc),mpORBextractorLeft(extractor),
-        mTimeStamp(timeStamp), mK(K.clone()),mDistCoef(distCoef.clone())
+        mData(std::move(data)), mK(K.clone()),mDistCoef(distCoef.clone())
     {
         // Frame ID
         mnId=nNextId++;
@@ -52,7 +52,7 @@ namespace Position
         mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
         // ORB extraction
-        ExtractORB(0,imGray);
+        ExtractORB(0,mData._img);
 
         N = mvKeys.size();
 
@@ -67,7 +67,7 @@ namespace Position
         // This is done only for the first Frame (or after a change in the calibration)
         if(mbInitialComputations)
         {
-            ComputeImageBounds(imGray);
+            ComputeImageBounds(mData._img);
 
             mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/static_cast<float>(mnMaxX-mnMinX);
             mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/static_cast<float>(mnMaxY-mnMinY);
