@@ -30,7 +30,7 @@ namespace Position
         if(mbInit)
             return;
       
-        pangolin::CreateWindowAndBind("Slam Simulator",mWinW,mWinH);
+        pangolin::CreateWindowAndBind("Simulator",mWinW,mWinH);
 
         // 3D Mouse handler requires depth testing to be enabled
         glEnable(GL_DEPTH_TEST);
@@ -63,6 +63,7 @@ namespace Position
     }
     void Pangolin_Viewer::renderLoop()
     {
+        init();
         while(renderOnce())
         {
             ;

@@ -37,14 +37,22 @@ namespace Position
                 mCamera.TCam2Imu.convertTo(mCamera.TCam2Imu,MATCVTYPE);
             }
 
-
+            mCamera.fps = GETCFGVALUE(mpCfg,ImgFps,int);
+            mCamera.rgb = GETCFGVALUE(mpCfg,ImgRgb,int);
             PROMT_S("Camera params >>>>>>>>>>>>>>>>>>>>>>>>>");
             PROMT_V("K ",mCamera.K);
+            PROMT_V("Fps ",mCamera.fps);
+            PROMT_V("Rgb ",mCamera.rgb);
             PROMT_S("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+
+           
+
+           
+            //add
 		}
 		else
 		{
-			cout << "Read config failed!!!" << endl;
+            PROMT_S("Read config failed!!!")
 		}
     }
 

@@ -32,10 +32,10 @@ namespace Position
 
         mpLocalMapper = std::make_shared<ORBLocalMapping>(mpMap, true);
         mptLocalMapping = std::unique_ptr<thread>( new thread(&Position::ORBLocalMapping::Run,mpLocalMapper.get()));
-
+        mptLocalMapping->detach();
         mpLoopCloser = std::make_shared<ORBLoopClosing>(mpMap, mpKeyFrameDatabase, mpVocabulary, false);
         mptLoopClosing = std::unique_ptr<thread>(new thread(&Position::ORBLoopClosing::Run, mpLoopCloser.get()));
-
+        mptLoopClosing->detach();
         mpTracker->SetLocalMapper(mpLocalMapper);
         mpTracker->SetLoopClosing(mpLoopCloser);
 
@@ -48,19 +48,17 @@ namespace Position
 
     UniformVTrajProcesser::~UniformVTrajProcesser()
     {
-        // over();
+         over();
     }
 
-    //匀速运动模型跟踪
-    void UniformVTrajProcesser::trackWithMotionModel()
+    //等待处理结束
+    void UniformVTrajProcesser::waitForProc()
     {
-
-    }
-
-    //关键帧创建条件
-    bool UniformVTrajProcesser::needCreateNewKeyFrame()
-    {
-        return true;
+        while(mpLocalMapper->isFinished() && mpLoopCloser->isFinished())
+        {
+            usleep(1000);
+        }
+        PROMT_S("FrameDatas have Processed over.");
     }
 
      //跟踪
@@ -71,7 +69,7 @@ namespace Position
             mpTracker->Reset();
             mbReset = true;
         }
-
+        PROMT_S(data._name);
         return mpTracker->track(data);
     }
 

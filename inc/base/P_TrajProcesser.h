@@ -91,6 +91,7 @@ namespace Position
                         mpViewer->renderOnce();
                     }
                 }
+
                 return true;
             }
         }
@@ -100,26 +101,12 @@ namespace Position
             mpViewer = viewer;
         }
     protected:
-
-        //是否能创建新帧
-        virtual bool needCreateNewKeyFrame()
+        //等待处理结束
+        virtual void waitForProc()
         {
-            return true;
+            //add more
         }
 
-        //创建新帧
-        virtual void createNewKeyFrame()
-        {
-            if(NULL != mpCurrent)
-            {
-                mpLastKeyFm = mpCurrentKeyFm;
-                mpCurrentKeyFm = mpMap->createKeyFrame(mpCurrent);
-                //更新帧间关系
-                mpCurrentKeyFm->updatePrev(mpLastKeyFm);
-                mpLastKeyFm->updateNext(mpCurrentKeyFm);
-            }
-        }
-    
     protected:
 
         std::shared_ptr<IMap>       mpMap;

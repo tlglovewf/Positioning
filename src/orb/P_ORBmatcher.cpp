@@ -394,7 +394,7 @@ int ORBmatcher::SearchForInitialization(ORBFrame &F1, ORBFrame &F2, vector<cv::P
     {
         cv::KeyPoint kp1 = F1.mvKeysUn[i1];
         int level1 = kp1.octave;
-        if(level1>0)
+        if(level1>1) //在第n层返回 不进行下层的判断 数字越大 获得的匹配点越多
             continue;
 
         SzVector vIndices2 = F2.GetFeaturesInArea(vbPrevMatched[i1].x,vbPrevMatched[i1].y, windowSize,level1,level1);

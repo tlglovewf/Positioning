@@ -46,8 +46,8 @@ void PositionController::run()
     bool hasTarget =  false;
     if(mpViewer)
     {
-        mpViewer->init();
-        mpTrajProcesser->setViewer(mpViewer);
+        // mpViewer->init();
+        // mpTrajProcesser->setViewer(mpViewer);
     }
      while( it != ed)
      {//帧循环 构建局部场景
@@ -109,6 +109,10 @@ void PositionController::run()
          //完成一端轨迹推算  记录结果
          saveResult();
          mpTrajProcesser->reset();//重置位姿推算器
+     }
+     if(mpViewer)
+     {
+         mpViewer->renderLoop();
      }
 }
 

@@ -472,10 +472,10 @@ namespace Position
         BolVector vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;
         float parallax1,parallax2, parallax3, parallax4;
 
-        int nGood1 = CheckRT(R1,t1,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D1, mSigma2, vbTriangulated1, parallax1);
-        int nGood2 = CheckRT(R2,t1,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D2, mSigma2, vbTriangulated2, parallax2);
-        int nGood3 = CheckRT(R1,t2,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D3, mSigma2, vbTriangulated3, parallax3);
-        int nGood4 = CheckRT(R2,t2,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D4, mSigma2, vbTriangulated4, parallax4);
+        int nGood1 = CheckRT(R1,t1,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D1, 4 * mSigma2, vbTriangulated1, parallax1);
+        int nGood2 = CheckRT(R2,t1,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D2, 4 * mSigma2, vbTriangulated2, parallax2);
+        int nGood3 = CheckRT(R1,t2,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D3, 4 * mSigma2, vbTriangulated3, parallax3);
+        int nGood4 = CheckRT(R2,t2,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D4, 4 * mSigma2, vbTriangulated4, parallax4);
 
         int maxGood = max(nGood1,max(nGood2,max(nGood3,nGood4)));
 

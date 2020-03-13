@@ -65,16 +65,16 @@ void ORBLocalMapping::Run()
                 KeyFrameCulling();
             }
 
-            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);  //close close loop first 
         }
         else if(Stop())
         {
             // Safe area to stop
-            while(isStopped() && !CheckFinish())
+            while(isStopped() && !CheckRequestFinish())
             {
                 usleep(3000);
             }
-            if(CheckFinish())
+            if(CheckRequestFinish())
                 break;
         }
 
@@ -83,10 +83,10 @@ void ORBLocalMapping::Run()
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(true);
 
-        if(CheckFinish())
+        if(CheckRequestFinish())
             break;
 
-        usleep(3000);
+        // usleep(3000);
     }
 
     SetFinish();
@@ -493,7 +493,7 @@ bool ORBLocalMapping::Stop()
 {
     unique_lock<mutex> lock(mMutexStop);
     if(mbStopRequested && !mbNotStop)
-    {
+    {//请求暂停或者设置停止
         mbStopped = true;
         cout << "Local Mapping STOP" << endl;
         return true;
@@ -564,6 +564,7 @@ void ORBLocalMapping::KeyFrameCulling()
     // A keyframe is considered redundant if the 90% of the MapPoints it sees, are seen
     // in at least other 3 keyframes (in the same or finer scale)
     // We only consider close stereo points
+    // 获取当前帧的所有公视关键帧
     vector<ORBKeyFrame*> vpLocalKeyFrames = mpCurrentKeyFrame->GetVectorCovisibleKeyFrames();
 
     for(vector<ORBKeyFrame*>::iterator vit=vpLocalKeyFrames.begin(), vend=vpLocalKeyFrames.end(); vit!=vend; vit++)
@@ -577,6 +578,7 @@ void ORBLocalMapping::KeyFrameCulling()
         const int thObs=nObs;
         int nRedundantObservations=0;
         int nMPs=0;
+        //遍历每个除世界第一帧以外,每一帧关联的所有地图点
         for(size_t i=0, iend=vpMapPoints.size(); i<iend; i++)
         {
             IMapPoint* pMP = vpMapPoints[i];
@@ -585,25 +587,29 @@ void ORBLocalMapping::KeyFrameCulling()
                 if(!pMP->isBad())
                 {
                     nMPs++;
+                    //地图点观测的帧数量大于阈值
                     if(pMP->observations()>thObs)
                     {
+                        //取当前关联的的特征点的层级
                         const int &scaleLevel = pKF->mvKeysUn[i].octave;
                         const KeyFrameMap& observations = pMP->getObservations();
                         int nObs=0;
+                        //遍历所有观测到该点的关键帧
                         for(KeyFrameMap::const_iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
                         {
                             ORBKeyFrame* pKFi = ORBKEYFRAME(mit->first);
                             if(pKFi==pKF)
                                 continue;
                             const int &scaleLeveli = pKFi->mvKeysUn[mit->second].octave;
-
+                            
                             if(scaleLeveli<=scaleLevel+1)
-                            {
+                            {//关联该点其他特征点的层级应该小于或者等于这帧的层级
                                 nObs++;
                                 if(nObs>=thObs)
                                     break;
                             }
                         }
+                        //如果当前点所被观测到的帧数高于阈值 则多余点计数+1
                         if(nObs>=thObs)
                         {
                             nRedundantObservations++;
@@ -612,7 +618,7 @@ void ORBLocalMapping::KeyFrameCulling()
                 }
             }
         }  
-
+        //当前帧关联的地图点 有90%的点被其他至少3帧以上的帧观测到了  则认为为无效帧
         if(nRedundantObservations>0.9*nMPs)
             pKF->setBadFlag();
     }
@@ -660,7 +666,7 @@ void ORBLocalMapping::RequestFinish()
     mbFinishRequested = true;
 }
 
-bool ORBLocalMapping::CheckFinish()
+bool ORBLocalMapping::CheckRequestFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
     return mbFinishRequested;

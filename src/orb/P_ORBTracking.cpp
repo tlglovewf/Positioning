@@ -4,6 +4,8 @@
 #include "P_ORBInitializer.h"
 #include "P_ORBOptimizer.h"
 #include "P_ORBPnPsolver.h"
+#include "P_Writer.h"
+
 #include <unistd.h>
 
 using namespace std;
@@ -31,9 +33,9 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     mbRGB = camparam.rgb;
 
     if(mbRGB)
-        cout << "- color order: RGB (ignored if grayscale)" << endl;
+        PROMT_S("- color order: RGB (ignored if grayscale)")
     else
-        cout << "- color order: BGR (ignored if grayscale)" << endl;
+        PROMT_S("- color order: BGR (ignored if grayscale)")
 
     // Load ORB parameters
 
@@ -41,19 +43,11 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     float fScaleFactor = 1.3;
     int nLevels = 8;
     int fIniThFAST = 20;
-    int fMinThFAST = 7;
+    int fMinThFAST = 5;
 
     mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
     mpIniORBextractor = new ORBextractor(2*nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
-
-    cout << endl  << "ORB Extractor Parameters: " << endl;
-    cout << "- Number of Features: " << nFeatures << endl;
-    cout << "- Scale Levels: " << nLevels << endl;
-    cout << "- Scale Factor: " << fScaleFactor << endl;
-    cout << "- Initial Fast Threshold: " << fIniThFAST << endl;
-    cout << "- Minimum Fast Threshold: " << fMinThFAST << endl;
-
 }
 
 void ORBTracking::SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalMapper)
@@ -99,7 +93,7 @@ void ORBTracking::Track()
 {
     while(!mpLocalMapper->AcceptKeyFrames())
     {
-        usleep(100);
+        usleep(500);
     }
     if(mState==eTrackNoImage)
     {
@@ -298,7 +292,7 @@ void ORBTracking::Track()
         {
             if(mpMap->keyFrameInMap() <=5)
             {
-                cout << "Track lost soon after initialisation, reseting..." << endl;
+                PROMT_S("Track Lost,and no enough frame track again reseting ...");
                 return;
             }
         }
@@ -364,14 +358,16 @@ void ORBTracking::MonocularInitialization()
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
             return;
         }
-
+        PROMTD_S("Try to initialize.")
         // Find correspondences
-        ORBmatcher matcher(0.9,true);
+        ORBmatcher matcher(0.8,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,300);
 
         // Check if there are enough correspondences
         if(nmatches<100)
         {
+            PROMTD_V("Number of points",nmatches)
+            PROMTD_S("Not enough for initializing. retry.")
             delete mpInitializer;
             mpInitializer = static_cast<Initializer*>(NULL);
             return;
@@ -402,6 +398,10 @@ void ORBTracking::MonocularInitialization()
             mVelocity = Tcw;
 
             CreateInitialMapMonocular();
+        }
+        else
+        {
+            PROMT_S("Initialize Failed !!!");
         }
     }
 }
@@ -454,14 +454,12 @@ void ORBTracking::CreateInitialMapMonocular()
     pKFini->UpdateConnections();
     pKFcur->UpdateConnections();
 
-    // Bundle Adjustment
-    cout << "New Map created with " << mpMap->mapPointsInMap() << " points" << endl;
+    PROMTD_V("New Map created points",mpMap->mapPointsInMap());
 
     Optimizer::GlobalBundleAdjustemnt(mpMap,20);
 
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
-    cout << "median depath is " << medianDepth << endl;
     cv::Mat tmp = pKFcur->getPose().col(3);
    //add by tu  初始化第二帧距离第一帧位置
     float len = sqrt(tmp.at<MATTYPE>(0) * tmp.at<MATTYPE>(0) + 
@@ -469,10 +467,10 @@ void ORBTracking::CreateInitialMapMonocular()
                      tmp.at<MATTYPE>(2) * tmp.at<MATTYPE>(2));
     float invMedianDepth = 1.0f / len ;
 
-    if(medianDepth<0 || pKFcur->TrackedMapPoints(1) < 80)
+    if(medianDepth < 0 || pKFcur->TrackedMapPoints(1) < 80)
     {
-        cout << "Only " << pKFcur->TrackedMapPoints(1) << "points tracked~~" << endl;
-        cout << "Wrong initialization, reseting..." << endl;
+        PROMT_V("Tracked Map Points size",pKFcur->TrackedMapPoints(1));
+        PROMT_S("Traced points not enough . resetting...");
         Reset();
         return;
     }
@@ -510,9 +508,11 @@ void ORBTracking::CreateInitialMapMonocular()
 
     mpMap->setReferenceMapPoints(mvpLocalMapPoints);
 
-    // mpMap->mvpKeyFrameOrigins.push_back(pKFini);
+    // mpMap->mvpKeyFrameOrigins.push_back(pKFini); //for loop closing  
 
     mState = eTrackOk;
+
+    PROMTD_S("Monocular Initialize successfully.")
 }
 
 void ORBTracking::CheckReplacedInLastFrame()
@@ -697,7 +697,15 @@ bool ORBTracking::NeedNewKeyFrame()
 
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
-        return false;
+    {
+         PROMT_S("Can Not Create KeyFrame.")
+         return false;
+    }
+       
+
+    //如果fps为0 则认为所有帧都未关键帧
+    if(0 == mMaxFrames)
+        return true;
 
     const int nKFs = mpMap->keyFrameInMap();
 
@@ -759,11 +767,14 @@ bool ORBTracking::NeedNewKeyFrame()
 
 void ORBTracking::CreateNewKeyFrame()
 {
+    PROMTD_V("Creat New Frame No",mCurrentFrame.mnId);
+
     if(!mpLocalMapper->SetNotStop(true))
         return;
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
     pKF->updatePrev(mpReferenceKF);
+    
     mpReferenceKF = pKF;
     mCurrentFrame.mpReferenceKF = pKF;
 
@@ -1137,23 +1148,22 @@ bool ORBTracking::Relocalization()
 
 void ORBTracking::Reset()
 {
-
-    cout << "System Reseting" << endl;
+    PROMTD_S("System Reseting")
 
     // Reset Local Mapping
-    cout << "Reseting Local Mapper...";
+    PROMTD_S("Reseting Local Mapper...")
     mpLocalMapper->RequestReset();
-    cout << " done" << endl;
+    PROMTD_S(" done")
 
     // Reset Loop Closing
-    cout << "Reseting Loop Closing...";
+    PROMTD_S("Reseting Loop Closing...")
     mpLoopClosing->RequestReset();
-    cout << " done" << endl;
+    PROMTD_S(" done")
 
     // Clear BoW Database
-    cout << "Reseting Database...";
+    PROMTD_S("Reseting Database...")
     mpKeyFrameDB->clear();
-    cout << " done" << endl;
+    PROMTD_S(" done")
 
     // Clear Map (this erase MapPoints and KeyFrames)
     mpMap->clear();

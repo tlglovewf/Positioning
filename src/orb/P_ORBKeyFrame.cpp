@@ -5,7 +5,7 @@
 #include "P_ORBFeature.h"
 #include "P_ORBFrame.h"
 #include "P_ORBKeyFrameDatabase.h"
-
+#include "P_Writer.h"
 
 namespace Position
 {
@@ -454,6 +454,7 @@ namespace Position
             mbToBeErased = true;
             return;
         }
+        PROMTD_V("Bad Frame",mnId);
         //抹除关联帧 关于次帧的连接
         for(KeyFrameMap::iterator mit = mConnectedKeyFrameWeights.begin(), mend=mConnectedKeyFrameWeights.end(); mit!=mend; mit++)
         ORBKEYFRAME(mit->first)->EraseConnection(this);

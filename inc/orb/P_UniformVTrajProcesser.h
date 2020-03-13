@@ -33,22 +33,18 @@ namespace Position
         //结束
         virtual void over();
     protected:
-
-        //是否能创建新帧
-        virtual bool needCreateNewKeyFrame();
-
-        //匀速运动跟踪
-        void trackWithMotionModel();
+        //等待处理结束
+        virtual void waitForProc();
 
     private:
+       std::unique_ptr<std::thread>         mptLocalMapping;
+       std::unique_ptr<std::thread>         mptLoopClosing;
+  
        std::shared_ptr<ORBTracking>         mpTracker;
        std::shared_ptr<ORBLocalMapping>     mpLocalMapper;
        std::shared_ptr<ORBLoopClosing>      mpLoopCloser;
        std::shared_ptr<ORBVocabulary>       mpVocabulary;
        std::shared_ptr<ORBKeyFrameDatabase> mpKeyFrameDatabase;
-
-       std::unique_ptr<std::thread>        mptLocalMapping;
-       std::unique_ptr<std::thread>        mptLoopClosing;
        
        bool                 mbReset;
     };

@@ -69,7 +69,7 @@ namespace Position
         bool mbResetRequested;
         std::mutex mMutexReset;
 
-        bool CheckFinish();
+        bool CheckRequestFinish();
         void SetFinish();
         bool mbFinishRequested;
         bool mbFinished;

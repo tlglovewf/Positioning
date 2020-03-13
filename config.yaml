@@ -6,14 +6,14 @@
 
 
 #util info
-StNo: 0
-EdNo: 5
+StNo: 600
+EdNo: 610 #00
 
 #camera param
-ImgWd:  1080
-ImgHg:  720
-ImgFps: 10
-ImgRgb: 0
+ImgWd:  4096
+ImgHg:  2168
+ImgFps: 0  #0 every frame is keyframe
+ImgRgb: 1  #rgb 1  rbg 0 
 
 #path 
 ImgPath: "/Users/TLG/Downloads/data/weiya/20191105/gray"

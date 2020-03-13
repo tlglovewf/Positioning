@@ -471,26 +471,27 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     BolVector vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;
     float parallax1,parallax2, parallax3, parallax4;
 
-    int nGood1 = CheckRT(R1,t1,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D1, 4.0*mSigma2, vbTriangulated1, parallax1);
-    int nGood2 = CheckRT(R2,t1,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D2, 4.0*mSigma2, vbTriangulated2, parallax2);
-    int nGood3 = CheckRT(R1,t2,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D3, 4.0*mSigma2, vbTriangulated3, parallax3);
-    int nGood4 = CheckRT(R2,t2,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D4, 4.0*mSigma2, vbTriangulated4, parallax4);
+    int nGood1 = CheckRT(R1,t1,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D1, 4.0 * mSigma2, vbTriangulated1, parallax1);
+    int nGood2 = CheckRT(R2,t1,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D2, 4.0 * mSigma2, vbTriangulated2, parallax2);
+    int nGood3 = CheckRT(R1,t2,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D3, 4.0 * mSigma2, vbTriangulated3, parallax3);
+    int nGood4 = CheckRT(R2,t2,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliers,K, vP3D4, 4.0 * mSigma2, vbTriangulated4, parallax4);
 
     int maxGood = max(nGood1,max(nGood2,max(nGood3,nGood4)));
 
     R21 = cv::Mat();
     t21 = cv::Mat();
-
+    //最少需求的匹配点数量  取设置的最小值与 阈值系数的匹配点数量中最大值
     int nMinGood = max(static_cast<int>(0.9*N),minTriangulated);
 
     int nsimilar = 0;
-    if(nGood1>0.7*maxGood)
+    const int  thMxGood = 0.8 * maxGood;
+    if(nGood1 > thMxGood)
         nsimilar++;
-    if(nGood2>0.7*maxGood)
+    if(nGood2 > thMxGood)
         nsimilar++;
-    if(nGood3>0.7*maxGood)
+    if(nGood3 > thMxGood)
         nsimilar++;
-    if(nGood4>0.7*maxGood)
+    if(nGood4 > thMxGood)
         nsimilar++;
 
     // If there is not a clear winner or not enough triangulated points reject initialization
