@@ -108,7 +108,7 @@ namespace Position
             while (!pstfile.eof() && (allimg || index++ <= edno))
             {
                 getline(pstfile, pststr);
-                if(index++ < stno)
+                if(index < stno)
                     continue;
                 if(pststr.empty())
                     continue;

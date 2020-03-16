@@ -18,7 +18,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
                          const std::shared_ptr<ORBKeyFrameDatabase>& pKFDB,
                          const std::shared_ptr<IConfig> &pcfg,
                          const CameraParam &camparam):
-    mState(eTrackNoImage), mbOnlyTracking(false), mbVO(false), mpORBVocabulary(pVoc),
+    mState(eTrackNoImage),mpORBVocabulary(pVoc),
     mpKeyFrameDB(pKFDB), mpInitializer(static_cast<Initializer*>(NULL)),mpMap(pMap), mnLastRelocFrameId(0)
 {
     // Load camera parameters from settings file
@@ -40,10 +40,10 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     // Load ORB parameters
 
     int nFeatures = 3000; 
-    float fScaleFactor = 1.3;
+    float fScaleFactor = 1.2;
     int nLevels = 8;
     int fIniThFAST = 20;
-    int fMinThFAST = 5;
+    int fMinThFAST = 7;
 
     mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
@@ -115,123 +115,33 @@ void ORBTracking::Track()
         // System is initialized. Track ORBFrame.
         bool bOK;
 
-        // Initial camera pose estimation using motion model or relocalization (if tracking is lost)
-        if(!mbOnlyTracking)
+        // Local Mapping is activated. This is the normal behaviour, unless
+        // you explicitly activate the "only tracking" mode.
+        if(mState == eTrackOk)
         {
-            // Local Mapping is activated. This is the normal behaviour, unless
-            // you explicitly activate the "only tracking" mode.
-
-            if(mState == eTrackOk)
+            // Local Mapping might have changed some MapPoints tracked in last frame
+            CheckReplacedInLastFrame();
+            if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2)
             {
-                // Local Mapping might have changed some MapPoints tracked in last frame
-                CheckReplacedInLastFrame();
-
-                if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2)
-                {
-                    bOK = TrackReferenceKeyFrame();
-                }
-                else
-                {
-                    bOK = TrackWithMotionModel();
-                    if(!bOK)
-                        bOK = TrackReferenceKeyFrame();
-                }
+                bOK = TrackReferenceKeyFrame();
             }
             else
             {
-                bOK = Relocalization();
+                bOK = TrackWithMotionModel();
+                if(!bOK)
+                    bOK = TrackReferenceKeyFrame();
             }
         }
         else
         {
-            // Localization Mode: Local Mapping is deactivated
-
-            if(mState == eTrackLost)
-            {
-                bOK = Relocalization();
-            }
-            else
-            {
-                if(!mbVO)//上次追踪点 <10 为true 即trackwithmotion失败时
-                {
-                    // In last frame we tracked enough MapPoints in the map
-                    //当匀速模型跟踪成功时 根据运动模型追踪
-                    if(!mVelocity.empty())
-                    {
-                        bOK = TrackWithMotionModel();
-                    }
-                    else
-                    {
-                        bOK = TrackReferenceKeyFrame();
-                    }
-                }
-                else
-                {
-                    // In last frame we tracked mainly "visual odometry" points.
-
-                    // We compute two camera poses, one from motion model and one doing relocalization.
-                    // If relocalization is sucessfull we choose that solution, otherwise we retain
-                    // the "visual odometry" solution.
-
-                    bool bOKMM = false;
-                    bool bOKReloc = false;
-                    MapPtVector vpMPsMM;
-                    BolVector vbOutMM;
-                    cv::Mat TcwMM;
-                    //速度不为零 先进行一次运动模型的跟踪 获取一遍位姿状态信息
-                    if(!mVelocity.empty())
-                    {
-                        bOKMM = TrackWithMotionModel();
-                        vpMPsMM = mCurrentFrame.mvpMapPoints;
-                        vbOutMM = mCurrentFrame.mvbOutlier;
-                        TcwMM = mCurrentFrame.mTcw.clone();
-                    }
-                    //再进行重定位
-                    bOKReloc = Relocalization();
-
-                    if(bOKMM && !bOKReloc)
-                    {
-                        mCurrentFrame.setPose(TcwMM);
-                        mCurrentFrame.mvpMapPoints = vpMPsMM;
-                        mCurrentFrame.mvbOutlier = vbOutMM;
-
-                        if(mbVO)
-                        {
-                            for(int i =0; i<mCurrentFrame.N; i++)
-                            {
-                                if(mCurrentFrame.mvpMapPoints[i] && !mCurrentFrame.mvbOutlier[i])
-                                {
-                                    ORBMAPPOINT(mCurrentFrame.mvpMapPoints[i])->IncreaseFound();
-                                }
-                            }
-                        }
-                    }
-                    else if(bOKReloc)
-                    {
-                        mbVO = false;
-                    }
-                    //重定位 或者 速度模型一个成功 认为跟踪成功
-                    bOK = bOKReloc || bOKMM;
-                }
-            }
+            bOK = Relocalization();
         }
 
         mCurrentFrame.mpReferenceKF = mpReferenceKF;
 
         // If we have an initial estimation of the camera pose and matching. Track the local map.
-        if(!mbOnlyTracking)
-        {
-            if(bOK)
-                bOK = TrackLocalMap();
-        }
-        else
-        {
-            // mbVO true means that there are few matches to MapPoints in the map. We cannot retrieve
-            // a local map and therefore we do not perform TrackLocalMap(). Once the system relocalizes
-            // the camera we will use the local map again.
-            if(bOK && !mbVO)
-                bOK = TrackLocalMap();
-        }
+        if(bOK)
+            bOK = TrackLocalMap();
 
         if(bOK)
             mState = eTrackOk;
@@ -358,14 +268,14 @@ void ORBTracking::MonocularInitialization()
         }
         PROMTD_S("Try to initialize.")
         // Find correspondences
-        ORBmatcher matcher(0.8,true);
+        ORBmatcher matcher(0.9,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,300);
 
         // Check if there are enough correspondences
         if(nmatches<100)
         {
-            PROMTD_V("Number of points",nmatches)
-            PROMTD_S("Not enough for initializing. retry.")
+            PROMTD_V("initalize Number of points",nmatches)
+            PROMTD_S("not enough for initializing. retry.")
             delete mpInitializer;
             mpInitializer = static_cast<Initializer*>(NULL);
             return;
@@ -610,7 +520,7 @@ bool ORBTracking::TrackWithMotionModel()
 
     if(nmatches<20)
     {
-        PROMTD_V("track with motion lost, ",nmatches);
+        PROMTD_V("track with motion lost",nmatches);
         return false;
     }
         
@@ -637,13 +547,7 @@ bool ORBTracking::TrackWithMotionModel()
             else if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
                 nmatchesMap++;
         }
-    }    
-
-    if(mbOnlyTracking)
-    {
-        mbVO = nmatchesMap<10;
-        return nmatches>20;
-    }
+    }   
 
     return nmatchesMap>=10;
 }
@@ -670,12 +574,7 @@ bool ORBTracking::TrackLocalMap()
             if(!mCurrentFrame.mvbOutlier[i])
             {   
                 ORBMAPPOINT(mCurrentFrame.mvpMapPoints[i])->IncreaseFound();
-                if(!mbOnlyTracking)
-                {
-                    if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
-                        mnMatchesInliers++;
-                }
-                else
+                if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
                     mnMatchesInliers++;
             }
         }
@@ -695,9 +594,6 @@ bool ORBTracking::TrackLocalMap()
 
 bool ORBTracking::NeedNewKeyFrame()
 {
-    if(mbOnlyTracking)
-        return false;
-
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
     {
@@ -992,6 +888,7 @@ void ORBTracking::UpdateLocalKeyFrames()
 //重定位(当运动模型跟踪丢失 且追参考帧追踪也丢失了 才进行)
 bool ORBTracking::Relocalization()
 {
+    PROMT_S("Track lost Relocalization.");
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
 
@@ -1191,12 +1088,5 @@ void ORBTracking::Reset()
     mlpReferences.clear();
     mlbLost.clear();
 }
-
-void ORBTracking::InformOnlyTracking(const bool &flag)
-{
-    mbOnlyTracking = flag;
-}
-
-
 
 }
