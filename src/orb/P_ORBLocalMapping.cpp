@@ -258,6 +258,9 @@ void ORBLocalMapping::CreateNewMapPoints()
         //匹配curfm 和 pkf2 满足极线约束的匹配对
         matcher.SearchForTriangulation(mpCurrentKeyFrame,pKF2,F12,vMatchedIndices);
 
+        if(vMatchedIndices.empty())
+            continue;
+
         cv::Mat Rcw2 = pKF2->getRotation();
         cv::Mat Rwc2 = Rcw2.t();
         cv::Mat tcw2 = pKF2->getTranslation();

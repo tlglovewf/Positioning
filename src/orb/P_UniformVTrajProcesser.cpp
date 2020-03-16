@@ -17,13 +17,13 @@ namespace Position
 
         mpVocabulary = std::make_shared<ORBVocabulary>();
         PROMT_S("Begin to load vocabulary!")
-        // bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
-        // if(!bVocLoad)
-        // {
-        //     PROMT_S("vocabulary path error~!");
-        //     PROMT_V("Failed to open at: ",vocpath.c_str());
-        //     exit(-1);
-        // }
+        bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
+        if(!bVocLoad)
+        {
+            PROMT_S("vocabulary path error~!");
+            PROMT_V("Failed to open at: ",vocpath.c_str());
+            exit(-1);
+        }
         PROMT_S("Vocabulary loaded !!!");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
@@ -69,7 +69,7 @@ namespace Position
             mpTracker->Reset();
             mbReset = true;
         }
-        PROMT_S(data._name);
+        PROMTD_V("Load",data._name);
         return mpTracker->track(data);
     }
 

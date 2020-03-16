@@ -98,7 +98,7 @@ namespace Position
             ifstream pstfile, imufile;
             pstfile.open(pstpath);
 
-            int index = stno;
+            int index = 0;
             bool allimg = (stno >= edno);
             std::string pststr;
             //read headline
@@ -108,6 +108,8 @@ namespace Position
             while (!pstfile.eof() && (allimg || index++ <= edno))
             {
                 getline(pstfile, pststr);
+                if(index++ < stno)
+                    continue;
                 if(pststr.empty())
                     continue;
                 char filename[255] = {0};
