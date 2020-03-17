@@ -77,10 +77,10 @@ namespace Position
         return Twc.clone();
     }
 
-    cv::Mat ORBKeyFrame::GetCameraCenter()
+    const Mat&  ORBKeyFrame::getCameraCenter()
     {
         unique_lock<mutex> lock(mMutexPose);
-        return Ow.clone();
+        return Ow;//.clone();
     }
 
 
@@ -261,7 +261,7 @@ namespace Position
         return nPoints;
     }
 
-    const MapPtVector& ORBKeyFrame::getPoints()
+    const MapPtVector& ORBKeyFrame::getWorldPoints()
     {
         unique_lock<mutex> lock(mMutexFeatures);
         return mvpMapPoints;

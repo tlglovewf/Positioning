@@ -40,7 +40,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     // Load ORB parameters
 
     int nFeatures = 3000; 
-    float fScaleFactor = 1.2;
+    float fScaleFactor = 1.3;
     int nLevels = 8;
     int fIniThFAST = 20;
     int fMinThFAST = 7;
@@ -269,10 +269,10 @@ void ORBTracking::MonocularInitialization()
         PROMTD_S("Try to initialize.")
         // Find correspondences
         ORBmatcher matcher(0.9,true);
-        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,300);
+        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,400);
 
         // Check if there are enough correspondences
-        if(nmatches<100)
+        if(nmatches < 90)
         {
             PROMTD_V("initalize Number of points",nmatches)
             PROMTD_S("not enough for initializing. retry.")
@@ -389,7 +389,7 @@ void ORBTracking::CreateInitialMapMonocular()
     pKFcur->setPose(Tc2w);
 
     // Scale points
-    const MapPtVector& vpAllMapPoints = pKFini->getPoints();
+    const MapPtVector& vpAllMapPoints = pKFini->getWorldPoints();
     for(size_t iMP=0; iMP<vpAllMapPoints.size(); iMP++)
     {
         if(vpAllMapPoints[iMP])
@@ -440,7 +440,7 @@ void ORBTracking::CheckReplacedInLastFrame()
     }
 }
 
-
+//通过关联帧 获取当前帧位姿
 bool ORBTracking::TrackReferenceKeyFrame()
 {
     // Compute Bag of Words vector
@@ -755,7 +755,7 @@ void ORBTracking::UpdateLocalPoints()
     for(KeyFrameVector::const_iterator itKF=mvpLocalKeyFrames.begin(), itEndKF=mvpLocalKeyFrames.end(); itKF!=itEndKF; itKF++)
     {
         ORBKeyFrame* pKF = ORBKEYFRAME(*itKF);
-        const MapPtVector& vpMPs = pKF->getPoints();
+        const MapPtVector& vpMPs = pKF->getWorldPoints();
 
         for(MapPtVector::const_iterator itMP=vpMPs.begin(), itEndMP=vpMPs.end(); itMP!=itEndMP; itMP++)
         {

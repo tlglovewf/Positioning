@@ -30,7 +30,11 @@ namespace Position
         {
             assert(NULL);
         }
-
+        //定位场景地图关键帧中目标
+        virtual void position(const std::shared_ptr<IMap> &pMap) 
+        {
+            assert(NULL);
+        }
         //获取极线
         virtual EpLine computeEpLine(const cv::Mat &R, const cv::Mat &t,const cv::Point2f &pt) ;
 
@@ -55,6 +59,12 @@ namespace Position
          //定位关键帧中目标
         virtual void position(IKeyFrame *frame)
         {
+            assert(frame);
+        }
+
+         //定位场景地图关键帧中目标
+        virtual void position(const std::shared_ptr<IMap> &pMap) 
+        {
             assert(NULL);
         }
     };
@@ -66,6 +76,8 @@ namespace Position
         MultiImgPositioning(const CameraParam &cam):Positioning(cam){}
         //定位关键帧中目标
         virtual void position(IKeyFrame *frame);
+         //定位场景地图关键帧中目标
+        virtual void position(const std::shared_ptr<IMap> &pMap);
     };
 
     //深度估计定位

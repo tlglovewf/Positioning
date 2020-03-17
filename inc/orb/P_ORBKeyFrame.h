@@ -69,14 +69,14 @@ namespace Position
         virtual void rmMapPoint(int idx);
 
         //获取地图点
-        virtual const MapPtVector& getPoints();
+        virtual const MapPtVector& getWorldPoints();
 
          //获取旋转 平移分量
         virtual Mat getRotation();
         virtual Mat getTranslation();
 
+        virtual const Mat& getCameraCenter();
         cv::Mat GetPoseInverse();
-        cv::Mat GetCameraCenter();
 
         // Bag of Words Representation
         void ComputeBoW();

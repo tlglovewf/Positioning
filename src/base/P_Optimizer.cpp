@@ -22,7 +22,7 @@ namespace Position
     //单张位姿优化
     int G2oOptimizer::frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2)
     {
-        assert(pFrame && !pFrame->getPoints().empty());
+        assert(pFrame && !pFrame->getWorldPoints().empty());
         g2o::SparseOptimizer optimizer;
         g2o::BlockSolver_6_3::LinearSolverType *linearSolver = new g2o::LinearSolverDense<g2o::BlockSolver_6_3::PoseMatrixType>();
         g2o::BlockSolver_6_3 *solver_ptr = new g2o::BlockSolver_6_3(linearSolver);
@@ -49,7 +49,7 @@ namespace Position
 
         {
             // std::unique_lock<mutex> lock(MapPoint::mGlobalMutex);
-            const MapPtVector &points = pFrame->getPoints();
+            const MapPtVector &points = pFrame->getWorldPoints();
             assert(points.size() <= N);
             for( int i = 0; i < N; ++i )
             {

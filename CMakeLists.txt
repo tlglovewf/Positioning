@@ -119,6 +119,7 @@ src/orb/P_ORBKeyFrameDatabase.cpp
 src/orb/P_ORBSim3Solver.cpp
 src/orb/P_ORBInitializer.cpp
 src/P_Factory.cpp
+src/P_TrajProSelector.cpp
 src/P_Controller.cpp
 )
 

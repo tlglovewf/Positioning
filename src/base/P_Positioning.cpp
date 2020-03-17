@@ -165,6 +165,12 @@ namespace Position
        return curpose * prepose.inv();
     }
 
+     //定位场景地图关键帧中目标
+    void MultiImgPositioning::position(const std::shared_ptr<IMap> &pMap)
+    {
+        //ADD MORE...
+    }
+
     //定位
     void MultiImgPositioning::position(IKeyFrame *frame)
     {

@@ -128,7 +128,7 @@ void ORBLocalMapping::ProcessNewKeyFrame()
     mpCurrentKeyFrame->ComputeBoW();
 
     // Associate MapPoints to the new keyframe and update normal and descriptor
-    const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getPoints();
+    const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getWorldPoints();
 
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
@@ -205,7 +205,7 @@ void ORBLocalMapping::CreateNewMapPoints()
     cv::Mat Tcw1(3,4,MATCVTYPE);
     Rcw1.copyTo(Tcw1.colRange(0,3));
     tcw1.copyTo(Tcw1.col(3));
-    cv::Mat Ow1 = mpCurrentKeyFrame->GetCameraCenter();
+    const cv::Mat& Ow1 = mpCurrentKeyFrame->getCameraCenter();
 
     const float &fx1 = mpCurrentKeyFrame->fx;
     const float &fy1 = mpCurrentKeyFrame->fy;
@@ -233,7 +233,7 @@ void ORBLocalMapping::CreateNewMapPoints()
         ORBKeyFrame* pKF2 = vpNeighKFs[i];
 
         // Check first that baseline is not too short
-        cv::Mat Ow2 = pKF2->GetCameraCenter();
+        const cv::Mat& Ow2 = pKF2->getCameraCenter();
         //获取与当前帧基线长
         cv::Mat vBaseline = Ow2-Ow1;
         //范化
@@ -432,7 +432,7 @@ void ORBLocalMapping::SearchInNeighbors()
 
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
-    const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getPoints();
+    const MapPtVector& vpMapPointMatches = mpCurrentKeyFrame->getWorldPoints();
     //遍历所有关键帧,进行点的融合
     for(vector<ORBKeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
@@ -450,7 +450,7 @@ void ORBLocalMapping::SearchInNeighbors()
     {
         ORBKeyFrame* pKFi = *vitKF;
 
-        const MapPtVector& vpMapPointsKFi = pKFi->getPoints();
+        const MapPtVector& vpMapPointsKFi = pKFi->getWorldPoints();
 
         for(MapPtVector::const_iterator vitMP=vpMapPointsKFi.begin(), vendMP=vpMapPointsKFi.end(); vitMP!=vendMP; vitMP++)
         {
@@ -468,7 +468,7 @@ void ORBLocalMapping::SearchInNeighbors()
 
 
     // Update points
-     const MapPtVector& vpMapts = mpCurrentKeyFrame->getPoints();
+     const MapPtVector& vpMapts = mpCurrentKeyFrame->getWorldPoints();
     for(size_t i=0, iend=vpMapts.size(); i<iend; i++)
     {
         ORBMapPoint* pMP = ORBMAPPOINT(vpMapts[i]);
@@ -597,7 +597,7 @@ void ORBLocalMapping::KeyFrameCulling()
         ORBKeyFrame* pKF = *vit;
         if(pKF->mnId==0)
             continue;
-        const MapPtVector& vpMapPoints = pKF->getPoints();
+        const MapPtVector& vpMapPoints = pKF->getWorldPoints();
 
         int nObs = 3;
         const int thObs=nObs;

@@ -126,7 +126,7 @@ int main(void)
                 {
                     if(curframe->hasMapPoint(item.queryIdx))
                     {
-                        othframe->addMapPoint(curframe->getPoints()[item.queryIdx],item.trainIdx);
+                        othframe->addMapPoint(curframe->getWorldPoints()[item.queryIdx],item.trainIdx);
                     }
                     else
                     {
@@ -166,7 +166,8 @@ int main(void)
             cout << "pose estimate failed." << endl;
         }
       }
-    Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg,map);
+    Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg);
+    pv->setMap(map);
     pv->renderLoop();
 
     return 0;

@@ -20,7 +20,7 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &
     mpKF1 = pKF1;
     mpKF2 = pKF2;
 
-    const MapPtVector& vpKeyFrameMP1 = pKF1->getPoints();
+    const MapPtVector& vpKeyFrameMP1 = pKF1->getWorldPoints();
 
     mN1 = vpMatched12.size();
 

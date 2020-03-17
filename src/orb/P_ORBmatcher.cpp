@@ -133,9 +133,10 @@ bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoin
     return dsqr<3.84*pKF2->mvLevelSigma2[kp2.octave];
 }
 
+//通过bow词袋 寻找pKF F中匹配对
 int ORBmatcher::SearchByBoW(ORBKeyFrame* pKF,ORBFrame &F, MapPtVector &vpMapPointMatches)
-{
-    const MapPtVector& vpMapPointsKF = pKF->getPoints();
+{   
+    const MapPtVector& vpMapPointsKF = pKF->getWorldPoints();
 
     vpMapPointMatches = MapPtVector(F.N,NULL);
 
@@ -500,12 +501,12 @@ int ORBmatcher::SearchByBoW(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &v
 {
     const KeyPtVector &vKeysUn1 = pKF1->mvKeysUn;
     const DBoW2::FeatureVector &vFeatVec1 = pKF1->mFeatVec;
-    const MapPtVector& vpMapPoints1 = pKF1->getPoints();
+    const MapPtVector& vpMapPoints1 = pKF1->getWorldPoints();
     const cv::Mat &Descriptors1 = pKF1->mDescriptors;
 
     const KeyPtVector &vKeysUn2 = pKF2->mvKeysUn;
     const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;
-    const MapPtVector& vpMapPoints2 = pKF2->getPoints();
+    const MapPtVector& vpMapPoints2 = pKF2->getWorldPoints();
     const cv::Mat &Descriptors2 = pKF2->mDescriptors;
 
     vpMatches12 = MapPtVector(vpMapPoints1.size(),NULL);
@@ -639,7 +640,7 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
     const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;
 
     //Compute epipole in second image
-    cv::Mat Cw = pKF1->GetCameraCenter();
+    const cv::Mat& Cw = pKF1->getCameraCenter();
     cv::Mat R2w = pKF2->getRotation();
     cv::Mat t2w = pKF2->getTranslation();
     cv::Mat C2 = R2w*Cw+t2w; //计算pkf1 在pkf2相机坐标系的坐标
@@ -801,7 +802,7 @@ int ORBmatcher::Fuse(ORBKeyFrame *pKF, const MapPtVector &vpMapPoints, const flo
     const float &cx = pKF->cx;
     const float &cy = pKF->cy;
 
-    cv::Mat Ow = pKF->GetCameraCenter();
+    const cv::Mat& Ow = pKF->getCameraCenter();
 
     int nFused=0;
 
@@ -1083,10 +1084,10 @@ int ORBmatcher::SearchBySim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &
     cv::Mat sR21 = (1.0/s12)*R12.t();
     cv::Mat t21 = -sR21*t12;
 
-    const MapPtVector& vpMapPoints1 = pKF1->getPoints();
+    const MapPtVector& vpMapPoints1 = pKF1->getWorldPoints();
     const int N1 = vpMapPoints1.size();
 
-    const MapPtVector& vpMapPoints2 = pKF2->getPoints();
+    const MapPtVector& vpMapPoints2 = pKF2->getWorldPoints();
     const int N2 = vpMapPoints2.size();
 
     BolVector vbAlreadyMatched1(N1,false);
@@ -1424,7 +1425,7 @@ int ORBmatcher::SearchByProjection(ORBFrame &CurrentFrame, ORBKeyFrame *pKF, con
         rotHist[i].reserve(500);
     const float factor = 1.0f/HISTO_LENGTH;
 
-    const MapPtVector& vpMPs = pKF->getPoints();
+    const MapPtVector& vpMPs = pKF->getWorldPoints();
 
     for(size_t i=0, iend=vpMPs.size(); i<iend; i++)
     {

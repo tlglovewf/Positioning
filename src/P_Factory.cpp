@@ -105,12 +105,12 @@ namespace Position
     /*
      * 创建可视化
      */
-    IViewer* PFactory::CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg,const std::shared_ptr<IMap> &pmap)
+    IViewer* PFactory::CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg)
     {
         switch(type)
         {
             case eVPangolin:
-                return new Pangolin_Viewer(pcfg,pmap);
+                return new Pangolin_Viewer(pcfg);
             default:
                 assert(NULL);
         }

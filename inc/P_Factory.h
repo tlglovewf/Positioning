@@ -115,7 +115,7 @@ namespace Position
         /*
          * 创建可视化
          */
-        static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg,const std::shared_ptr<IMap> &pmap);
+        static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg);
 
         /*
          * 创建轨迹处理对象

@@ -17,8 +17,8 @@ namespace Position
     }
 
      //构造函数
-    Pangolin_Viewer::Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap):
-    mCfg(pCfg),mMap(pMap), mFDrawer(new CVFrameDrawer()), mbInit(false)
+    Pangolin_Viewer::Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg):
+    mCfg(pCfg), mFDrawer(new CVFrameDrawer()), mbInit(false)
     {
         mWinW = GETCFGVALUE(mCfg,ViewerW,int);
         mWinH = GETCFGVALUE(mCfg,ViewerH,int);
@@ -29,7 +29,6 @@ namespace Position
     {
         if(mbInit)
             return;
-      
         pangolin::CreateWindowAndBind("Simulator",mWinW,mWinH);
 
         // 3D Mouse handler requires depth testing to be enabled
@@ -76,7 +75,7 @@ namespace Position
     {
         if(!mbInit)
             return false;
-
+        assert(mMap);
         static pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
         static pangolin::Var<bool> menuShowPoints("menu.MapPoints",true,true);
         static pangolin::Var<bool> menuShowKeyFrames("menu.MapFrames",true,true);
@@ -251,7 +250,10 @@ namespace Position
         const float z = w * 0.6;
         const float mKeyFrameLineWidth = 1.0;
 
-        const KeyFrameVector  vpKFs(mMap->getAllFrames());
+        KeyFrameVector  vpKFs(mMap->getAllFrames());
+        sort(vpKFs.begin(),vpKFs.end());
+        if(vpKFs.size() < 2)
+            return;
 
         for(size_t i = 0; i < vpKFs.size(); ++i)
         {
@@ -286,10 +288,23 @@ namespace Position
 
             glVertex3f(-w,-h,z);
             glVertex3f(w,-h,z);
+
             glEnd();
 
             glPopMatrix();
         }
+
+        glLineWidth(mKeyFrameLineWidth);
+        glBegin(GL_LINE_STRIP);
+        glColor3f(0.0f,1.0f,0.0f);
+        for(size_t i = 1;i < vpKFs.size(); ++i)
+        {
+            const Mat& p =  vpKFs[i]->getCameraCenter();
+            glVertex3f(p.at<MATTYPE>(0),
+                       p.at<MATTYPE>(1),
+                       p.at<MATTYPE>(2));
+        }
+        glEnd();
     }
 
     //绘制地图

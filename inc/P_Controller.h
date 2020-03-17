@@ -7,6 +7,7 @@
 #ifndef __PCONTROLLER_H_H_
 #define __PCONTROLLER_H_H_
 #include "P_Interface.h"
+#include "P_TrajProSelector.h"
 
 // position controller class
 class PositionController
@@ -28,13 +29,12 @@ protected:
     std::shared_ptr<Position::IConfig>          mpConfig;
     std::shared_ptr<Position::IData>            mpData;
     std::shared_ptr<Position::IDetector>        mpDetector;
-    std::shared_ptr<Position::IMap>             mpMap;
-    std::shared_ptr<Position::ITrajProcesser>   mpTrajProcesser;
     std::shared_ptr<Position::IViewer>          mpViewer;
     
     std::unique_ptr<Position::IChecker>         mpChecker;
     std::unique_ptr<Position::IPositioning>     mpMulPositioner;
     std::unique_ptr<Position::IPositioning>     mpSinglePositioner;
+    std::unique_ptr<Position::TrajProSelector>  mpTrajProSelector;
 
 };
 

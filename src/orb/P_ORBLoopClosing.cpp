@@ -333,7 +333,7 @@ namespace Position
         for(vector<ORBKeyFrame*>::iterator vit=vpLoopConnectedKFs.begin(); vit!=vpLoopConnectedKFs.end(); vit++)
         {
             ORBKeyFrame* pKF = *vit;
-            const MapPtVector& vpMapPoints = pKF->getPoints();
+            const MapPtVector& vpMapPoints = pKF->getWorldPoints();
             for(size_t i=0, iend=vpMapPoints.size(); i<iend; i++)
             {
                 ORBMapPoint* pMP = ORBMAPPOINT(vpMapPoints[i]);
@@ -454,7 +454,7 @@ namespace Position
 
                 g2o::Sim3 g2oSiw =NonCorrectedSim3[pKFi];
 
-                const MapPtVector& vpMPsi = pKFi->getPoints();
+                const MapPtVector& vpMPsi = pKFi->getWorldPoints();
                 for(size_t iMP=0, endMPi = vpMPsi.size(); iMP<endMPi; iMP++)
                 {
                     ORBMapPoint* pMPi =  ORBMAPPOINT(vpMPsi[iMP]);

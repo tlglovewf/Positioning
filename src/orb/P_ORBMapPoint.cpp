@@ -306,13 +306,13 @@ void ORBMapPoint::UpdateNormalAndDepth()
     for(KeyFrameMap::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
     {
         ORBKeyFrame* pKF = ORBKEYFRAME(mit->first);
-        cv::Mat Owi = pKF->GetCameraCenter();
+        const cv::Mat& Owi = pKF->getCameraCenter();
         cv::Mat normali = mWorldPos - Owi;
         normal = normal + normali/cv::norm(normali);
         n++;
     }
 
-    cv::Mat PC = Pos - pRefKF->GetCameraCenter();
+    const cv::Mat& PC = Pos - pRefKF->getCameraCenter();
     const float dist = cv::norm(PC);
     const int level = pRefKF->mvKeysUn[observations[pRefKF]].octave;
     const float levelScaleFactor =  pRefKF->mvScaleFactors[level];

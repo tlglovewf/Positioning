@@ -350,7 +350,7 @@ void Optimizer::LocalBundleAdjustment(ORBKeyFrame *pKF, bool* pbStopFlag, const 
     list<ORBMapPoint*> lLocalMapPoints;
     for(list<ORBKeyFrame*>::iterator lit=lLocalKeyFrames.begin() , lend=lLocalKeyFrames.end(); lit!=lend; lit++)
     {
-        const MapPtVector& vpMPs = (*lit)->getPoints();
+        const MapPtVector& vpMPs = (*lit)->getWorldPoints();
         for(MapPtVector::const_iterator vit=vpMPs.begin(), vend=vpMPs.end(); vit!=vend; vit++)
         {
             ORBMapPoint* pMP = ORBMAPPOINT(*vit);
@@ -931,7 +931,7 @@ int Optimizer::OptimizeSim3(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, MapPtVector &v
 
     // Set ORBMapPoint vertices
     const int N = vpMatches1.size();
-    const MapPtVector& vpMapPoints1 = pKF1->getPoints();
+    const MapPtVector& vpMapPoints1 = pKF1->getWorldPoints();
     vector<g2o::EdgeSim3ProjectXYZ*> vpEdges12;
     vector<g2o::EdgeInverseSim3ProjectXYZ*> vpEdges21;
     SzVector vnIndexEdge;

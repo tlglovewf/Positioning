@@ -42,8 +42,13 @@ namespace Position
     {
     public:
         //构造函数
-        Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg ,const std::shared_ptr<IMap> &pMap);
+        Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg);
 
+        //设置显示地图
+        virtual void setMap(const std::shared_ptr<IMap> &pMap) 
+        {
+            mMap = pMap;
+        }
          //初始化
         virtual void init();
         //绘制一次

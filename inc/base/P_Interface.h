@@ -117,6 +117,8 @@ namespace Position
         //获取旋转 平移分量
         virtual Mat getRotation() = 0;
         virtual Mat getTranslation() = 0;
+        //获取光心位置
+        virtual const Mat& getCameraCenter() = 0;
         //获取数据
         virtual FrameData getData()const = 0;
         //更新下一帧
@@ -139,7 +141,7 @@ namespace Position
         virtual void rmMapPoint(IMapPoint *pt) = 0;
         virtual void rmMapPoint(int index) = 0;
          //获取地图点
-        virtual const MapPtVector& getPoints() = 0;
+        virtual const MapPtVector& getWorldPoints() = 0;
     };
     #define IFRAME(K) (static_cast<Position::IFrame*>(*(K)))
     //地图
@@ -217,6 +219,8 @@ namespace Position
     class IViewer : public IBase
     {
     public:
+        //设置显示地图
+        virtual void setMap(const std::shared_ptr<IMap> &pMap) = 0;
         //初始化
         virtual void init() = 0;
         //绘制一次
@@ -346,6 +350,8 @@ namespace Position
     class IPositioning : public IBase
     {
     public:
+        //定位场景地图关键帧中目标
+        virtual void position(const std::shared_ptr<IMap> &pMap) = 0;
         //定位关键帧中目标
         virtual void position(IKeyFrame *frame) = 0;
         //定位关键点

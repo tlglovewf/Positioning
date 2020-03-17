@@ -142,7 +142,7 @@ namespace Position
         }
 
         //获取地图点
-        virtual const MapPtVector& getPoints() 
+        virtual const MapPtVector& getWorldPoints() 
         {
             return mPts;
         }
@@ -210,6 +210,11 @@ namespace Position
         virtual Mat getTranslation() 
         {
             return mpFrame->getPose().rowRange(0,3).col(3);
+        }
+        //获取光心位置
+        virtual const Mat& getCameraCenter() 
+        {
+            return mpFrame->getCameraCenter();
         }
     protected:
         IFrame      *mpFrame;
