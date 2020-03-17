@@ -102,6 +102,12 @@ namespace Position
 
     public:
       
+        //重载比较符
+        virtual bool operator<(IKeyFrame *p)
+        {
+            assert(p);
+            return this->index() < p->index();
+        }
         friend class PMap;
         
          //获取数据

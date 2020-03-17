@@ -17,6 +17,13 @@ namespace Position
 
         ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, ORBKeyFrameDatabase* pKFDB);
 
+        //重载比较符
+        virtual bool operator<(IKeyFrame *p)
+        {
+            assert(p);
+            return this->index() < p->index();
+        }
+        
         //重载类型转换
         virtual operator IFrame*()const 
         {
@@ -127,11 +134,6 @@ namespace Position
         static bool weightComp( int a, int b){
             return a>b;
         }
-
-        static bool lId(ORBKeyFrame* pKF1, ORBKeyFrame* pKF2){
-            return pKF1->mnId<pKF2->mnId;
-        }
-
 
         // The following variables are accesed from only 1 thread or never change (no mutex needed).
     public:

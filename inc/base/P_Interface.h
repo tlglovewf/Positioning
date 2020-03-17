@@ -111,6 +111,8 @@ namespace Position
     public:
         //强制类型转换
         virtual operator IFrame*()const = 0;
+        //重载比较符
+        virtual bool operator<(IKeyFrame *p)=0;
         //帧目标
         virtual TargetVector& getTargets() = 0;
 

@@ -37,7 +37,6 @@ namespace Position
        mpViewer = pviewer;
        assert(mpViewer);
        mpViewer->init();
-    //    mpCurrentTrajPro->setViewer(mpViewer);
        mpViewer->setMap(mpCurrentTrajPro->getMap());
    }
 

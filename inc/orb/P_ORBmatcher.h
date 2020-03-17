@@ -4,10 +4,6 @@
 #ifndef _ORBMATCHER_H_
 #define _ORBMATCHER_H_
 
-#include<vector>
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-
 #include"P_ORBMapPoint.h"
 #include"P_ORBKeyFrame.h"
 #include"P_ORBFrame.h"

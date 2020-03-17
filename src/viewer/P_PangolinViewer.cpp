@@ -251,7 +251,7 @@ namespace Position
         const float mKeyFrameLineWidth = 1.0;
 
         KeyFrameVector  vpKFs(mMap->getAllFrames());
-        sort(vpKFs.begin(),vpKFs.end());
+        
         if(vpKFs.size() < 2)
             return;
 
@@ -293,16 +293,18 @@ namespace Position
 
             glPopMatrix();
         }
-
+        sort(vpKFs.begin(),vpKFs.end());
         glLineWidth(mKeyFrameLineWidth);
         glBegin(GL_LINE_STRIP);
         glColor3f(0.0f,1.0f,0.0f);
+        glVertex3f(0,0,0);
         for(size_t i = 1;i < vpKFs.size(); ++i)
         {
             const Mat& p =  vpKFs[i]->getCameraCenter();
-            glVertex3f(p.at<MATTYPE>(0),
-                       p.at<MATTYPE>(1),
-                       p.at<MATTYPE>(2));
+            
+            glVertex3f((float)p.at<MATTYPE>(0),
+                       (float)p.at<MATTYPE>(1),
+                       (float)p.at<MATTYPE>(2));
         }
         glEnd();
     }

@@ -1,10 +1,6 @@
 
 #include "P_ORBSim3Solver.h"
 
-#include <vector>
-#include <cmath>
-#include <opencv2/core/core.hpp>
-
 #include "P_ORBKeyFrame.h"
 #include "P_ORBmatcher.h"
 

@@ -94,9 +94,6 @@ namespace Position
         PMap       *mpMap;
         u64         mIndex;
 
-        double      mMinDistance;
-        double      mMaxDistance;
-
         bool        mbBad;
         
         KeyFrameMap    mObsers;

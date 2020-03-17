@@ -7,16 +7,21 @@
 #ifndef __PTYPES_H_H_
 #define __PTYPES_H_H_
 
+#include <set>
+#include <map>
+#include <cmath>
+#include <vector>
+#include <memory>
+#include <string>
+#include <iostream>
+#include <iterator>
+#include <algorithm>
 #include <opencv2/core.hpp>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
-#include <vector>
-#include <set>
-#include <map>
-#include <memory>
-#include <string>
-#include <iterator>
+
+
 
 using namespace std;
 using namespace cv;

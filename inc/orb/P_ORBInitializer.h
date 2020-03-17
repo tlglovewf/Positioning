@@ -1,7 +1,7 @@
 #ifndef _ORBINITIALIZER_H_
 #define _ORBINITIALIZER_H_
 
-#include<opencv2/opencv.hpp>
+
 #include "P_ORBFrame.h"
 
 
