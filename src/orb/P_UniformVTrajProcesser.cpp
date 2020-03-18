@@ -20,7 +20,7 @@ namespace Position
         bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
         if(!bVocLoad)
         {
-            PROMT_S("vocabulary path error~!");
+            PROMT_S("vocabulary path error~!");  
             PROMT_V("Failed to open at: ",vocpath.c_str());
             exit(-1);
         }

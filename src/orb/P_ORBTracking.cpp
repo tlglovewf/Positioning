@@ -39,7 +39,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
 
     // Load ORB parameters
 
-    int nFeatures = 3000; 
+    int nFeatures = 2000; 
     float fScaleFactor = 1.3;
     int nLevels = 8;
     int fIniThFAST = 20;
@@ -64,7 +64,7 @@ cv::Mat ORBTracking::track(const FrameData &data)
 {
     mImGray = data._img;
 
-    if(mImGray.channels()==3)
+    if(data._img.channels()==3)
     {
         if(mbRGB)
             cvtColor(mImGray,mImGray,CV_RGB2GRAY);
@@ -79,10 +79,12 @@ cv::Mat ORBTracking::track(const FrameData &data)
             cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
     }
 
+    FrameData tempdata = data;
+    tempdata._img = mImGray;
     if(mState == eTrackNoReady || mState == eTrackNoImage)
-        mCurrentFrame = ORBFrame(data,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
+        mCurrentFrame = ORBFrame(tempdata,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
     else
-        mCurrentFrame = ORBFrame(data,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
+        mCurrentFrame = ORBFrame(tempdata,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
 
     Track();
 
@@ -268,11 +270,14 @@ void ORBTracking::MonocularInitialization()
         }
         PROMTD_S("Try to initialize.")
         // Find correspondences
-        ORBmatcher matcher(0.9,true);
-        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,400);
+        //ORBmatcher matcher(0.9,true);
+        // int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,400);
+
+        ORBmatcher matcher(0.8,true);
+        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,50);
 
         // Check if there are enough correspondences
-        if(nmatches < 90)
+        if(nmatches < 100)
         {
             PROMTD_V("initalize Number of points",nmatches)
             PROMTD_S("not enough for initializing. retry.")
@@ -368,12 +373,15 @@ void ORBTracking::CreateInitialMapMonocular()
 
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
-    cv::Mat tmp = pKFcur->getPose().col(3);
-   //add by tu  初始化第二帧距离第一帧位置
-    float len = sqrt(tmp.at<MATTYPE>(0) * tmp.at<MATTYPE>(0) + 
-                     tmp.at<MATTYPE>(1) * tmp.at<MATTYPE>(1) +
-                     tmp.at<MATTYPE>(2) * tmp.at<MATTYPE>(2));
-    float invMedianDepth = 1.0f / len ;
+//     cv::Mat tmp = pKFcur->getPose().col(3);
+//    //add by tu  初始化第二帧距离第一帧位置
+//     float len = sqrt(tmp.at<MATTYPE>(0) * tmp.at<MATTYPE>(0) + 
+//                      tmp.at<MATTYPE>(1) * tmp.at<MATTYPE>(1) +
+//                      tmp.at<MATTYPE>(2) * tmp.at<MATTYPE>(2));
+//     float invMedianDepth = 1.0f / len ;
+
+    //取点中位深度
+    float invMedianDepth = 1.0f/medianDepth;
 
     if(medianDepth < 0 || pKFcur->TrackedMapPoints(1) < 80)
     {
@@ -507,7 +515,8 @@ bool ORBTracking::TrackWithMotionModel()
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<ORBMapPoint*>(NULL));
 
     // Project points seen in previous frame
-    int th = 50;
+    // int th = 50;
+    int th = 10;
     
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,true);
 

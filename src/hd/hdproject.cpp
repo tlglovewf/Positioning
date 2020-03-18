@@ -77,7 +77,7 @@ bool HdData::loadDatas()
             char filename[255] = {0};
             Position::FrameData framedata;
             Position::PoseData &pose = framedata._pos;
-            
+
             int sqnum;
             int type;
             double x,y,z;
@@ -93,7 +93,9 @@ bool HdData::loadDatas()
             &gs,&sp);
 
             PROMT_V("Load",filename);
-            framedata._name = filename;
+
+            framedata._name = string(filename) + ".jpg";
+
             mFrameDatas.emplace_back(framedata);
         }
         pstfile.close();

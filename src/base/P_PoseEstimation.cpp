@@ -487,13 +487,14 @@ namespace Position
         int nMinGood = max(static_cast<int>(0.9*N),minTriangulated);
 
         int nsimilar = 0;
-        if(nGood1>0.7*maxGood)
+        const float fsigma = 0.85;
+        if(nGood1> fsigma * maxGood)
             nsimilar++;
-        if(nGood2>0.7*maxGood)
+        if(nGood2> fsigma * maxGood)
             nsimilar++;
-        if(nGood3>0.7*maxGood)
+        if(nGood3> fsigma * maxGood)
             nsimilar++;
-        if(nGood4>0.7*maxGood)
+        if(nGood4> fsigma * maxGood)
             nsimilar++;
 
         // If there is not a clear winner or not enough triangulated points reject initialization
@@ -705,7 +706,7 @@ namespace Position
         }
 
 
-        if(secondBestGood<0.75*bestGood && bestParallax>=minParallax && bestGood>minTriangulated && bestGood>0.9*N)
+        if( /*secondBestGood<0.75*bestGood && */ bestParallax>=minParallax && bestGood>minTriangulated && bestGood>0.9*N)
         {
             vR[bestSolutionIdx].copyTo(R21);
             vt[bestSolutionIdx].copyTo(t21);
@@ -884,13 +885,13 @@ namespace Position
         // Compute ratio of scores
         float RH = SH/(SH+SF);
 
-        const float minParallax = 0.0;//最小的时差角度
+        const float minParallax = 0.1;//最小的时差角度
         const float minTriangle = 50; //最少需要多少个点 三角化
 
         bool bol = false;
         BolVector bTriangle;
         // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-        if(RH>0.40)
+        if(RH > 0.40)
             bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
         else //if(pF_HF>0.6)
             bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
@@ -898,8 +899,7 @@ namespace Position
         if(bol)
         {//剔除三角化失败的点
             MatchVector::iterator it = matches.begin();
-            MatchVector::iterator ed = matches.end();
-            for(;it != ed;)
+            for(;it !=  matches.end();)
             {
                 if(!bTriangle[it->queryIdx] )
                 {
@@ -930,6 +930,34 @@ namespace Position
         Mat E = findEssentialMat(mPrePts, mCurPts, mCam.K, RANSAC,
                              0.999, 1.0, mask);
         recoverPose(E, mPrePts, mCurPts, mCam.K, R, t, mask);
+
+        Mat K1 = (Mat_<MATTYPE>(3,4) << 1,0,0,0,
+                                        0,1,0,0,
+                                        0,0,1,0);
+
+        Mat K2 = (Mat_<MATTYPE>(3,4) <<
+                                        R.at<MATTYPE>(0,0),R.at<MATTYPE>(0,1),R.at<MATTYPE>(0,2),t.at<MATTYPE>(0,0) ,
+                                        R.at<MATTYPE>(1,0),R.at<MATTYPE>(1,1),R.at<MATTYPE>(1,2),t.at<MATTYPE>(1,0) ,
+                                        R.at<MATTYPE>(2,0),R.at<MATTYPE>(2,1),R.at<MATTYPE>(2,2),t.at<MATTYPE>(2,0) );
+
+        Mat out;
+        vector<Point2d> pts_1, pts_2;
+        pts_1.reserve(mPrePts.size());
+        pts_2.reserve(mCurPts.size());
+        for(int i = 0;i < mPrePts.size(); ++i)
+        {
+            pts_1.emplace_back(PUtils::Pixel2Cam(mPrePts[i],mCam.K));
+            pts_2.emplace_back(PUtils::Pixel2Cam(mCurPts[i],mCam.K));
+        }
+        cv::triangulatePoints(K1,K2,pts_1,pts_2,out);
+
+        for(size_t i = 0; i < mPrePts.size(); ++i)
+        {
+            Mat x = out.col(i);
+            x = x/x.at<MATTYPE>(3,0);
+            vPts.push_back(Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
+        }
+
         return true;
     }
 

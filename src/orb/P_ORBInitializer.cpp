@@ -91,11 +91,13 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     // Compute ratio of scores
     float RH = SH/(SH+SF);
 
+    const float minpallax = 1.0;
+    const int mintri = 50;
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.40)
-        return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,0.0,50);
+        return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
     else //if(pF_HF>0.6)
-        return ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,0.0,50);
+        return ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
 
     return false;
 }
@@ -700,7 +702,7 @@ bool Initializer::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Ma
     }
 
 
-    if(secondBestGood<0.75*bestGood && bestParallax>=minParallax && bestGood>minTriangulated && bestGood>0.9*N)
+    if(/*secondBestGood<0.75*bestGood && */ bestParallax>=minParallax && bestGood>minTriangulated && bestGood>0.9*N)
     {
         vR[bestSolutionIdx].copyTo(R21);
         vt[bestSolutionIdx].copyTo(t21);
