@@ -116,6 +116,7 @@ namespace Position
         //Current matches in frame
         int mnMatchesInliers;
 
+        int mnSearchRadius;
         //Last Frame, ORBKeyFrame and Relocalisation Info
         ORBKeyFrame* mpLastKeyFrame;
         ORBFrame mLastFrame;

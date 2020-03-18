@@ -24,18 +24,22 @@ using namespace std;
 using namespace cv;
 
 #define SAVEMATCHIMG 1  //是否存储同名点匹配文件
-
+#define WEIYA 1
 int main(void)
 {  
 
+#if WEIYA
 
-    // std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config.yaml"); 
-    // std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
-    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<HdConfig>("../config.yaml"); 
+    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config_weiya.yaml"); 
+    std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+#else
+    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<HdConfig>("../config_hd.yaml"); 
     std::shared_ptr<Position::IData> pData(new HdData(pCfg));
+#endif
+
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
-#if 0
+#if 1
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
     system->run();
