@@ -69,7 +69,6 @@ bool VertexSE3Expmap::write(std::ostream& os) const {
   return os.good();
 }
 
-
 EdgeSE3ProjectXYZ::EdgeSE3ProjectXYZ() : BaseBinaryEdge<2, Vector2d, VertexSBAPointXYZ, VertexSE3Expmap>() {
 }
 

@@ -7,7 +7,6 @@ namespace Position
 
     PData::PData(const std::shared_ptr<IConfig> &pcfg):mpCfg(pcfg)
     {
-        mpChecker = std::unique_ptr<IChecker>(new PChecker());
     }
  
     WeiyaData::WeiyaData(const std::shared_ptr<IConfig> &pcfg):PData(pcfg)
@@ -81,15 +80,13 @@ namespace Position
     //处理数据
     bool WeiyaData::loadDatas()
     {
-        const std::string imgpath = GETCFGVALUE(mpCfg,ImgPath,string);
         const std::string pstpath = GETCFGVALUE(mpCfg,PosPath,string);
         const int         stno    = max(0,GETCFGVALUE(mpCfg,StNo,int));
         const int         edno    = max(stno,GETCFGVALUE(mpCfg,EdNo,int));
 
-        if(imgpath.empty() || pstpath.empty())
+        if(pstpath.empty())
             return false;
             
-        PROMT_V("image path ",imgpath.c_str());
         PROMT_V("postt path ",pstpath.c_str());
 
         try

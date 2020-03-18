@@ -245,7 +245,7 @@ typedef std::vector<float>                  FloatVector;
 typedef pair<int,int>                       MatchPair;
 typedef std::vector<MatchPair>              MatchPairs;
 
-
+typedef vector<string>                      StringVector;
 } // namespace Position
 
 #endif

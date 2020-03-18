@@ -3,7 +3,6 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/stitching.hpp>
 
 #include <vector>
 
@@ -18,6 +17,9 @@
 #include "P_Data.h"
 #include "P_Detector.h"
 #include "P_Writer.h"
+
+#include "hd/hdproject.h"
+
 using namespace std;
 using namespace cv;
 
@@ -25,8 +27,10 @@ int main(void)
 {  
 
 
-    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config.yaml"); 
-    std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+    // std::shared_ptr<Position::IConfig> pCfg = std::make_shared<Position::WeiyaConfig>("../config.yaml"); 
+    // std::shared_ptr<Position::IData> pData(new Position::WeiyaData(pCfg));
+    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<HdConfig>("../config.yaml"); 
+    std::shared_ptr<Position::IData> pData(new HdData(pCfg));
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
 #if 1

@@ -74,6 +74,7 @@ ${PROJECT_SOURCE_DIR}/inc
 ${PROJECT_SOURCE_DIR}/inc/base
 ${PROJECT_SOURCE_DIR}/inc/orb
 ${PROJECT_SOURCE_DIR}/inc/viewer
+${PROJECT_SOURCE_DIR}/inc/gps
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
 )
@@ -118,9 +119,16 @@ src/orb/P_ORBFrame.cpp
 src/orb/P_ORBKeyFrameDatabase.cpp
 src/orb/P_ORBSim3Solver.cpp
 src/orb/P_ORBInitializer.cpp
+src/gps/chframe.cc
+src/gps/global_map.cc
+src/gps/map_point.cc
+src/gps/separate_map.cc
+src/gps/sim3_match.cc
+src/gps/sim3opt.cpp
 src/P_Factory.cpp
 src/P_TrajProSelector.cpp
 src/P_Controller.cpp
+src/hd/hdproject.cpp
 )
 
 #link libs
@@ -149,7 +157,8 @@ else()
          ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.so)
    endif()
 endif()
-
+target_link_libraries(${Positioning}
+${PROJECT_SOURCE_DIR}/ThirdParty/GeographicLib/lib/libGeographic.a)
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 

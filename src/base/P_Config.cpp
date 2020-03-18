@@ -2,9 +2,6 @@
 #include "P_Writer.h"
 namespace Position
 {
-#define PUSH_MAP(V)   mConfigParams.insert(std::make_pair(#V,&V))
-#define READ_VALUE(V) V.read(mSettings,#V)
-#define RELEASE(obj) if(obj){delete obj;obj = NULL;}
     //构造
     PConfig::PConfig():
                       StNo(0), 

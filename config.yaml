@@ -6,19 +6,19 @@
 
 
 #util info
-StNo: 680
-EdNo: 700 #800
+#StNo: 680
+#EdNo: 700 #800
 
 #camera param
-ImgWd:  4096
-ImgHg:  2168
-ImgFps: 0  #0 every frame is keyframe
-ImgRgb: 1  #rgb 1  rbg 0 
+#ImgWd:  4096
+#ImgHg:  2168
+#ImgFps: 0  #0 every frame is keyframe
+#ImgRgb: 1  #rgb 1  rbg 0 
 
 #path 
-ImgPath: "/Users/TLG/Downloads/data/weiya/20191105/gray"
-PosPath: "/Users/TLG/Downloads/data/weiya/20191105/gray/pst.txt"
-OutPath: "/Users/TLG/Downloads/data/weiya/20191105/result/"
+#ImgPath: "/Users/TLG/Downloads/data/weiya/20191105/gray"
+#PosPath: "/Users/TLG/Downloads/data/weiya/20191105/gray/pst.txt"
+#OutPath: "/Users/TLG/Downloads/data/weiya/20191105/result/"
 
 ExtriPath: "/Users/TLG/Downloads/data/weiya/20191105/extrinsics.xml"
 BsPath:    "/Users/TLG/Downloads/data/weiya/20191105/BS_0001_20191105.bs"
@@ -42,3 +42,26 @@ ViewptY:    -10
 ViewptZ:    -0.1
 ViewptF:    800
 
+##################hd project######################
+#hd project
+HdCamFx: 1204.100702372
+HdCamFy: 1210.073064003
+HdCamCx: 731.315716622
+HdCamCy: 548.808242006
+HdCamk1: -0.091441807
+HdCamk2: 0.088316997
+HdCamk3: 0.0
+HdCamp1: 0.000245020
+HdCamp2: -0.000004751
+
+ImgPath: "/Users/TLG/Downloads/data/hd/image"
+PosPath: "/Users/TLG/Downloads/data/hd/camera.txt"
+OutPath: "/Users/TLG/Downloads/data/hd/result/"
+
+ImgWd:  1440
+ImgHg:  1080
+ImgFps: 20  #0 every frame is keyframe
+ImgRgb: 1  #rgb 1  rbg 0 
+
+StNo: 0
+EdNo: 10 #800

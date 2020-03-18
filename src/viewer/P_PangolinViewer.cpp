@@ -293,7 +293,10 @@ namespace Position
 
             glPopMatrix();
         }
-        sort(vpKFs.begin(),vpKFs.end());
+        sort(vpKFs.begin(),vpKFs.end(),[](const IKeyFrame *pl,const IKeyFrame *pr)->bool
+        {//排序
+            return pl->index() < pr->index();
+        });
         glLineWidth(mKeyFrameLineWidth);
         glBegin(GL_LINE_STRIP);
         glColor3f(0.0f,1.0f,0.0f);
@@ -301,7 +304,7 @@ namespace Position
         for(size_t i = 1;i < vpKFs.size(); ++i)
         {
             const Mat& p =  vpKFs[i]->getCameraCenter();
-            
+
             glVertex3f((float)p.at<MATTYPE>(0),
                        (float)p.at<MATTYPE>(1),
                        (float)p.at<MATTYPE>(2));

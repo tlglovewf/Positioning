@@ -17,13 +17,6 @@ namespace Position
 
         ORBKeyFrame(ORBFrame &F, const std::shared_ptr<IMap>& pMap, ORBKeyFrameDatabase* pKFDB);
 
-        //重载比较符
-        virtual bool operator<(IKeyFrame *p)
-        {
-            assert(p);
-            return this->index() < p->index();
-        }
-        
         //重载类型转换
         virtual operator IFrame*()const 
         {

@@ -161,7 +161,9 @@ namespace Position
         //add more ...
 
     };
-
+#define PUSH_MAP(V)   mConfigParams.insert(std::make_pair(#V,&V))
+#define READ_VALUE(V) V.read(mSettings,#V)
+#define RELEASE(obj) if(obj){delete obj;obj = NULL;}
     //维亚配置数据
     class WeiyaConfig : public PConfig
     {
