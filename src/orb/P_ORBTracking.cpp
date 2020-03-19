@@ -276,7 +276,7 @@ void ORBTracking::MonocularInitialization()
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
 
         // Check if there are enough correspondences
-        if(nmatches < 90)
+        if(nmatches < 80)
         {
             PROMTD_V("initalize Number of points",nmatches)
             PROMTD_S("not enough for initializing. retry.")

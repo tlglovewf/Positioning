@@ -25,165 +25,7 @@ using namespace std;
 using namespace cv;
 
 #define SAVEMATCHIMG 0  //是否存储同名点匹配文件
-#define WEIYA 0         //是否为weiya数据
-
-
-//图像像素 相似度计算
-void checkPixelSimilarity(const Mat &img1, const Mat &img2)
-{
-    assert(img1.size() == img2.size());
-
-    int total = 0;
-    for(int i = 0;i < img1.rows; ++i)
-    {
-        const uchar *pimg1 = img1.ptr<uchar>(i);
-        const uchar *pimg2 = img2.ptr<uchar>(i);
-        for(int j = 0; j < img1.cols; ++j)
-        {
-            if(pimg1[j] != pimg2[j])
-                ++total;
-        }
-    }
-    PROMT_V("Image Similarity:",(1.0 - ((float)total / (img1.rows * img1.cols))) * 100 , "%");
-}
-
-//直方图 相似度计算
-void checkHistSimilarity(const Mat &img1, const Mat &img2)
-{
-    assert(img1.size() == img2.size());
-    Mat gimg1 = img1;
-    Mat gimg2 = img2;
-    if(img1.channels() > 1)
-    {
-        cvtColor(gimg1,gimg1,CV_RGB2GRAY);
-    }
-    if(img2.channels() > 1)
-    {
-        cvtColor(gimg2,gimg2,CV_RGB2GRAY);
-    }
-
-    int histsize = 256;
-	float range[] = { 0,256 };
-    const float*histRanges = { range };
-    Mat hist1,hist2;
-	calcHist(&gimg1, 1, 0, Mat(), hist1, 1, &histsize, &histRanges);
-    calcHist(&gimg2, 1, 0, Mat(), hist2, 1, &histsize, &histRanges);
-    assert(hist1.type() == hist2.type());
-    float d = (1 - cv::compareHist(hist1,hist2,CV_COMP_BHATTACHARYYA)) * 100;
-    PROMT_V("Hist Similarity ", d, "%" );
-//  putText(img, std::to_string(basebase), Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 2, CV_AA);
-}
-
-
-
-//直方图均衡
-void imgHistEqualized(const Mat &img, Mat &outimg)
-{
-    if(img.empty())
-        return;
-
-    if(img.channels() > 1)
-    {
-        vector<Mat> channels;
-        Mat blue,green,red;
-        //拆分通道 默认rgb格式
-        cv::split(img,channels);
-        red   = channels.at(0);
-        green = channels.at(1);
-        blue  = channels.at(2);
-        cv::equalizeHist(red  , red)  ;
-        cv::equalizeHist(green, green);
-        cv::equalizeHist(blue , blue) ;
-
-        cv::merge(channels,outimg);
-    }
-    else
-    {//单通道
-        cv::equalizeHist(img,outimg);
-    }
-}
-
-void histDraw(const Mat &img)
-{
-    if(img.empty())
-    {
-        return ;
-    }
-
-    if(img.channels() < 2)
-    {
-        //步骤二：计算直方图
-	    int histsize = 256;
-	    float range[] = { 0,256 };
-        const float*histRanges = { range };
-        Mat hist;
-	    calcHist(&img, 1, 0, Mat(), hist, 1, &histsize, &histRanges);
-        //归一化
-        int hist_h = 400;//直方图的图像的高
-        int hist_w = 512;////直方图的图像的宽
-        int bin_w = hist_w / histsize;//直方图的等级
-        Mat histImage(hist_w, hist_h, CV_8UC3, Scalar(0, 0, 0));//绘制直方图显示的图像
-        normalize(hist, hist, 0, hist_h, NORM_MINMAX, -1, Mat());//归一化
-        //步骤三：绘制直方图（render histogram chart）
-        for (int i = 1; i < histsize; i++)
-        {
-            //绘制直方图
-            line(histImage, Point((i - 1)*bin_w, hist_h - cvRound(hist.at<float>(i - 1))),
-                Point((i)*bin_w, hist_h - cvRound(hist.at<float>(i))), Scalar(255, 0, 0), 2, CV_AA);
-        }
-        PROMTD_S("Hist image display.");
-        imshow("hist",histImage);
-        waitKey(0);
-    }
-    else
-    {
-        vector<Mat> channels;
-        cv::split(img,channels);
-         //步骤二：计算直方图
-	    int histsize = 256;
-	    float range[] = { 0,256 };
-        const float*histRanges = { range };
-        Mat rhist,ghist,bhist;
-	    calcHist(&channels[0], 1, 0, Mat(), rhist, 1, &histsize, &histRanges);
-        calcHist(&channels[1], 1, 0, Mat(), ghist, 1, &histsize, &histRanges);
-        calcHist(&channels[2], 1, 0, Mat(), bhist, 1, &histsize, &histRanges);
-
-        //归一化
-        int hist_h = 400;//直方图的图像的高
-        int hist_w = 512;////直方图的图像的宽
-        int bin_w = hist_w / histsize;//直方图的等级
-        Mat histImage(hist_w, hist_h, CV_8UC3, Scalar(0, 0, 0));//绘制直方图显示的图像
-        normalize(rhist, rhist, 0, hist_h, NORM_MINMAX, -1, Mat());//归一化
-        normalize(ghist, ghist, 0, hist_h, NORM_MINMAX, -1, Mat());//归一化
-        normalize(bhist, bhist, 0, hist_h, NORM_MINMAX, -1, Mat());//归一化
-        //步骤三：绘制直方图（render histogram chart）
-        for (int i = 1; i < histsize; i++)
-        {
-            //绘制r直方图
-            line(histImage, Point((i - 1 )* bin_w, hist_h - cvRound(rhist.at<float>(i - 1))),
-                Point((i)*bin_w, hist_h - cvRound(rhist.at<float>(i))), CV_RGB(255,0,0), 2, CV_AA);
-            //绘制g直方图
-            line(histImage, Point((i - 1) * bin_w, hist_h - cvRound(ghist.at<float>(i - 1))),
-                Point((i)*bin_w, hist_h - cvRound(ghist.at<float>(i))), CV_RGB(0,255,0), 2, CV_AA);
-            //绘制b直方图
-            line(histImage, Point((i - 1) * bin_w, hist_h - cvRound(bhist.at<float>(i - 1))),
-                Point((i)*bin_w, hist_h - cvRound(bhist.at<float>(i))), CV_RGB(0,0,255), 2, CV_AA);
-        }
-        PROMTD_S("Hist image display.");
-        imshow("hist",histImage);
-        waitKey(0);
-    }
-}
-
-
-void combineSave(const Mat &img1, const Mat &img2, const std::string &out)
-{
-    assert(img1.size() == img2.size());
-    Mat outimg;
-    cv::hconcat(img1, img2, outimg);
-    PROMT_V("Save image to ", outimg);
-    imwrite(out,outimg);
-}
+#define WEIYA 1         //是否为weiya数据
 
 
 int main(void)
@@ -202,7 +44,7 @@ int main(void)
 
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
-#if 0
+#if 1
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
     system->run();
@@ -213,9 +55,9 @@ int main(void)
 
     std::shared_ptr<Position::IMap> map(new Position::PMap);
     std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
-    Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.7);
+    Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.9);
     //std::shared_ptr<Position::IPositioning> position(Position::PFactory::CreatePositioning(Position::ePSingleImage, pData->getCamera()));
-    std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));//ePoseEstOrb));
+    std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::/*ePoseEstCV));// */ePoseEstOrb));
     Position::IOptimizer *pOp = Position::IOptimizer::getSingleton();
     Position::CameraParam camparam = pData->getCamera();
     Position::FrameHelper::initParams(GETCFGVALUE(pCfg,ImgWd,int),GETCFGVALUE(pCfg,ImgHg,int),&camparam);
@@ -256,7 +98,20 @@ int main(void)
         {
             assert(pframe);
             assert(curframe);
-            Position::MatchVector matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),GETCFGVALUE(pCfg,SearchScale,int)); 
+            int searchradius = GETCFGVALUE(pCfg,SearchScale,int);
+            Position::MatchVector matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius); 
+
+            if(matches.size() < 80)
+            {
+                matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius * 2);
+            }
+
+            if(matches.size() < 80)
+            {
+                preframe = curframe;
+                PROMT_V("Match point not enough.",matches.size());
+                continue;
+            }
 
             if(matches.empty())
             {
@@ -281,28 +136,36 @@ int main(void)
                 Position::Pt3Vector pts;
                 if(pPoseEst->estimate(R,t, matches,pts))
                 {
-                    PROMTD_V(iter->_name.c_str(),"R\n",R);
-                    PROMTD_V("t\n",t);
+                    // PROMTD_V(iter->_name.c_str(),"R\n",R);
+                    // PROMTD_V("t\n",t);
                     PROMTD_V(iter->_name.c_str(),"matches number",matches.size());
         
                     cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                     R.copyTo(pose.rowRange(0,3).colRange(0,3));
                     t.copyTo(pose.rowRange(0,3).col(3));
-                    // for(auto item : matches)
-                    // {
-                    //     Position::IMapPoint *mppt = map->createMapPoint(pts[item.queryIdx]); 
-                    //     preframe->addMapPoint(mppt,item.queryIdx);
-                    //     curframe->addMapPoint(mppt,item.trainIdx);
-                    // }
+                    for(auto item : matches)
+                    {
+                        const Point3f fpt = pts[item.queryIdx];
+                        Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
+                        mpt = pose.inv() * mpt;
+                        mpt = mpt / mpt.at<MATTYPE>(3);
+                        Position::IMapPoint *mppt = map->createMapPoint(mpt); 
+                        preframe->addMapPoint(mppt,item.queryIdx);
+                        curframe->addMapPoint(mppt,item.trainIdx);
+                    }
                     curframe->setPose( pose * preframe->getPose() );
 
                     // cout << "frame before optimize pose " << endl << pose << endl;
                     // pOp->frameOptimization(curframe,pFeature->getSigma2());
                     // cout << "frame after optimize pose " << endl << curframe->getPose() << endl;
-
-                    preframe = curframe;
-                    curframe = NULL;
                 }
+                else
+                {
+                    //release data
+                    PROMT_V(curframe->getData()._name.c_str(),"estimate failed!");
+                }
+                preframe = curframe;
+                curframe = NULL;
             }
 
         }
