@@ -150,8 +150,11 @@ namespace Position
         virtual void addMapPoint( IMapPoint *pt, int index)
         {
             assert(index > -1 && index < mPts.size());
-            mPts[index] = pt;
-            mPts[index]->addObservation(this,index);
+            if(!mPts[index])
+            {
+                mPts[index] = pt;
+                mPts[index]->addObservation(this,index);     
+            }
         }
         //是否有对应特特征点
         virtual bool hasMapPoint(int index) 

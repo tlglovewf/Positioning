@@ -157,7 +157,8 @@ bool   FrameHelper::mInit = false;
         {
             for(auto item : mPts)
             {
-                item->rmObservation(this);
+                if(NULL != item)
+                    item->rmObservation(this);
             }
             mpFrame->release();
         }   

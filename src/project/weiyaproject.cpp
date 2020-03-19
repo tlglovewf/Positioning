@@ -98,7 +98,7 @@ bool WeiyaData::loadDatas()
         //read headline
         getline(pstfile, pststr);
         //load img pst file
-        while (!pstfile.eof() && (allimg || index++ <= edno))
+        while (!pstfile.eof() && (allimg || index++ < edno))
         {
             getline(pstfile, pststr);
             if(index < stno)

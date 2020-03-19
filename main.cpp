@@ -24,13 +24,28 @@
 using namespace std;
 using namespace cv;
 
-#define SAVEMATCHIMG 0  //是否存储同名点匹配文件
-#define WEIYA 1         //是否为weiya数据
-
+#define SAVEMATCHIMG    0  //是否存储同名点匹配文件
+#define WEIYA           1  //是否为weiya数据
+#define USECONTROLLER   0  //是否启用定位框架
 
 int main(void)
 {  
 
+    // Mat t = Mat::eye(4,4,CV_64F);
+
+    // Mat pt = (Mat_<double>(4,1) << -13.19,-8.14,31.235,1.0);
+
+    // cout << pt << endl;
+    // cout << "-" << endl;
+
+    // cout << t << endl << "-"<<endl;
+    // cout << t.inv() << endl;
+    // cout << " -- " << endl;
+    // pt = t.inv() * pt;
+    // pt = pt/pt.at<double>(3);
+    // cout << pt << endl;
+
+    // return 0;
 #if WEIYA
 
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config_weiya.yaml"); 
@@ -44,7 +59,7 @@ int main(void)
 
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
-#if 1
+#if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
     system->run();
@@ -143,21 +158,36 @@ int main(void)
                     cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                     R.copyTo(pose.rowRange(0,3).colRange(0,3));
                     t.copyTo(pose.rowRange(0,3).col(3));
+                    Mat wdpose = pose * preframe->getPose() ;
+                    curframe->setPose(wdpose);
                     for(auto item : matches)
                     {
-                        const Point3f fpt = pts[item.queryIdx];
-                        Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
-                        mpt = pose.inv() * mpt;
-                        mpt = mpt / mpt.at<MATTYPE>(3);
-                        Position::IMapPoint *mppt = map->createMapPoint(mpt); 
-                        preframe->addMapPoint(mppt,item.queryIdx);
+                        Position::IMapPoint *mppt = NULL;
+                        if(!preframe->hasMapPoint(item.queryIdx))
+                        {
+                            const Point3f fpt = pts[item.queryIdx];
+                            Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
+                            mpt = preframe->getPose().inv() * mpt;
+                            mpt = mpt / mpt.at<MATTYPE>(3);
+                            mppt = map->createMapPoint(mpt); 
+                            preframe->addMapPoint(mppt,item.queryIdx);
+                            
+                        }
+                        else
+                        {
+                            mppt = preframe->getWorldPoints()[item.queryIdx];
+                        }
                         curframe->addMapPoint(mppt,item.trainIdx);
                     }
-                    curframe->setPose( pose * preframe->getPose() );
 
-                    // cout << "frame before optimize pose " << endl << pose << endl;
-                    // pOp->frameOptimization(curframe,pFeature->getSigma2());
-                    // cout << "frame after optimize pose " << endl << curframe->getPose() << endl;
+                    cout << "frame before optimize pose " << endl << curframe->getPose() << endl;
+                    auto temps = curframe->getWorldPoints();
+                    cout << "frame mppts size: " << std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
+                    {
+                        return item != NULL;
+                    }) << endl;
+                    pOp->frameOptimization(curframe,pFeature->getSigma2());
+                    cout << "frame after optimize pose " << endl << curframe->getPose() << endl;
                 }
                 else
                 {
@@ -171,11 +201,11 @@ int main(void)
         }
         
     }
-    // // global optimization
-    // Position::KeyFrameVector keyframes(map->getAllFrames());
-    // Position::MapPtVector    mappts(map->getAllMapPts());
-    // bool pBstop = false;
-    // pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
+    // global optimization
+    Position::KeyFrameVector keyframes(map->getAllFrames());
+    Position::MapPtVector    mappts(map->getAllMapPts());
+    bool pBstop = false;
+    pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
 
     Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg);
     pv->setMap(map);
