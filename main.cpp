@@ -30,24 +30,7 @@ using namespace cv;
 
 int main(void)
 {  
-
-    // Mat t = Mat::eye(4,4,CV_64F);
-
-    // Mat pt = (Mat_<double>(4,1) << -13.19,-8.14,31.235,1.0);
-
-    // cout << pt << endl;
-    // cout << "-" << endl;
-
-    // cout << t << endl << "-"<<endl;
-    // cout << t.inv() << endl;
-    // cout << " -- " << endl;
-    // pt = t.inv() * pt;
-    // pt = pt/pt.at<double>(3);
-    // cout << pt << endl;
-
-    // return 0;
 #if WEIYA
-
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config_weiya.yaml"); 
     std::shared_ptr<Position::IData> pData(new WeiyaData(pCfg));
 #else
@@ -72,7 +55,7 @@ int main(void)
     std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
     Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.9);
     //std::shared_ptr<Position::IPositioning> position(Position::PFactory::CreatePositioning(Position::ePSingleImage, pData->getCamera()));
-    std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::/*ePoseEstCV));// */ePoseEstOrb));
+    std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
     Position::IOptimizer *pOp = Position::IOptimizer::getSingleton();
     Position::CameraParam camparam = pData->getCamera();
     Position::FrameHelper::initParams(GETCFGVALUE(pCfg,ImgWd,int),GETCFGVALUE(pCfg,ImgHg,int),&camparam);

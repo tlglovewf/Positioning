@@ -172,9 +172,9 @@ public:
     //获取反对称矩阵
     static inline cv::Mat antisymMat(const cv::Mat &t)
     {
-        cv::Mat t_x = (cv::Mat_<double>(3, 3) << 0, -t.at<double>(2, 0), t.at<double>(1, 0),
-                       t.at<double>(2, 0), 0, -t.at<double>(0, 0),
-                       -t.at<double>(1, 0), t.at<double>(0, 0), 0);
+        cv::Mat t_x = (cv::Mat_<MATTYPE>(3, 3) << 0, -t.at<MATTYPE>(2, 0), t.at<MATTYPE>(1, 0),
+                                                  t.at<MATTYPE>(2, 0), 0, -t.at<MATTYPE>(0, 0),
+                                                 -t.at<MATTYPE>(1, 0), t.at<MATTYPE>(0, 0), 0);
         return t_x;
     }
     //计算本质矩阵
@@ -234,8 +234,8 @@ public:
     static inline cv::Point2d Pixel2Cam(const cv::Point2d &p, const cv::Mat &K)
     {
         return cv::Point2d(
-            (p.x - K.at<double>(0, 2)) / K.at<double>(0, 0),
-            (p.y - K.at<double>(1, 2)) / K.at<double>(1, 1));
+            (p.x - K.at<MATTYPE>(0, 2)) / K.at<MATTYPE>(0, 0),
+            (p.y - K.at<MATTYPE>(1, 2)) / K.at<MATTYPE>(1, 1));
     }
 
     //y = (-a*x - c) / b   计算y值
@@ -355,7 +355,7 @@ public:
 
         up = Normalize(up);
 
-        cv::Mat trans = (Mat_<double>(4,4) << pitch.x,up.x,yaw.x,lft_xyz.x,
+        cv::Mat trans = (Mat_<MATTYPE>(4,4) << pitch.x,up.x,yaw.x,lft_xyz.x,
                                               pitch.y,up.y,yaw.y,lft_xyz.y,
                                               pitch.z,up.z,yaw.z,lft_xyz.z,
                                               0,0,0,1);

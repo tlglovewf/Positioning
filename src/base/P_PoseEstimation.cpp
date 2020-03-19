@@ -925,7 +925,8 @@ namespace Position
         initParams(matches);
         if(mPrePts.empty() || (mPrePts.size() != mCurPts.size()))
             return false;
-
+        //三角化的点要与第一帧的特征数一致
+        vPts.resize(mPre->getKeySize());
         Mat mask;
         Mat E = findEssentialMat(mPrePts, mCurPts, mCam.K, RANSAC,
                              0.999, 1.0, mask);
@@ -950,12 +951,13 @@ namespace Position
             pts_2.emplace_back(PUtils::Pixel2Cam(mCurPts[i],mCam.K));
         }
         cv::triangulatePoints(K1,K2,pts_1,pts_2,out);
-
+        assert(mvMatches12.size() == mPrePts.size());
         for(size_t i = 0; i < mPrePts.size(); ++i)
         {
             Mat x = out.col(i);
             x = x/x.at<MATTYPE>(3,0);
-            vPts.push_back(Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
+            
+            vPts[ mvMatches12[i].first ] = (Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
         }
 
         return true;
@@ -970,6 +972,7 @@ namespace Position
         {
             mPrePts.push_back(mPre->getKeys()[item.queryIdx].pt);
             mCurPts.push_back(mCur->getKeys()[item.trainIdx].pt);
+            mvMatches12.push_back(std::make_pair(item.queryIdx,item.trainIdx));
         }
     }
 
