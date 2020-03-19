@@ -952,12 +952,31 @@ namespace Position
         }
         cv::triangulatePoints(K1,K2,pts_1,pts_2,out);
         assert(mvMatches12.size() == mPrePts.size());
+        BolVector bols;
+        bols.resize(vPts.size());
         for(size_t i = 0; i < mPrePts.size(); ++i)
         {
             Mat x = out.col(i);
             x = x/x.at<MATTYPE>(3,0);
-            
+            if(x.at<MATTYPE>(2) < 0)
+            {//剔除负点
+                bols[mvMatches12[i].first] = true;
+                continue;
+            }
             vPts[ mvMatches12[i].first ] = (Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
+        }
+
+        MatchVector::iterator it = matches.begin();
+        for(;it !=  matches.end();)
+        {//剔除错误点
+            if(!bols[it->queryIdx] )
+            {
+                it = matches.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
         }
 
         return true;

@@ -24,8 +24,8 @@
 using namespace std;
 using namespace cv;
 
-#define SAVEMATCHIMG    0  //是否存储同名点匹配文件
-#define WEIYA           1  //是否为weiya数据
+#define SAVEMATCHIMG    1  //是否存储同名点匹配文件
+#define WEIYA           0  //是否为weiya数据
 #define USECONTROLLER   0  //是否启用定位框架
 
 int main(void)
@@ -134,8 +134,6 @@ int main(void)
                 Position::Pt3Vector pts;
                 if(pPoseEst->estimate(R,t, matches,pts))
                 {
-                    // PROMTD_V(iter->_name.c_str(),"R\n",R);
-                    // PROMTD_V("t\n",t);
                     PROMTD_V(iter->_name.c_str(),"matches number",matches.size());
         
                     cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
@@ -163,14 +161,14 @@ int main(void)
                         curframe->addMapPoint(mppt,item.trainIdx);
                     }
 
-                    cout << "frame before optimize pose " << endl << curframe->getPose() << endl;
                     auto temps = curframe->getWorldPoints();
-                    cout << "frame mppts size: " << std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
+                    PROMTD_V("frame mppts size: " ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
                     {
                         return item != NULL;
-                    }) << endl;
+                    }));
+                    PROMTD_V(curframe->getData()._name.c_str(),"Begin Pose Op");
                     pOp->frameOptimization(curframe,pFeature->getSigma2());
-                    cout << "frame after optimize pose " << endl << curframe->getPose() << endl;
+                    PROMTD_V(curframe->getData()._name.c_str(),"Pose Op Finished");
                 }
                 else
                 {
@@ -188,7 +186,9 @@ int main(void)
     Position::KeyFrameVector keyframes(map->getAllFrames());
     Position::MapPtVector    mappts(map->getAllMapPts());
     bool pBstop = false;
-    pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
+    // PROMT_S("Begin global optimization");
+    // pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
+    // PROMT_S("End Optimization.");
 
     Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg);
     pv->setMap(map);
