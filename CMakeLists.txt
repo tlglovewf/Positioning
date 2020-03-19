@@ -89,7 +89,7 @@ set(Positioning "position")
 add_library(${Positioning} SHARED
 src/base/P_Config.cpp
 src/base/P_Frame.cpp
-src/base/P_Data.cpp
+src/base/P_Utils.cpp
 src/base/P_Writer.cpp
 src/base/P_Detector.cpp
 src/base/P_Checker.cpp
@@ -128,7 +128,8 @@ src/gps/sim3opt.cpp
 src/P_Factory.cpp
 src/P_TrajProSelector.cpp
 src/P_Controller.cpp
-src/hd/hdproject.cpp
+src/project/hdproject.cpp
+src/project/weiyaproject.cpp
 )
 
 #link libs

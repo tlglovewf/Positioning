@@ -164,19 +164,6 @@ namespace Position
 #define PUSH_MAP(V)   mConfigParams.insert(std::make_pair(#V,&V))
 #define READ_VALUE(V) V.read(mSettings,#V)
 #define RELEASE(obj) if(obj){delete obj;obj = NULL;}
-    //维亚配置数据
-    class WeiyaConfig : public PConfig
-    {
-    public:
-        WeiyaConfig(const std::string &path);
-    protected:
-        //其他信息加载
-        virtual void loadmore();
-    protected:
-
-        StringConfigParam ExtriPath;  //相机参数文件路径
-        StringConfigParam BsPath;     //安置参数文件路径
-    };
 }
 
 #endif

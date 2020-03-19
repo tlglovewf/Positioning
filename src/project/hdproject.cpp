@@ -1,17 +1,26 @@
-#include "hd/hdproject.h"
+#include "project/hdproject.h"
 #include "P_Writer.h"
 
 HdConfig::HdConfig(const std::string &path):
 HdCamFx(0),
 HdCamFy(0),
 HdCamCx(0),
-HdCamCy(0)
+HdCamCy(0),
+HdCamk1(0),
+HdCamk2(0),
+HdCamk3(0),
+HdCamp1(0),
+HdCamp2(0)
 {
     PUSH_MAP(HdCamFx);
     PUSH_MAP(HdCamFy);
     PUSH_MAP(HdCamCx);
     PUSH_MAP(HdCamCy);
-
+    PUSH_MAP(HdCamk1);
+    PUSH_MAP(HdCamk2);
+    PUSH_MAP(HdCamk3);
+    PUSH_MAP(HdCamp1);
+    PUSH_MAP(HdCamp2);
     load(path);
 }
 
@@ -22,11 +31,17 @@ void HdConfig::loadmore()
     READ_VALUE(HdCamFy);
     READ_VALUE(HdCamCx);
     READ_VALUE(HdCamCy);
+    READ_VALUE(HdCamk1);
+    READ_VALUE(HdCamk2);
+    READ_VALUE(HdCamk3);
+    READ_VALUE(HdCamp1);
+    READ_VALUE(HdCamp2);
 }
 
     
 HdData::HdData(const std::shared_ptr<Position::IConfig> &pcfg):PData(pcfg)
 {
+    assert(dynamic_cast<HdConfig*>(pcfg.get()));
     float fx = GETCFGVALUE(pcfg,HdCamFx,float);
     float fy = GETCFGVALUE(pcfg,HdCamFx,float);
     float cx = GETCFGVALUE(pcfg,HdCamCx,float);
@@ -38,6 +53,25 @@ HdData::HdData(const std::shared_ptr<Position::IConfig> &pcfg):PData(pcfg)
     mCamera.rgb = 1;
 
     mCamera.fps = 20;
+
+    float k1 = GETCFGVALUE(pcfg, HdCamk1,float);
+    float k2 = GETCFGVALUE(pcfg, HdCamk2,float);
+    float p1 = GETCFGVALUE(pcfg, HdCamp1,float);
+    float p2 = GETCFGVALUE(pcfg, HdCamp2,float);
+    float k3 = GETCFGVALUE(pcfg, HdCamk3,float);
+
+    mCamera.D = cv::Mat(4,1,MATCVTYPE);
+
+    mCamera.D.at<MATTYPE>(0) = k1;
+    mCamera.D.at<MATTYPE>(1) = k2;
+    mCamera.D.at<MATTYPE>(2) = p1;
+    mCamera.D.at<MATTYPE>(3) = p2;
+
+    if(fabs(k3) < 1e-6)
+    {
+        mCamera.D.resize(5);
+        mCamera.D.at<MATTYPE>(4) = k3;
+    }
 }
 
 //预处理数据
@@ -92,7 +126,7 @@ bool HdData::loadDatas()
             &r31,&r32,&r33,
             &gs,&sp);
 
-            PROMT_V("Load",filename);
+            // PROMTD_V("Load",filename);
 
             framedata._name = string(filename) + ".jpg";
 

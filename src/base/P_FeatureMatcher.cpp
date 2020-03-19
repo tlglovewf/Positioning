@@ -3,10 +3,10 @@
 namespace Position
 {
 #define HISTO_LENGTH    30
-#define TH_LOW          50
-#define TH_HIGH         100
+#define TH_LOW          60  //50
+#define TH_HIGH         120 //100
 
-#define SEARCHLEVEL     0
+#define SEARCHLEVEL     0    //匹配搜索层级
 
     //计算orb描述子的汉明距离
     static int DescriptorDistance(const cv::Mat &a, const cv::Mat &b)

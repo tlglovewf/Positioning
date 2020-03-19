@@ -98,21 +98,4 @@ namespace Position
             loadmore();
         }
     }
-
-    WeiyaConfig::WeiyaConfig(const std::string &path):
-                               ExtriPath(""),
-                               BsPath("")
-    {
-        PUSH_MAP(ExtriPath);
-        PUSH_MAP(BsPath);
-
-
-        load(path);
-    }
-
-    void WeiyaConfig::loadmore()
-    {
-        READ_VALUE(ExtriPath);
-        READ_VALUE(BsPath);
-    }
 }

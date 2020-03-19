@@ -18,6 +18,12 @@ class HdConfig : public Position::PConfig
         Position::FloatConfigParam    HdCamFy;
         Position::FloatConfigParam    HdCamCx;
         Position::FloatConfigParam    HdCamCy;
+        Position::FloatConfigParam    HdCamk1;
+        Position::FloatConfigParam    HdCamk2;
+        Position::FloatConfigParam    HdCamk3;
+        Position::FloatConfigParam    HdCamp1;
+        Position::FloatConfigParam    HdCamp2;
+
 };
 
 class HdData : public Position::PData

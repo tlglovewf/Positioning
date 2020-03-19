@@ -23,8 +23,8 @@ ImgHg:  1080
 ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
-StNo: 0
-EdNo: 10 #800
+StNo: 550
+EdNo: 600 
 
 ExtriPath: "/Users/TLG/Downloads/data/weiya/20191105/extrinsics.xml"
 BsPath:    "/Users/TLG/Downloads/data/weiya/20191105/BS_0001_20191105.bs"
@@ -34,9 +34,9 @@ VocPath: "/Users/TLG/Documents/Positioning/Vocabulary/ORBvoc.txt"
 
 #feature params
 FeatureCnt:   2000
-PyramidLevel: 4
-ScaleFactor:  1.1
-SearchScale:  50
+PyramidLevel: 8
+ScaleFactor:  1.3
+SearchScale:  20
 
 
 #Visualization

@@ -15,7 +15,10 @@ namespace Position
     class PData : public IData
     {
     public:
-        PData(const std::shared_ptr<IConfig> &pcfg);
+        PData(const std::shared_ptr<IConfig> &pcfg):mpCfg(pcfg)
+        {
+            //add more
+        }
         //预处理数据
         virtual bool loadDatas()
         {
@@ -58,21 +61,6 @@ namespace Position
         FrameDataVector             mFrameDatas;
         CameraParam                 mCamera;
     };
-
-    //维亚数据处理
-    class WeiyaData : public PData
-    {
-    public:
-        WeiyaData(const std::shared_ptr<IConfig> &pcfg);
-        //预处理数据
-        virtual bool loadDatas();
-
-        //根据图像名取时间(天秒)
-        virtual double getTimeFromName(const std::string &name);
-    };
-
-
-
     // add more ..
 } // namespace Position
 

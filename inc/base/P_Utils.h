@@ -11,7 +11,7 @@
 
 #include "P_Types.h"
 #include "P_CoorTrans.h"
-
+#include "P_Writer.h"
 namespace Position
 {
 
@@ -133,44 +133,7 @@ public:
                               const PoseData &curdata,
                               const Mat cam2imuR,
                               const Mat cam2imuT,
-                              Mat &R, Mat &t)
-    {
-        const BLHCoordinate &blht1 = predata.pos;
-        const BLHCoordinate &blht2 = curdata.pos;
-
-        //计算imu到enu 转换矩阵
-        cv::Mat Rimu2Enu1 = PCoorTrans::IMU_to_ENU(-predata._yaw, predata._pitch, predata._roll);
-        cv::Mat Rimu2Enu2 = PCoorTrans::IMU_to_ENU(-curdata._yaw, curdata._pitch, curdata._roll);
-
-        //计算xyz转到enu 转换矩阵
-        cv::Mat XYZ2Enu1 = PCoorTrans::XYZ_to_ENU(blht1.lat, blht1.lon);
-        cv::Mat XYZ2Enu2 = PCoorTrans::XYZ_to_ENU(blht2.lat, blht2.lon);
-
-        //imu到 xyz转换矩阵
-        cv::Mat Rimu2xyzt1 = XYZ2Enu1.t() * Rimu2Enu1;
-        cv::Mat Rimu2xyzt2 = XYZ2Enu2.t() * Rimu2Enu2;
-
-        Point3d xyzt1;
-        Point3d xyzt2;
-        //获取xyz坐标
-        xyzt1 = PCoorTrans::BLH_to_XYZ(blht1);
-        xyzt2 = PCoorTrans::BLH_to_XYZ(blht2);
-        cv::Mat pt1 = (cv::Mat_<double>(3, 1) << xyzt1.x, xyzt1.y, xyzt1.z);
-        cv::Mat pt2 = (cv::Mat_<double>(3, 1) << xyzt2.x, xyzt2.y, xyzt2.z);
-
-        //相对旋转矩阵
-        R = cam2imuR.t() * Rimu2xyzt2.t() * Rimu2xyzt1 * cam2imuR;
-
-        //计算cur相机在xyz坐标系中坐标
-        cv::Mat curCamPos = Rimu2xyzt2 * cam2imuT + pt2;
-        //计算以pre为原点建立的imu坐标系,pt2相机的位置
-        cv::Mat imut1Pcam = Rimu2xyzt1.t() * (curCamPos - pt1);
-        //计算以pre为原点建立的cam坐标系,pt2相机的位置
-        cv::Mat camt1Pcam = cam2imuR.t() * imut1Pcam - cam2imuR.t() * cam2imuT;
-
-        //以cam2的位置 反推t  这里r * cam2 只是计算方向
-        t = -R * camt1Pcam; 
-    }
+                              Mat &R, Mat &t);
 
     /* 通过帧间R、t推算绝对坐标
      *
@@ -180,50 +143,31 @@ public:
                                const Mat &cam2imuR,
                                const Mat &cam2imuT,
                                BLHCoordinate &blh,
-                               const PoseData &realdst)
-    {
-        const BLHCoordinate &ogngps = origin.pos;
-
-        const Point3d xyz = PCoorTrans::BLH_to_XYZ(ogngps);
-
-        const Mat m_xyz = (Mat_<double>(3, 1) << xyz.x, xyz.y, xyz.z);
-
-        Mat imu2enu = PCoorTrans::IMU_to_ENU(-origin._yaw, origin._pitch, origin._roll);
-
-        const Mat xyz2enu = PCoorTrans::XYZ_to_ENU(ogngps.lat, ogngps.lon);
-
-        //imu坐标系->xyz坐标系旋转矩阵
-        Mat imu2xyz = xyz2enu.inv() * imu2enu;
-        //计算pre相机坐标系 cur相机位置
-        Mat dstcampt = -R.inv() * t;
-        //相机坐标系->imu坐标系
-        Mat dstimupt = cam2imuR * dstcampt + cam2imuT;
-        //imu坐标系->xyz坐标系
-        Mat dstxyzpt = imu2xyz * dstimupt + m_xyz;
-        //cam位置转到imu位置
-        dstxyzpt = dstxyzpt - imu2xyz * cam2imuT;
-
-        Point3d dstxyz(dstxyzpt.at<double>(0, 0),
-                       dstxyzpt.at<double>(1, 0),
-                       dstxyzpt.at<double>(2, 0));
-
-        blh = PCoorTrans::XYZ_to_BLH(dstxyz);
-
-        if (realdst._t > 0)
-        {
-            Point3d orngauss = PCoorTrans::BLH_to_GaussPrj(realdst.pos);
-            Point3d dstgauss = PCoorTrans::BLH_to_GaussPrj(blh);
-
-            cout << "dif: "
-                 << orngauss.x - dstgauss.x << " "
-                 << orngauss.y - dstgauss.y << " "
-                 << orngauss.z - dstgauss.z << endl;
-        }
-    }
+                               const PoseData &realdst);
 
     /****************************************************
      **********************视觉相关***********************
      ****************************************************/
+    //图像像素 相似度计算
+    static void CheckPixelSimilarity(const Mat &img1, const Mat &img2);
+
+    //直方图 相似度计算
+    static void CheckHistSimilarity(const Mat &img1, const Mat &img2);
+
+    //直方图均衡
+    static void ImageHistEqualized(const Mat &img, Mat &outimg);
+    //绘制直方图
+    static void HistDraw(const Mat &img);
+
+    //平行合并保存
+    static void CombineSave(const Mat &img1, const Mat &img2, const std::string &out)
+    {
+        assert(img1.size() == img2.size());
+        Mat outimg;
+        cv::hconcat(img1, img2, outimg);
+        PROMT_V("Save image to ", outimg);
+        imwrite(out,outimg);
+    }
 
     //获取反对称矩阵
     static inline cv::Mat antisymMat(const cv::Mat &t)
@@ -392,8 +336,8 @@ public:
         return pt / cv::norm(pt);
     }
 
-    /* get item BLH from two frame gps 
-    */
+     /* get item BLH from two frame gps 
+     */
      static cv::Mat CalcTransBLH(const PoseData &lft, const PoseData &rgt)
      {
         Point3d lft_xyz = PCoorTrans::BLH_to_XYZ(lft.pos);
