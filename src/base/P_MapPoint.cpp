@@ -1,4 +1,5 @@
 #include "P_MapPoint.h"
+#include "P_Map.h"
 
 namespace Position
 {
@@ -16,5 +17,17 @@ namespace Position
     {
         mPose = (Mat_<MATTYPE>(3,1) << pt.x,pt.y,pt.z);
         mIndex = index;
+    }
+    //设置坏点
+    void PMapPoint::setBadFlag() 
+    {
+        for(KeyFrameMap::iterator mit=mObsers.begin(), mend=mObsers.end(); mit!=mend; mit++)
+        {
+            IKeyFrame* pKF = mit->first;
+            pKF->rmMapPoint(mit->second);
+        }
+        mObsers.clear();
+        mpMap->rmMapPoint(this);
+        mbBad = true;
     }
 }

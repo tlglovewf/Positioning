@@ -72,10 +72,8 @@ namespace Position
                 return -1;
         }
         //设置坏点
-        virtual void setBadFlag() 
-        {
-            mbBad = true;
-        }
+        virtual void setBadFlag();
+        
         //返回是否为坏点
         virtual bool isBad() 
         {

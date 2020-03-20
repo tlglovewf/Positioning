@@ -114,7 +114,7 @@ namespace Position
             {
                 g2o::EdgeSE3ProjectXYZOnlyPose* e = vpEdgesMono[i];
 
-                // const size_t idx = vnIndexEdgeMono[i];
+                const size_t idx = vnIndexEdgeMono[i];
 
                 // if(pFrame->mvbOutlier[idx])
                 // {
@@ -174,7 +174,7 @@ namespace Position
             optimizer.setForceStopFlag(pbStopFlag);
 
         u64  maxKFid = 0;
-
+        //遍历关键帧 并插入到优化点
         for(size_t i = 0; i < keyframes.size();++i)
         {
             IKeyFrame *pKF = keyframes[i];
@@ -192,7 +192,7 @@ namespace Position
 
         //卡方测试参数
         const float thHuber2D = sqrt(CHITH);
-
+        //遍历地图点 并插入到优化点
         for(size_t i = 0; i < mappts.size(); ++i)
         {
             IMapPoint *pMP = mappts[i];
@@ -204,14 +204,14 @@ namespace Position
             vPoint->setId(id);
             vPoint->setMarginalized(true);
             optimizer.addVertex(vPoint);
-
+            //获取能观测到该点的关键帧
             const KeyFrameMap& observations = pMP->getObservations();
 
             int nEdges = 0;
 
             KeyFrameMap::const_iterator it = observations.begin();
             KeyFrameMap::const_iterator ed = observations.end();
-
+            //遍历观测帧,并建立边联系
             for(; it != ed; ++it )
             {
                 IKeyFrame *pKF = it->first;
@@ -221,12 +221,12 @@ namespace Position
                 nEdges++;
 
                 const cv::KeyPoint &kp = IFRAME(pKF)->getKeys()[it->second];
-
+                //根据关联帧简历边
                 Eigen::Matrix<double,2,1> obs;
                 obs << kp.pt.x, kp.pt.y;
 
                 g2o::EdgeSE3ProjectXYZ *e = new g2o::EdgeSE3ProjectXYZ();
-
+                //建立地图点 与对应帧的点联系 
                 e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));
                 e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->index())));
                 e->setMeasurement(obs);

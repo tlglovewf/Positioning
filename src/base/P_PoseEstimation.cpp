@@ -969,7 +969,7 @@ namespace Position
         MatchVector::iterator it = matches.begin();
         for(;it !=  matches.end();)
         {//剔除错误点
-            if(!bols[it->queryIdx] )
+            if(bols[it->queryIdx] )
             {
                 it = matches.erase(it);
             }

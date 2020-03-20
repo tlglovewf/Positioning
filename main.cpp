@@ -24,7 +24,7 @@
 using namespace std;
 using namespace cv;
 
-#define SAVEMATCHIMG    1  //是否存储同名点匹配文件
+#define SAVEMATCHIMG    0  //是否存储同名点匹配文件
 #define WEIYA           0  //是否为weiya数据
 #define USECONTROLLER   0  //是否启用定位框架
 
@@ -53,7 +53,7 @@ int main(void)
 
     std::shared_ptr<Position::IMap> map(new Position::PMap);
     std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
-    Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.9);
+    Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.4);
     //std::shared_ptr<Position::IPositioning> position(Position::PFactory::CreatePositioning(Position::ePSingleImage, pData->getCamera()));
     std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
     Position::IOptimizer *pOp = Position::IOptimizer::getSingleton();
@@ -72,9 +72,9 @@ int main(void)
     for(;iter != ed; ++iter)
     {
         Mat img = imread(imgpath + iter->_name ,IMREAD_UNCHANGED);
-        Mat oimg = img;
+        Mat oimg ;// = img;
         assert(!img.empty());
-        // cv::undistort(img,oimg,camparam.K,camparam.D);
+        cv::undistort(img,oimg,camparam.K,camparam.D);
         // imgHistEqualized(img,oimg);
         if(oimg.channels() > 1)
         {
@@ -99,17 +99,17 @@ int main(void)
             int searchradius = GETCFGVALUE(pCfg,SearchScale,int);
             Position::MatchVector matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius); 
 
-            if(matches.size() < 80)
-            {
-                matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius * 2);
-            }
+            // if(matches.size() < 80)
+            // {
+            //     matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius * 2);
+            // }
 
-            if(matches.size() < 80)
-            {
-                preframe = curframe;
-                PROMT_V("Match point not enough.",matches.size());
-                continue;
-            }
+            // if(matches.size() < 80)
+            // {
+            //     preframe = curframe;
+            //     PROMT_V("Match point not enough.",matches.size());
+            //     continue;
+            // }
 
             if(matches.empty())
             {
@@ -132,9 +132,10 @@ int main(void)
                 pPoseEst->setFrames(IFRAME(preframe),IFRAME(curframe));
                 Mat R,t;
                 Position::Pt3Vector pts;
+                PROMTD_V(iter->_name.c_str(),"origin matches number ",matches.size());
                 if(pPoseEst->estimate(R,t, matches,pts))
                 {
-                    PROMTD_V(iter->_name.c_str(),"matches number",matches.size());
+                    PROMTD_V(iter->_name.c_str(),"estimate matches number ",matches.size());
         
                     cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                     R.copyTo(pose.rowRange(0,3).colRange(0,3));
@@ -186,9 +187,9 @@ int main(void)
     Position::KeyFrameVector keyframes(map->getAllFrames());
     Position::MapPtVector    mappts(map->getAllMapPts());
     bool pBstop = false;
-    // PROMT_S("Begin global optimization");
-    // pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
-    // PROMT_S("End Optimization.");
+    PROMT_S("Begin global optimization");
+    pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
+    PROMT_S("End Optimization.");
 
     Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg);
     pv->setMap(map);
