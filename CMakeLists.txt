@@ -103,6 +103,7 @@ src/base/P_Positioning.cpp
 src/base/P_Feature.cpp
 src/base/P_BlockMatcher.cpp
 src/base/P_FeatureMatcher.cpp
+src/base/P_MultiVisionTrajProcesser.cpp
 src/viewer/P_PangolinViewer.cpp
 src/orb/P_ORBFeature.cpp
 src/orb/P_UniformVTrajProcesser.cpp

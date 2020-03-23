@@ -18,12 +18,12 @@ namespace Position
     class ORBKeyFrameDatabase;
 
     //匀速跟踪
-    class UniformVTrajProcesser : public PTrajProcesser
+    class PUniformVTrajProcesser : public PTrajProcesser
     {
     public:
         //构造
-        UniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata);
-        ~UniformVTrajProcesser();
+        PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata);
+        ~PUniformVTrajProcesser();
          //跟踪
         virtual cv::Mat track(const FrameData &data);
 

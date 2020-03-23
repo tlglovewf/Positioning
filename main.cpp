@@ -1,11 +1,3 @@
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/features2d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
-#include <vector>
-
 #include "P_Controller.h"
 
 #include "P_Frame.h"
@@ -18,15 +10,140 @@
 #include "P_Detector.h"
 #include "P_Writer.h"
 
+#include "P_MultiVisionTrajProcesser.h"
+
 #include "project/hdproject.h"
 #include "project/weiyaproject.h"
 
 using namespace std;
 using namespace cv;
 
-#define SAVEMATCHIMG    0  //是否存储同名点匹配文件
+#define SAVEMATCHIMG    1  //是否存储同名点匹配文件
 #define WEIYA           0  //是否为weiya数据
 #define USECONTROLLER   0  //是否启用定位框架
+
+
+
+//动态物体
+class DynamicObjectInfor
+{
+public:
+    typedef map<std::string, cv::Vec3b> Item;
+    typedef Item::const_iterator        ItemIter;
+    //单例
+    static DynamicObjectInfor* Instance()
+    {
+        static DynamicObjectInfor instance;
+        return &instance;
+    }
+    //加载
+    void load(const std::string &path)
+    {
+        if(path.empty())
+        {
+            PROMT_S("Path error~  Semantics Config File Loaded failed.")
+        }
+        try
+        {
+            ifstream segfile;
+            segfile.open(path);
+
+            if(segfile.is_open())
+            {
+                PROMT_S("Begin to load semantics");
+                while(!segfile.eof())
+                {
+                    std::string str;
+                    getline(segfile,str);
+                    trimString(str);//去首尾空格
+                    if(str.empty() || str[0] == '#')
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        int s = str.find_first_of(":");
+                        int v = str.find_first_of("#");//剔除注释
+                        string name = str.substr(0,s);
+                        string result = str.substr(s+1,(v - s)-1);
+                        trimString(result);
+                        int r,g,b;
+                        sscanf( result.c_str(), "%d, %d, %d",&b,&g,&r);
+                        cv::Vec3b vv(r,g,b);
+                        mObjs.insert(std::make_pair(name,vv));
+                        PROMT_V(name.c_str(),vv);
+                    }
+                }
+            }
+            segfile.close();
+            PROMT_S("End load semantics");
+        }
+        catch(const std::exception& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+    }
+
+    // //
+    // void rmFeatureByDynamicObj(const Mat &segImg,Position::MatchVector &matches)
+    // {
+
+    // }
+
+    // bool isFeatureDynamicObj(IFrame *pframe, const Point2f &pt)
+    // {
+
+    // }
+
+    //[] 运算符
+    cv::Vec3b operator[](const std::string &name)const
+    {
+        ItemIter it = mObjs.find(name);
+        if(it != mObjs.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            return cv::Vec3b();
+        }
+    }
+
+    //开始
+    ItemIter begin()const
+    {
+        return mObjs.begin();
+    }
+
+    //结束
+    ItemIter end()const
+    {
+        return mObjs.end();
+    }
+
+protected:
+    //剔除前后空格
+    void trimString(std::string & str )
+    {
+        if(str.empty())
+            return;
+        int s = str.find_first_not_of(" ");
+        int e = str.find_last_not_of(" ");
+
+        if( s == string::npos || 
+            e == string::npos)
+            return;
+
+        str = str.substr(s,e-s+1);
+    }
+    
+protected:
+    map<std::string, cv::Vec3b> mObjs;
+};
+
+
+
+
 
 int main(void)
 {  
@@ -49,148 +166,27 @@ int main(void)
 
     return 0;
 #endif
+    //multi vision situation test 
     pData->loadDatas();
 
-    std::shared_ptr<Position::IMap> map(new Position::PMap);
-    std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
-    Ptr<Position::IFeatureMatcher> pMatcher = Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.4);
-    //std::shared_ptr<Position::IPositioning> position(Position::PFactory::CreatePositioning(Position::ePSingleImage, pData->getCamera()));
-    std::unique_ptr<Position::IPoseEstimation> pPoseEst(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
-    Position::IOptimizer *pOp = Position::IOptimizer::getSingleton();
-    Position::CameraParam camparam = pData->getCamera();
-    Position::FrameHelper::initParams(GETCFGVALUE(pCfg,ImgWd,int),GETCFGVALUE(pCfg,ImgHg,int),&camparam);
-    pPoseEst->setCamera(camparam);
-    pOp->setCamera(camparam);
-  
-
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eMultiVision,pCfg,pData));
+    std::shared_ptr<Position::IMap> map = pTraj->getMap();
+    Position::FrameDataVector datas;
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();
-
-    int index = 0;
-    Position::IKeyFrame *curframe = NULL;
-    Position::IKeyFrame *preframe = NULL;
-    for(;iter != ed; ++iter)
+    //插入帧数据
+    for(;iter != ed ; ++iter)
     {
         Mat img = imread(imgpath + iter->_name ,IMREAD_UNCHANGED);
-        Mat oimg ;// = img;
-        assert(!img.empty());
-        cv::undistort(img,oimg,camparam.K,camparam.D);
-        // imgHistEqualized(img,oimg);
-        if(oimg.channels() > 1)
-        {
-            cv::cvtColor(oimg,oimg,CV_RGB2GRAY);
-        }
-       
-        iter->_img = oimg;
-        Position::IFrame *pframe = new Position::PFrame(*iter,pFeature,map->frameCount());
-        Position::FrameHelper::assignFeaturesToGrid(pframe);
-        //needcreatenewkeyframe()
-        curframe = map->createKeyFrame(pframe);
-
-        if(0 == index++)
-        {
-            preframe = curframe;
-            curframe->setPose(Mat::eye(4,4,MATCVTYPE));
-        }
-        else
-        {
-            assert(pframe);
-            assert(curframe);
-            int searchradius = GETCFGVALUE(pCfg,SearchScale,int);
-            Position::MatchVector matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius); 
-
-            // if(matches.size() < 80)
-            // {
-            //     matches = pMatcher->match(IFRAME(preframe),IFRAME(curframe),searchradius * 2);
-            // }
-
-            // if(matches.size() < 80)
-            // {
-            //     preframe = curframe;
-            //     PROMT_V("Match point not enough.",matches.size());
-            //     continue;
-            // }
-
-            if(matches.empty())
-            {
-                PROMTD_V(iter->_name.c_str(),"can not find any match point with pre frame!");
-                continue;
-            }
-            else
-            {
-
-#if SAVEMATCHIMG
-                Mat oimg;
-                cv::drawMatches(preframe->getData()._img,IFRAME(preframe)->getKeys(),curframe->getData()._img,IFRAME(curframe)->getKeys(),matches,oimg);
-                const std::string text = string("Match:") + std::to_string(matches.size());
-                putText(oimg, text, Point(150, 150), CV_FONT_HERSHEY_COMPLEX, 5, Scalar(0, 0, 255), 3, CV_AA);
-                const string outname = outpath +  "match_"  + curframe->getData()._name;
-                PROMTD_V("Save to",outname.c_str());
-                imwrite(outname,oimg);
-#endif
-
-                pPoseEst->setFrames(IFRAME(preframe),IFRAME(curframe));
-                Mat R,t;
-                Position::Pt3Vector pts;
-                PROMTD_V(iter->_name.c_str(),"origin matches number ",matches.size());
-                if(pPoseEst->estimate(R,t, matches,pts))
-                {
-                    PROMTD_V(iter->_name.c_str(),"estimate matches number ",matches.size());
-        
-                    cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
-                    R.copyTo(pose.rowRange(0,3).colRange(0,3));
-                    t.copyTo(pose.rowRange(0,3).col(3));
-                    Mat wdpose = pose * preframe->getPose() ;
-                    curframe->setPose(wdpose);
-                    for(auto item : matches)
-                    {
-                        Position::IMapPoint *mppt = NULL;
-                        if(!preframe->hasMapPoint(item.queryIdx))
-                        {
-                            const Point3f fpt = pts[item.queryIdx];
-                            Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
-                            mpt = preframe->getPose().inv() * mpt;
-                            mpt = mpt / mpt.at<MATTYPE>(3);
-                            mppt = map->createMapPoint(mpt); 
-                            preframe->addMapPoint(mppt,item.queryIdx);
-                            
-                        }
-                        else
-                        {
-                            mppt = preframe->getWorldPoints()[item.queryIdx];
-                        }
-                        curframe->addMapPoint(mppt,item.trainIdx);
-                    }
-
-                    auto temps = curframe->getWorldPoints();
-                    PROMTD_V("frame mppts size: " ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
-                    {
-                        return item != NULL;
-                    }));
-                    PROMTD_V(curframe->getData()._name.c_str(),"Begin Pose Op");
-                    pOp->frameOptimization(curframe,pFeature->getSigma2());
-                    PROMTD_V(curframe->getData()._name.c_str(),"Pose Op Finished");
-                }
-                else
-                {
-                    //release data
-                    PROMT_V(curframe->getData()._name.c_str(),"estimate failed!");
-                }
-                preframe = curframe;
-                curframe = NULL;
-            }
-
-        }
-        
+        if(img.empty())
+            continue;
+        iter->_img = img;
+        datas.push_back(*iter);
     }
-    // global optimization
-    Position::KeyFrameVector keyframes(map->getAllFrames());
-    Position::MapPtVector    mappts(map->getAllMapPts());
-    bool pBstop = false;
-    PROMT_S("Begin global optimization");
-    pOp->bundleAdjustment(keyframes,mappts,pFeature->getSigma2(),5, &pBstop);
-    PROMT_S("End Optimization.");
+    //处理帧数据
+    pTraj->process(datas);
 
+    //可视化帧数据
     Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg);
     pv->setMap(map);
     pv->renderLoop();

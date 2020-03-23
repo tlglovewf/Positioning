@@ -42,7 +42,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     int     nFeatures       = GETCFGVALUE(pcfg,FeatureCnt,int); 
     float   fScaleFactor    = GETCFGVALUE(pcfg,ScaleFactor,float);
     int     nLevels         = GETCFGVALUE(pcfg,PyramidLevel,int);
-    mnSearchRadius          = GETCFGVALUE(pcfg,SearchScale,int);
+    mnSearchRadius          = GETCFGVALUE(pcfg,SearchRadius,int);
     int     fIniThFAST      = 20;
     int     fMinThFAST      = 7;
 

@@ -10,7 +10,7 @@
 namespace Position
 {
     //构造函数
-    UniformVTrajProcesser::UniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata):PTrajProcesser(std::make_shared<ORBMap>()),mbReset(false)
+    PUniformVTrajProcesser::PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata):PTrajProcesser(std::make_shared<ORBMap>()),mbReset(false)
     {
 
         std::string vocpath = GETCFGVALUE(pcfg,VocPath,string);
@@ -46,13 +46,13 @@ namespace Position
         mpLoopCloser->SetLocalMapper(mpLocalMapper);
     }
 
-    UniformVTrajProcesser::~UniformVTrajProcesser()
+    PUniformVTrajProcesser::~PUniformVTrajProcesser()
     {
          over();
     }
 
     //等待处理结束
-    void UniformVTrajProcesser::waitForProc()
+    void PUniformVTrajProcesser::waitForProc()
     {
         while(mpLocalMapper->isFinished() && mpLoopCloser->isFinished())
         {
@@ -62,7 +62,7 @@ namespace Position
     }
 
      //跟踪
-    cv::Mat UniformVTrajProcesser::track(const FrameData &data)
+    cv::Mat PUniformVTrajProcesser::track(const FrameData &data)
     {
         if(mbReset)
         {
@@ -74,13 +74,13 @@ namespace Position
     }
 
     //重置
-    void UniformVTrajProcesser::reset()
+    void PUniformVTrajProcesser::reset()
     {
         mbReset = true;
     }
 
     //结束
-    void UniformVTrajProcesser::over()
+    void PUniformVTrajProcesser::over()
     {
         mpLocalMapper->RequestFinish();
         mpLoopCloser->RequestFinish();

@@ -75,7 +75,8 @@ namespace Position
      */
     DEFINEENUM(TrajProcesser)
     {
-        eUniformSpeed
+        eUniformSpeed,   //匀速运动模型
+        eMultiVision     //多视图场景
     };
 
     /*
@@ -120,7 +121,7 @@ namespace Position
         /*
          * 创建轨迹处理对象
          */
-        static ITrajProcesser *CreateTrajProcesser(eTrajProcesserType type, 
+        static ITrajProcesser* CreateTrajProcesser(eTrajProcesserType type, 
                                                    const std::shared_ptr<IConfig> &pcfg,
                                                    const std::shared_ptr<IData> &pdata);
 

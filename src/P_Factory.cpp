@@ -9,6 +9,7 @@
 
 #include "P_PangolinViewer.h"
 #include "P_UniformVTrajProcesser.h"
+#include "P_MultiVisionTrajProcesser.h"
 namespace Position
 {
      /*
@@ -126,8 +127,9 @@ namespace Position
         switch(type)
         {
             case eUniformSpeed:
-                return new UniformVTrajProcesser(pcfg,pdata);
-
+                return new PUniformVTrajProcesser(pcfg,pdata);
+            case eMultiVision:
+                return new PMultiVisionTrajProcesser(pcfg,pdata);
             default:
                 return new PTrajProcesser();
         }
