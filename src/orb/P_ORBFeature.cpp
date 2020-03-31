@@ -1,10 +1,12 @@
 #include "P_ORBFeature.h"
 #include "P_Writer.h"
+#include "P_Frame.h"
 namespace Position
 {
 const int PATCH_SIZE = 31;
 const int HALF_PATCH_SIZE = 15;
 const int EDGE_THRESHOLD = 19;
+
 
     //初始化
     void ORBFeature::init()

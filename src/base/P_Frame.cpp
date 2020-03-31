@@ -21,10 +21,10 @@ bool   FrameHelper::mInit = false;
         assert(index >= 0);
         mfGridElementWidthInv  = static_cast<float>(FRAME_GRID_COLS) / width;
         mfGridElementHeightInv = static_cast<float>(FRAME_GRID_ROWS) / height;
-        mFx = pcam[index].K.at<MATTYPE>(0,0);
-        mFy = pcam[index].K.at<MATTYPE>(1,1);
-        mCx = pcam[index].K.at<MATTYPE>(0,2);
-        mCy = pcam[index].K.at<MATTYPE>(1,2);
+        // mFx = pcam[index].K.at<MATTYPE>(0,0);
+        // mFy = pcam[index].K.at<MATTYPE>(1,1);
+        // mCx = pcam[index].K.at<MATTYPE>(0,2);
+        // mCy = pcam[index].K.at<MATTYPE>(1,2);
         mInit = true;
     }
 
@@ -137,6 +137,7 @@ bool   FrameHelper::mInit = false;
         mIndex = index;
         mPose = Mat::eye(4,4,MATCVTYPE);
         mOw = Mat::zeros(4,1,MATCVTYPE);
+
     }
     PFrame::~PFrame()
     {

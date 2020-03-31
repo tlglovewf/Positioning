@@ -15,7 +15,7 @@ namespace Position
     {
     public:
         //设置配置文件
-        PFeature(std::shared_ptr<IConfig> pcfg):mCfg(pcfg)
+        PFeature(const std::shared_ptr<IConfig> &pcfg):mCfg(pcfg)
         {
         }
 
@@ -35,6 +35,22 @@ namespace Position
         virtual void init() = 0;
     protected:
         std::shared_ptr<IConfig> mCfg;
+    };
+
+    //cv原库orb特征点
+    class PCVORBFeature : public PFeature
+    {
+    public:
+        PCVORBFeature(const std::shared_ptr<IConfig> &pcfg);
+          //计算特征点
+        virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
+
+    protected:
+         //初始化
+        virtual void init();
+
+    protected:
+        cv::Ptr<cv::Feature2D>  mpFeature;
     };
 }
 

@@ -35,6 +35,8 @@ namespace Position
         {
             case eFeatureOrb:
                 return new ORBFeature(pcfg);
+            case eFeatureCVOrb:
+                return new PCVORBFeature(pcfg);
             default:
                 return NULL;
         }

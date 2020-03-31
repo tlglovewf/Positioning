@@ -1,12 +1,5 @@
 #include "P_Controller.h"
-
-#include "P_Frame.h"
-#include "P_MapPoint.h"
-#include "P_Map.h"
-#include "P_PangolinViewer.h"
 #include "P_Factory.h"
-#include "P_Config.h"
-#include "P_Data.h"
 #include "P_Detector.h"
 #include "P_Writer.h"
 
@@ -15,10 +8,12 @@
 #include "project/hdproject.h"
 #include "project/weiyaproject.h"
 
+
+#include "P_Map.h"
+
 using namespace std;
 using namespace cv;
 
-#define SAVEMATCHIMG    1  //是否存储同名点匹配文件
 #define WEIYA           0  //是否为weiya数据
 #define USECONTROLLER   0  //是否启用定位框架
 
@@ -141,12 +136,9 @@ protected:
     map<std::string, cv::Vec3b> mObjs;
 };
 
-
-
-
-
 int main(void)
 {  
+
 #if WEIYA
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config_weiya.yaml"); 
     std::shared_ptr<Position::IData> pData(new WeiyaData(pCfg));
@@ -157,8 +149,8 @@ int main(void)
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
-    const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
-    const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
+   
+    
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
@@ -168,7 +160,8 @@ int main(void)
 #endif
     //multi vision situation test 
     pData->loadDatas();
-
+    const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
+    const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
     std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eMultiVision,pCfg,pData));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     Position::FrameDataVector datas;
@@ -187,7 +180,7 @@ int main(void)
     pTraj->process(datas);
 
     //可视化帧数据
-    Position::Pangolin_Viewer *pv = new Position::Pangolin_Viewer(pCfg);
+    std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
     pv->setMap(map);
     pv->renderLoop();
 

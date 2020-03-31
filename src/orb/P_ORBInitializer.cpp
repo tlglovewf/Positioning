@@ -58,7 +58,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     mvSets = vector< SzVector >(mMaxIterations,SzVector(8,0));
 
     DUtils::Random::SeedRandOnce(0);
-
+    //以迭代次数创建数组,从匹配对中随机选取8个数据
     for(int it=0; it<mMaxIterations; it++)
     {
         vAvailableIndices = vAllIndices;

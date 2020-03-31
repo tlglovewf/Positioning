@@ -12,6 +12,11 @@
 #include "P_Types.h"
 #include "P_CoorTrans.h"
 #include "P_Writer.h"
+
+#if (defined __APPLE__) || (defined __unix__)
+#include "dirent.h"
+#endif
+
 namespace Position
 {
 
@@ -37,6 +42,50 @@ public:
         }
         while (pos < str.length() && prev < str.length());
         return tokens;
+    }
+
+    /* 后缀
+    */
+    static bool IsPicSuffix(const char *pName,size_t len)
+    {
+        const size_t suffix = 3;
+        assert(pName);
+        if(len < suffix)
+        {
+            return false;
+        }
+        const char *pSuffix =  &pName[len - suffix];
+
+        return !strcasecmp(pSuffix, "jpg") | !strcasecmp(pSuffix, "png");
+    }
+    /* 扫描目录下文件名
+    */
+    static int LoadPathNames( const std::string &dirpath, Position::StringVector &files )
+    {
+        int index = 0;
+        
+#if (defined __APPLE__) || (defined __unix__)
+        DIR *dp;
+        struct dirent *dirp;
+        if((dp = opendir(dirpath.c_str())) == NULL)
+        {
+            assert(NULL);
+        }
+        
+        while((dirp = readdir(dp)) != NULL)
+        {
+            if(IsPicSuffix(dirp->d_name,strlen(dirp->d_name)))
+            {
+                files.emplace_back(dirp->d_name);
+                ++index;
+            }
+        }
+        closedir(dp);
+        sort(files.begin(),files.end());
+#else
+        //add other platforms
+#endif
+        return index;
     }
 
     /****************************************************
@@ -158,6 +207,30 @@ public:
     static void ImageHistEqualized(const Mat &img, Mat &outimg);
     //绘制直方图
     static void HistDraw(const Mat &img);
+
+    //绘制相交线
+    static void DrawCrossLine(Mat &img ,int width, int height)
+    {
+        assert(!img.empty());
+        assert(img.cols > width);
+        assert(img.rows > height);
+
+        int nw = img.cols / width;
+        int nh = img.rows / height;
+
+        auto color = CV_RGB(255,0,0);
+        int thickness = 1;
+        for(int i = 1; i < nw; ++i)
+        {
+           const float xw = i * width;
+           line(img,cv::Point2f( xw ,0),cv::Point2f( xw, img.rows),color,thickness);
+        }
+        for(int i = 1; i < nh; ++i)
+        {
+            const float yh = i * height;
+            line(img,cv::Point2f(0,yh),cv::Point2f(img.cols,yh),color,thickness);
+        }
+    }
 
     //平行合并保存
     static void CombineSave(const Mat &img1, const Mat &img2, const std::string &out)

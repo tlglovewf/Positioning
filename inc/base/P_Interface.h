@@ -58,7 +58,7 @@ namespace Position
         virtual cv::Mat getWorldPos() = 0;
         //获取序号
         virtual u64 index()const = 0;
-        //观察点
+        //观察帧数量
         virtual int observations() = 0;
         //添加观察者 index(特征点序号)
         virtual void addObservation(IKeyFrame *frame,int index) = 0;
@@ -366,6 +366,13 @@ namespace Position
         virtual cv::Point2f backProject(const FrameData &frame,const BLHCoordinate &blh, cv::Mat &outimg) = 0;
 
     };
+
+
+    class IGpsFusion : public IBase
+    {
+    public:
+    };
+
 } // namespace Position
 
 #endif

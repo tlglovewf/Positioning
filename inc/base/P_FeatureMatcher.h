@@ -23,6 +23,19 @@ namespace Position
         bool    mbCheckOrientation;
         float   mfNNratio;
     };
+
+    //cv 匹配  默认 汉明暴力匹配
+    class PCVMatcher : public IFeatureMatcher
+    {
+    public:
+        PCVMatcher();
+
+          //匹配  返回匹配对
+        virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
+
+    protected:
+        cv::Ptr<DescriptorMatcher> mMatcher;
+    };
 }
 
 #endif

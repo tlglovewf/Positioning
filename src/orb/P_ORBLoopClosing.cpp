@@ -238,7 +238,7 @@ namespace Position
                 vbDiscarded[i] = true;
                 continue;
             }
-
+            //通过词袋寻找当前帧,与候选帧匹配点
             int nmatches = matcher.SearchByBoW(mpCurrentKF,pKF,vvpMapPointMatches[i]);
 
             if(nmatches<20)
@@ -275,6 +275,7 @@ namespace Position
                 bool bNoMore;
 
                 Sim3Solver* pSolver = vpSim3Solvers[i];
+                //迭代5次获取sim3矩阵
                 cv::Mat Scm  = pSolver->iterate(5,bNoMore,vbInliers,nInliers);
 
                 // If Ransac reachs max. iterations discard keyframe

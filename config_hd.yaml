@@ -14,7 +14,8 @@ HdCamk3: 0.0
 HdCamp1: 0.000245020
 HdCamp2: -0.000004751
 
-ImgPath: "/Users/TLG/Downloads/data/hd/image"
+# ImgPath: "/Users/TLG/Downloads/data/hd/image"
+ImgPath: "/Users/TLG/Downloads/data/hd/Image36-0"
 PosPath: "/Users/TLG/Downloads/data/hd/camera.txt"
 OutPath: "/Users/TLG/Downloads/data/hd/result/"
 
@@ -23,11 +24,9 @@ ImgHg:  1080
 ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
-StNo: 550 #2160     #550
-EdNo: 650 #2165     #600 
+StNo: 0
+EdNo: 3
 
-ExtriPath: "/Users/TLG/Downloads/data/weiya/20191105/extrinsics.xml"
-BsPath:    "/Users/TLG/Downloads/data/weiya/20191105/BS_0001_20191105.bs"
 
 #vocabulary path 
 VocPath: "/Users/TLG/Documents/Positioning/Vocabulary/ORBvoc.txt"

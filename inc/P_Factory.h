@@ -27,7 +27,8 @@ namespace Position
      */
     DEFINEENUM(Feature)
     {
-        eFeatureOrb
+        eFeatureOrb,    //orbslam 
+        eFeatureCVOrb   //cv orb
     };
 
     DEFINEENUM(FeatureMatcher)

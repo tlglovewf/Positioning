@@ -168,3 +168,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 add_executable(Positioning
 main.cpp)
 target_link_libraries(Positioning ${Positioning})
+add_executable(SimpleTest
+simpletest.cpp)
+target_link_libraries(SimpleTest ${Positioning})

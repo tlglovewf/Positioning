@@ -9,13 +9,13 @@
 namespace Position
 {
 
-
+//sim3求解器, vpMatched12 为kf1 kf2 匹配的关键点数组
 Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &vpMatched12, const bool bFixScale):
     mnIterations(0), mnBestInliers(0), mbFixScale(bFixScale)
 {
     mpKF1 = pKF1;
     mpKF2 = pKF2;
-
+    //获取kf1关联地图点
     const MapPtVector& vpKeyFrameMP1 = pKF1->getWorldPoints();
 
     mN1 = vpMatched12.size();
@@ -64,10 +64,10 @@ Sim3Solver::Sim3Solver(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, const MapPtVector &
 
             mvpMapPoints1.push_back(pMP1);
             mvnIndices1.push_back(i1);
-
+            //地图点 在kf1坐标系的坐标
             cv::Mat X3D1w = pMP1->getWorldPos();
             mvX3Dc1.push_back(Rcw1*X3D1w+tcw1);
-
+            //地图点在kf2坐标系的坐标
             cv::Mat X3D2w = pMP2->getWorldPos();
             mvX3Dc2.push_back(Rcw2*X3D2w+tcw2);
 
@@ -111,6 +111,9 @@ void Sim3Solver::SetRansacParameters(double probability, int minInliers, int max
     mnIterations = 0;
 }
 
+//迭代计算 sim3矩阵   
+//vbInliers 内点bol数组
+//nInliers 内点数量
 cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers, int &nInliers)
 {
     bNoMore = false;
@@ -137,43 +140,46 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, BolVector &vbInliers
         vAvailableIndices = mvAllIndices;
 
         // Get min set of points
+        //随机选取3对 组成计算sim3所需的 地图点Mat
         for(short i = 0; i < 3; ++i)
         {
             int randi = DUtils::Random::RandomInt(0, vAvailableIndices.size()-1);
 
             int idx = vAvailableIndices[randi];
-
+           
             mvX3Dc1[idx].copyTo(P3Dc1i.col(i));
             mvX3Dc2[idx].copyTo(P3Dc2i.col(i));
 
             vAvailableIndices[randi] = vAvailableIndices.back();
             vAvailableIndices.pop_back();
         }
-
+        //根据地图点在相机坐标系下坐标组成的mat 计算sim3
         ComputeSim3(P3Dc1i,P3Dc2i);
-
+        //检测内点数量
         CheckInliers();
 
         if(mnInliersi>=mnBestInliers)
-        {
+        {//内点数量 满足需求 
             mvbBestInliers = mvbInliersi;
             mnBestInliers = mnInliersi;
+            //赋值sim3 矩阵
             mBestT12 = mT12i.clone();
             mBestRotation = mR12i.clone();
             mBestTranslation = mt12i.clone();
             mBestScale = ms12i;
-
+            //且内点数量满足大于随机生成最小内点需求
             if(mnInliersi>mRansacMinInliers)
             {
                 nInliers = mnInliersi;
                 for(int i=0; i<N; i++)
                     if(mvbInliersi[i])
                         vbInliers[mvnIndices1[i]] = true;
+                //返回计算的变换矩阵
                 return mBestT12;
             }
         }
     }
-
+    //如果计算失败,且迭代次数运行满 则返回为空
     if(mnIterations>=mRansacMaxIts)
         bNoMore=true;
 
@@ -185,9 +191,14 @@ cv::Mat Sim3Solver::find(BolVector &vbInliers12, int &nInliers)
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers12,nInliers);
 }
-
+//计算矩心
 void Sim3Solver::ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
 {
+    // 将二维数组转化为向量
+    // src：输入矩阵
+    // dst：通过处理输入矩阵的所有行/列而得到的单行/列向量
+    // dim：矩阵被简化后的维数索引.0意味着矩阵被处理成一行,1意味着矩阵被处理成为一列,-1时维数将根据输出向量的大小自动选择.
+    // CV_REDUCE_SUM： 输出是矩阵的所有行/列的和
     cv::reduce(P,C,1,CV_REDUCE_SUM);
     C = C/P.cols;
 
@@ -196,7 +207,9 @@ void Sim3Solver::ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
         Pr.col(i)=P.col(i)-C;
     }
 }
-
+//计算sim3 p1 p2 为相机坐标系下地图点集(一列代表一个点)
+//计算  |sR t|
+//     |0  1|
 void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 {
     // Custom implementation of:
@@ -209,11 +222,12 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     cv::Mat O1(3,1,Pr1.type()); // Centroid of P1
     cv::Mat O2(3,1,Pr2.type()); // Centroid of P2
 
+    //计算质心   o代表点质心(点的平均值)  Pr表示点与质心的差值
     ComputeCentroid(P1,Pr1,O1);
     ComputeCentroid(P2,Pr2,O2);
 
     // Step 2: Compute M matrix
-
+    //计算pr1-> pr2变换矩阵
     cv::Mat M = Pr2*Pr1.t();
 
     // Step 3: Compute N matrix
@@ -234,9 +248,9 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     N44 = -M.at<MATTYPE>(0,0)-M.at<MATTYPE>(1,1)+M.at<MATTYPE>(2,2);
 
     N = (cv::Mat_<MATTYPE>(4,4) << N11, N12, N13, N14,
-                                 N12, N22, N23, N24,
-                                 N13, N23, N33, N34,
-                                 N14, N24, N34, N44);
+                                   N12, N22, N23, N24,
+                                   N13, N23, N33, N34,
+                                   N14, N24, N34, N44);
 
 
     // Step 4: Eigenvector of the highest eigenvalue
@@ -314,11 +328,12 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 void Sim3Solver::CheckInliers()
 {
     vector<cv::Mat> vP1im2, vP2im1;
+    //计算到mT 坐标系后的投影坐标vP
     Project(mvX3Dc2,vP2im1,mT12i,mK1);
     Project(mvX3Dc1,vP1im2,mT21i,mK2);
 
     mnInliersi=0;
-
+    //通过检查投影后点的像素差值,判断是否为内点,并计算内点数量
     for(size_t i=0; i<mvP1im1.size(); i++)
     {
         cv::Mat dist1 = mvP1im1[i]-vP2im1[i];
@@ -353,6 +368,7 @@ float Sim3Solver::GetEstimatedScale()
     return mBestScale;
 }
 
+//获取vp3dw的点 变换到tcw坐标系后 的投影左边
 void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv::Mat Tcw, cv::Mat K)
 {
     cv::Mat Rcw = Tcw.rowRange(0,3).colRange(0,3);
@@ -375,7 +391,7 @@ void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv
         vP2D.push_back((cv::Mat_<MATTYPE>(2,1) << fx*x+cx, fy*y+cy));
     }
 }
-
+//将相机坐标系下的坐标 转到图像坐标(像素)
 void Sim3Solver::FromCameraToImage(const vector<cv::Mat> &vP3Dc, vector<cv::Mat> &vP2D, cv::Mat K)
 {
     const float &fx = K.at<MATTYPE>(0,0);
