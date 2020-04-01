@@ -210,25 +210,13 @@ Position::FrameVector GetImageFeatures(bool bsave)
     return frames;
 }
 
-std::string rmSuffix(const std::string &img)
-{
-    int n =  img.find("jpg");
-    int m = img.find_last_of("_");
-    if(n != string::npos)
-    {
-        return img.substr(++m,n - m - 1);
-    }
-
-    return std::string();
-}
-
 void GetFeatureMatch(Position::FrameVector &frames,bool bsave)
 {
     if(frames.size() < 2)
         return;
     std::shared_ptr<Position::IFeatureMatcher> pMat(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(sCfg,MatchRatio,float)));
 
-    std::string prenm = rmSuffix(frames[0]->getData()._name);
+    std::string prenm = Position::PUtils::GetCenterStr(frames[0]->getData()._name,"_",".jpg");
     Position::IFrame *preF = frames[0];
     for(int i = 1; i < frames.size();++i)
     {
@@ -239,14 +227,15 @@ void GetFeatureMatch(Position::FrameVector &frames,bool bsave)
             continue;
         if(bsave)
         {
-            std::string svname = outpath + prenm + "_" + rmSuffix(frames[i]->getData()._name) + ".jpg";
+            std::string cn = Position::PUtils::GetCenterStr(frames[i]->getData()._name,"_",".jpg") ;
+            std::string svname = outpath + prenm + "_" + cn + ".jpg";
             Mat keyimg;
             cv::drawMatches(preF->getData()._img,preF->getKeys(),
                          frames[i]->getData()._img,frames[i]->getKeys(),matches,keyimg);
             const string text = "match :" + std::to_string(matches.size());
             putText(keyimg, text , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
             imwrite(svname,keyimg);
-            prenm = rmSuffix(frames[i]->getData()._name);
+            prenm = cn;
         }
         preF = frames[i];
     }

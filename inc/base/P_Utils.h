@@ -44,6 +44,21 @@ public:
         return tokens;
     }
 
+    /* 取first sec 中间字符
+     */
+    inline static std::string GetCenterStr(const std::string &img,const std::string &first,const std::string &sec)
+    {
+        size_t m = img.find_last_of(first);
+        size_t n =  img.find(sec);
+        
+        if(n != string::npos)
+        {
+            return img.substr(m + 1,n - m - 1);
+        }
+
+        return std::string();
+    }
+
     /* 后缀
     */
     static bool IsPicSuffix(const char *pName,size_t len)

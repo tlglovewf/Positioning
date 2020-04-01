@@ -4,19 +4,34 @@
 #hd data preprocess config file
 #---------------------------------
 
-HdCamFx: 1204.100702372
-HdCamFy: 1210.073064003
-HdCamCx: 731.315716622
-HdCamCy: 548.808242006
-HdCamk1: -0.091441807
-HdCamk2: 0.088316997
-HdCamk3: 0.0
-HdCamp1: 0.000245020
-HdCamp2: -0.000004751
+  
+
+# HdCamFx: 1204.100702372
+# HdCamFy: 1210.073064003
+# HdCamCx: 731.315716622
+# HdCamCy: 548.808242006
+# HdCamk1: -0.091441807
+# HdCamk2: 0.088316997
+# HdCamk3: 0.0
+# HdCamp1: 0.000245020
+# HdCamp2: -0.000004751
 
 # ImgPath: "/Users/TLG/Downloads/data/hd/image"
+#PosPath: "/Users/TLG/Downloads/data/hd/camera.txt"
+
+HdCamFx: 1201.093480021
+HdCamFy: 1201.700469966
+HdCamCx: 732.166707527
+HdCamCy: 561.641423523
+HdCamk1: -0.089838292
+HdCamk2: 0.078488821
+HdCamk3: 0.000000000
+HdCamp1: 0.002193266
+HdCamp2: 0.000100047
+
 ImgPath: "/Users/TLG/Downloads/data/hd/Image36-0"
-PosPath: "/Users/TLG/Downloads/data/hd/camera.txt"
+PosPath: "/Users/TLG/Downloads/data/hd/0326/data1/camera.txt"
+
 OutPath: "/Users/TLG/Downloads/data/hd/result/"
 
 ImgWd:  1440
@@ -25,7 +40,7 @@ ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
 StNo: 0
-EdNo: 3
+EdNo: 50
 
 
 #vocabulary path 
