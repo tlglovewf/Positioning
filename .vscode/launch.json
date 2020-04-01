@@ -15,6 +15,18 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"
-        }
+        },
+        {
+            "name": "Simpletest",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/OutPut/SimpleTest",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/OutPut/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb"
+        },
     ]
 }

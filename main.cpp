@@ -15,7 +15,7 @@ using namespace std;
 using namespace cv;
 
 #define WEIYA           0  //是否为weiya数据
-#define USECONTROLLER   0  //是否启用定位框架
+#define USECONTROLLER   1  //是否启用定位框架
 
 
 
@@ -149,8 +149,6 @@ int main(void)
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
-   
-    
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
