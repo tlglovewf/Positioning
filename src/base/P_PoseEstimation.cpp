@@ -487,7 +487,7 @@ namespace Position
         int nMinGood = max(static_cast<int>(0.9*N),minTriangulated);
 
         int nsimilar = 0;
-        const float fsigma = 0.85;
+        const float fsigma = 0.95;
         if(nGood1> fsigma * maxGood)
             nsimilar++;
         if(nGood2> fsigma * maxGood)
@@ -498,10 +498,10 @@ namespace Position
             nsimilar++;
 
         // If there is not a clear winner or not enough triangulated points reject initialization
-        if(maxGood < nMinGood || nsimilar>1)
-        {
-            return false;
-        }
+        // if(maxGood < nMinGood || nsimilar>1)
+        // {
+        //     return false;
+        // }
 
         // If best reconstruction has enough parallax initialize
         if(maxGood==nGood1)

@@ -90,7 +90,7 @@ bool HdData::loadDatas()
         PROMT_S("begin to load datas.");
         ifstream pstfile, imufile;
         pstfile.open(pstpath);
-        int index = 0;
+        int index = stno;
         bool allimg = (stno >= edno);
         std::string pststr;
 

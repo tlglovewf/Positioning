@@ -109,9 +109,9 @@ namespace Position
         //New ORBKeyFrame rules (according to fps)
         int mMinFrames;
         int mMaxFrames;
-
-        // For RGB-D inputs only. For some datasets (e.g. TUM) the depthmap values are scaled.
-        float mDepthMapFactor;
+        
+        //for initialize ratio
+        float mfForInitRatio;
 
         //Current matches in frame
         int mnMatchesInliers;

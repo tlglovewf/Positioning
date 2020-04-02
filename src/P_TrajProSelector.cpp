@@ -12,11 +12,11 @@ namespace Position
    bool TrajProSelector::handle(const FrameDataVector &datas)
    {
        size_t sz = datas.size();
-       if(sz < 4)
-       {//小于5帧 使用简单定位场景
-            mpCurrentTrajPro = mpSimpleTrajPro;
-       }
-       else
+    //    if(sz < 4)
+    //    {//小于5帧 使用简单定位场景
+    //         mpCurrentTrajPro = mpSimpleTrajPro;
+    //    }
+    //    else
        {//其他情况 使用匀速运动模型推算位姿
             mpCurrentTrajPro = mpUniformVTrajPro;
        }

@@ -155,7 +155,7 @@ int main(void)
     system->run();
 
     return 0;
-#endif
+#else
     //multi vision situation test 
     pData->loadDatas();
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
@@ -181,6 +181,6 @@ int main(void)
     std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
     pv->setMap(map);
     pv->renderLoop();
-
+#endif
     return 0;
 }

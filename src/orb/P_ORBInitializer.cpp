@@ -91,7 +91,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     // Compute ratio of scores
     float RH = SH/(SH+SF);
 
-    const float minpallax = 0.0;
+    const float minpallax = 0.1;
     const int mintri = 50;
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.40)
@@ -469,6 +469,8 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     cv::Mat t1=t;
     cv::Mat t2=-t;
 
+    cout << t << endl;
+
     // Reconstruct with the 4 hyphoteses and check
     vector<cv::Point3f> vP3D1, vP3D2, vP3D3, vP3D4;
     BolVector vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;
@@ -484,10 +486,10 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     R21 = cv::Mat();
     t21 = cv::Mat();
     //最少需求的匹配点数量  取设置的最小值与 阈值系数的匹配点数量中最大值
-    int nMinGood = max(static_cast<int>(0.9*N),minTriangulated);
+    int nMinGood = max(static_cast<int>(0.8*N),minTriangulated);
 
     int nsimilar = 0;
-    const int  thMxGood = 0.75 * maxGood;
+    const int  thMxGood = 0.7 * maxGood;
     if(nGood1 > thMxGood)
         nsimilar++;
     if(nGood2 > thMxGood)
@@ -778,13 +780,13 @@ void Initializer::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNorm
     T.at<MATTYPE>(1,2) = -meanY*sY;
 }
 
-
+//根据R t计算特征对的三维坐标
 int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &vKeys1, const KeyPtVector &vKeys2,
                        const vector<Match> &vMatches12, BolVector &vbMatchesInliers,
                        const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, BolVector &vbGood, float &parallax)
 {
     // Calibration parameters
-    const float thparallax = 0.9999;//8;
+    const float thparallax = 1;//0.99998;//大概1°  点到两帧关心夹角最小阈值
     const float fx = K.at<MATTYPE>(0,0);
     const float fy = K.at<MATTYPE>(1,1);
     const float cx = K.at<MATTYPE>(0,2);
@@ -811,7 +813,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
     cv::Mat O2 = -R.t()*t;
 
     int nGood=0;
-
+    //三角化 地图点
     for(size_t i=0, iend=vMatches12.size();i<iend;i++)
     {
         if(!vbMatchesInliers[i])
@@ -822,7 +824,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
         cv::Mat p3dC1;
 
         Triangulate(kp1,kp2,P1,P2,p3dC1);
-
+        //剔除错误点
         if(!isfinite(p3dC1.at<MATTYPE>(0)) || !isfinite(p3dC1.at<MATTYPE>(1)) || !isfinite(p3dC1.at<MATTYPE>(2)))
         {
             vbGood[vMatches12[i].first]=false;
@@ -835,7 +837,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
 
         cv::Mat normal2 = p3dC1 - O2;
         float dist2 = cv::norm(normal2);
-
+        //计算点到两帧光心的夹角
         float cosParallax = normal1.dot(normal2)/(dist1*dist2);
 
         // Check depth in front of first camera (only if enough parallax, as "infinite" points can easily go to negative depth)
@@ -853,7 +855,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
         float invZ1 = 1.0/p3dC1.at<MATTYPE>(2);
         im1x = fx*p3dC1.at<MATTYPE>(0)*invZ1+cx;
         im1y = fy*p3dC1.at<MATTYPE>(1)*invZ1+cy;
-
+        //计算重投影误差
         float squareError1 = (im1x-kp1.pt.x)*(im1x-kp1.pt.x)+(im1y-kp1.pt.y)*(im1y-kp1.pt.y);
 
         if(squareError1>th2)
@@ -874,7 +876,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
         vP3D[vMatches12[i].first] = cv::Point3f(p3dC1.at<MATTYPE>(0),p3dC1.at<MATTYPE>(1),p3dC1.at<MATTYPE>(2));
         nGood++;
 
-        // if(cosParallax < thparallax)
+        if(cosParallax < thparallax)
             vbGood[vMatches12[i].first]=true;
     }
 

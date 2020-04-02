@@ -66,7 +66,7 @@ namespace Position
     {
     public:
         //构造
-        ORBPoseEstimation():mMaxIterations(200),mSigma(2.0),mSigma2(mSigma*mSigma){}
+        ORBPoseEstimation():mMaxIterations(200),mSigma(1.0),mSigma2(mSigma*mSigma){}
 
          //推算位姿
         virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts);

@@ -16,7 +16,7 @@ class Initializer
 public:
 
     // Fix the reference frame
-    Initializer(const ORBFrame &ReferenceFrame, float sigma = 1.0, int iterations = 200);
+    Initializer(const ORBFrame &ReferenceFrame, float sigma = 2.0, int iterations = 200);
 
     // Computes in parallel a fundamental matrix and a homography
     // Selects a model and tries to recover the motion and the structure from motion

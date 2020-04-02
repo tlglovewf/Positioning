@@ -46,6 +46,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     int     fIniThFAST      = 20;
     int     fMinThFAST      = 7;
 
+    mfForInitRatio =  GETCFGVALUE(pcfg,MatchRatio,float);
 
     mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
@@ -272,8 +273,34 @@ void ORBTracking::MonocularInitialization()
         }
         PROMTD_S("Try to initialize.")
         // Find correspondences
-        ORBmatcher matcher(0.9,true);
+        ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
+
+        {
+#if 1
+            MatchVector matches;
+            for(int i = 0;i < mvIniMatches.size();++i)
+            {
+                if(mvIniMatches[i] > 0)
+                {
+                    cv::DMatch m;
+                    m.queryIdx = i;
+                    m.trainIdx = mvIniMatches[i];
+                    m.distance = 0;
+                    matches.push_back(m);
+                }
+            }
+
+            cv::Mat otimg;
+            cv::drawMatches(mLastFrame.getData()._img,mLastFrame.mvKeysUn,
+                            mCurrentFrame.getData()._img,mCurrentFrame.mvKeysUn,
+                            matches,otimg);
+            const string text = "match size :" + std::to_string(matches.size());
+            putText(otimg, text , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
+            PROMTD_S("save init image. ");
+            cv::imwrite("/Users/TLG/Downloads/data/hd/orbinit.jpg",otimg);
+#endif
+        }
 
         // Check if there are enough correspondences
         if(nmatches < 80)
@@ -504,7 +531,7 @@ void ORBTracking::UpdateLastFrame()
 bool ORBTracking::TrackWithMotionModel()
 {
     ORBmatcher matcher(0.9,true);
-
+    
     // Update last frame pose according to its reference keyframe
     // Create "visual odometry" points if in Localization Mode
     UpdateLastFrame();
@@ -514,7 +541,7 @@ bool ORBTracking::TrackWithMotionModel()
     fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<ORBMapPoint*>(NULL));
 
     // Project points seen in previous frame
-    int th = 50;
+    int th = 10;//50;
     
     int nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,th,true);
 
@@ -555,7 +582,7 @@ bool ORBTracking::TrackWithMotionModel()
                 nmatchesMap++;
         }
     }   
-
+    PROMTD_V("track with motion ",nmatchesMap);
     return nmatchesMap>=10;
 }
 
@@ -601,6 +628,7 @@ bool ORBTracking::TrackLocalMap()
 
 bool ORBTracking::NeedNewKeyFrame()
 {
+    return true;
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
     {
