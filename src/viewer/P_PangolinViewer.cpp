@@ -73,9 +73,8 @@ namespace Position
         //绘制
     bool Pangolin_Viewer::renderOnce()
     {
-        if(!mbInit)
+        if(!mbInit || !mMap)
             return false;
-        assert(mMap);
         static pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
         static pangolin::Var<bool> menuShowPoints("menu.MapPoints",true,true);
         static pangolin::Var<bool> menuShowKeyFrames("menu.MapFrames",true,true);

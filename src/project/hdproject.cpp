@@ -90,7 +90,7 @@ bool HdData::loadDatas()
         PROMT_S("begin to load datas.");
         ifstream pstfile, imufile;
         pstfile.open(pstpath);
-        int index = stno;
+        int index = 0;
         bool allimg = (stno >= edno);
         std::string pststr;
 
@@ -133,7 +133,7 @@ bool HdData::loadDatas()
             mFrameDatas.emplace_back(framedata);
         }
         pstfile.close();
-        PROMT_S("data loaded successfully.");
+        PROMT_V("data loaded successfully.",mFrameDatas.size());
         return true;
     }
     catch (const std::exception &e)
