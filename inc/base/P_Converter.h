@@ -38,6 +38,11 @@ namespace Position
        static Eigen::Matrix<double,3,3> toMatrix3d(const cv::Mat &cvMat3);
 
        static FloatVector toQuaternion(const cv::Mat &M);
+
+       //mat -> string 
+       static std::string toString(const cv::Mat &mat);
+       //string -> mat
+       static cv::Mat     str2CVMat(const std::string &str,bool ispt = false);
     };
 }
 

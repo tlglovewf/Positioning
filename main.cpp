@@ -10,6 +10,7 @@
 
 
 #include "P_Map.h"
+#include "P_Factory.h"
 
 using namespace std;
 using namespace cv;
@@ -135,6 +136,24 @@ protected:
 protected:
     map<std::string, cv::Vec3b> mObjs;
 };
+
+
+void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
+{
+    string outpath = GETCFGVALUE(pCfg,OutPath,string) + "/";
+
+     //可视化帧数据
+    std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    std::shared_ptr<Position::IMap> pmap(new Position::PMap());
+    Position::MapSerManager::Instance()->setMap(pmap);
+
+    Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac.txt");
+    Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(outpath + "mpts.txt");
+    pv->setMap(pmap);
+    pv->renderLoop();
+}
+
+
 
 int main(void)
 {  

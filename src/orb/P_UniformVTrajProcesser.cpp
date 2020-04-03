@@ -5,6 +5,7 @@
 #include "P_ORBLoopClosing.h"
 #include "P_ORBKeyFrameDatabase.h"
 #include "P_Writer.h"
+#include "P_Utils.h"
 #include <unistd.h>
 
 namespace Position
@@ -17,6 +18,8 @@ namespace Position
 
         mpVocabulary = std::make_shared<ORBVocabulary>();
         PROMT_S("Begin to load vocabulary!")
+        Time_Interval time;
+        time.start();
         bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
         if(!bVocLoad)
         {
@@ -24,7 +27,7 @@ namespace Position
             PROMT_V("Failed to open at: ",vocpath.c_str());
             exit(-1);
         }
-        PROMT_S("Vocabulary loaded !!!");
+        time.prompt("Voc loaded cost:");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
 

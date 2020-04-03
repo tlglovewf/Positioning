@@ -277,7 +277,7 @@ void ORBTracking::MonocularInitialization()
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
 
         {
-#if 1
+#if 0 // test init 
             MatchVector matches;
             for(int i = 0;i < mvIniMatches.size();++i)
             {

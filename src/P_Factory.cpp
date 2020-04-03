@@ -10,6 +10,9 @@
 #include "P_PangolinViewer.h"
 #include "P_UniformVTrajProcesser.h"
 #include "P_MultiVisionTrajProcesser.h"
+
+#include "P_Writer.h"
+
 namespace Position
 {
      /*
@@ -149,5 +152,35 @@ namespace Position
             default:
                 assert(NULL);
         }   
+    }
+
+
+    /******************************************************/
+    /****************** ISerialization ********************/
+    /******************************************************/
+
+    MapSerManager::MapSerManager():mpTracSer(NULL),mpPtSer(NULL)
+    {
+        mpTracSer =  new PMapTraceSer(); 
+        mpPtSer   =  new PMapPointsSer(); 
+    }
+    //设置持久化类型
+    void MapSerManager::SetSerType(eMapTraceSerType trtype, eMapPointSerType epttype)
+    {
+        if(eDefaultTraceSer != trtype)
+        {
+            // switch (trtype)
+            // {
+            //     //add more ...
+            // }
+        }
+
+        if( eDefaultPtSer != epttype)
+        {
+            // switch (epttype)
+            // {
+            //     //add more ...
+            // }
+        }
     }
 }

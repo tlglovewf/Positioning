@@ -2,6 +2,7 @@
 #include "P_Factory.h"
 #include "P_Map.h"
 #include "P_Writer.h"
+#include "P_Utils.h"
 
 
 //间隔最大的帧数
@@ -122,6 +123,15 @@ void PositionController::run()
 
 void PositionController::saveResult()
 {
-    //add more
+    Position::Time_Interval time;
+    time.start();
+    Position::MapSerManager::Instance()->setMap(mpTrajProSelector->getMap());
+    PROMT_S("Begin to save map");
+    const std::string path = GETCFGVALUE(mpConfig,OutPath,string) + "/";
+    Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path + "trac.txt");
+    time.prompt("Saving trace cost:");
+    Position::MapSerManager::Instance()->mpPtSerPtr()->saveMap(path + "mpts.txt");
+    time.prompt("Saving map points cost:");
+    PROMT_S("Save map successflly!");
 }
 

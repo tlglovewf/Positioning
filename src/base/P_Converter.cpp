@@ -1,5 +1,5 @@
 #include "P_Converter.h"
-
+#include "P_Utils.h"
 namespace Position
 {
     std::vector<cv::Mat> PConverter::toDescriptorVector(const cv::Mat &Descriptors)
@@ -125,5 +125,57 @@ namespace Position
         v[3] = q.w();
 
         return v;
+    }
+
+    std::string PConverter::toString(const cv::Mat &mat)
+    {
+        const int sz = mat.cols * mat.rows;
+        string str;
+        str.append("[");
+        for(int i = 0; i < mat.rows; ++i)
+        {
+            for(int j = 0; j < mat.cols; ++j)
+            {
+                MATTYPE a = mat.at<double>(i,j);
+                str.append(std::to_string(a)+",");
+            }
+        }
+        str.pop_back();
+        str.append("]");
+        return str;
+    }
+
+
+    cv::Mat   PConverter::str2CVMat(const std::string &str,bool ispt /* = false*/)
+    {
+        if(!str.empty())
+        {
+            assert(*str.begin()  == '[');
+            assert(*str.rbegin() == ']');
+            const string sbs = str.substr(1,str.size() - 2);
+            Position::StringVector values = Position::PUtils::SplitString(sbs,",");
+            if(!ispt)
+            {
+                int n = sqrt(values.size());
+                cv::Mat m = cv::Mat::eye(n,n,MATCVTYPE);
+                for(int i = 0 ; i < n; ++i)
+                {
+                    for(int j = 0; j < n; ++j)
+                    {
+                        m.at<MATTYPE>(i, j) = atof(values[i * n + j].c_str());
+                    }
+                }
+                return m;
+            }
+            else
+            {
+                int n = values.size();
+                cv::Mat m = cv::Mat(n,1,MATCVTYPE);
+                for(int i = 0; i < n; ++i)
+                    m.at<MATTYPE>(i)= atof(values[i].c_str());
+                return m;
+            }
+        }
+        return cv::Mat();
     }
 }

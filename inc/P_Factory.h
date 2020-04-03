@@ -142,6 +142,55 @@ namespace Position
         DEFINEFUNC(Checker)
 
     };
+
+    //持久化 轨迹枚举
+    enum eMapTraceSerType
+    {
+        eDefaultTraceSer
+    };
+
+    //持久化 地图点
+    enum eMapPointSerType
+    {
+        eDefaultPtSer
+    };
+
+    //地图持久化管理类
+    class MapSerManager
+    {
+    public:
+        MapSerManager();
+        //单例
+        static MapSerManager* Instance()
+        {
+            static MapSerManager mgr;
+            return &mgr;
+        }
+
+        //设置地图
+        void setMap(const std::shared_ptr<Position::IMap> &pmap)
+        {
+            mpTracSer->setMap(pmap);
+            mpPtSer->setMap(pmap);
+        }
+
+        //设置持久化类型
+        void SetSerType(eMapTraceSerType trtype, eMapPointSerType epttype);
+
+        //获取轨迹持久化指针
+        ISerialization* tracSerPtr()
+        {
+            return  mpTracSer;
+        }
+        //获取地图点持久化指针
+        ISerialization* mpPtSerPtr()
+        {
+            return mpPtSer;
+        }
+    protected:
+        ISerialization *mpTracSer;
+        ISerialization *mpPtSer;
+    };
 }
 
 #endif
