@@ -187,6 +187,10 @@ namespace Position
         {
             return mpPtSer;
         }
+
+        //显示地图
+        void displayMap(const std::shared_ptr<IConfig> &pCfg, const std::string &trac,const std::string &mpts);
+
     protected:
         ISerialization *mpTracSer;
         ISerialization *mpPtSer;

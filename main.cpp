@@ -142,15 +142,7 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 {
     string outpath = GETCFGVALUE(pCfg,OutPath,string) + "/";
 
-     //可视化帧数据
-    std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
-    std::shared_ptr<Position::IMap> pmap(new Position::PMap());
-    Position::MapSerManager::Instance()->setMap(pmap);
-
-    Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac.txt");
-    Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(outpath + "mpts.txt");
-    pv->setMap(pmap);
-    pv->renderLoop();
+    Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
 }
 
 
@@ -168,6 +160,9 @@ int main(void)
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
+    MapDisplay(pCfg);
+
+    return 0;
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 

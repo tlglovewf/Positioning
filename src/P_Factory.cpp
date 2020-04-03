@@ -183,4 +183,17 @@ namespace Position
             // }
         }
     }
+
+    //显示地图
+    void MapSerManager::displayMap(const std::shared_ptr<IConfig> &pCfg, const std::string &trac,const std::string &mpts)
+    {
+        //可视化帧数据
+        std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+        std::shared_ptr<Position::IMap> pmap(new Position::PMap());
+        setMap(pmap);
+        mpTracSer->loadMap(trac);
+        mpPtSer->loadMap(mpts);
+        pv->setMap(pmap);
+        pv->renderLoop();
+    }
 }
