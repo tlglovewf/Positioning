@@ -13,6 +13,8 @@
 #include "P_CoorTrans.h"
 #include "P_Writer.h"
 
+#include <regex>
+
 #if (defined __APPLE__) || (defined __unix__)
 #include "dirent.h"
 #endif
@@ -31,6 +33,7 @@ public:
     static StringVector SplitString(const string &str, const string &delim)
     {
         std::vector<std::string> tokens;
+        #if 0 //old version
         size_t prev = 0, pos = 0;
         do
         {
@@ -41,6 +44,20 @@ public:
             prev = pos + delim.length();
         }
         while (pos < str.length() && prev < str.length());
+        #else
+        try
+        {
+            regex re{delim};
+            return vector<string>{
+                    sregex_token_iterator(str.begin(), str.end(), re, -1),
+                    sregex_token_iterator()
+               };      
+        }
+        catch(const std::exception& e)
+        {
+            cout<<"error:"<<e.what()<<std::endl;
+        }
+        #endif
         return tokens;
     }
 

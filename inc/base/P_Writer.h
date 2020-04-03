@@ -15,7 +15,7 @@
 namespace Position
 {
 //全局字符输出类
-class PWriter
+class PStaticWriter
 {
 public:
     /* write real trace
@@ -75,14 +75,30 @@ protected:
         promt_vs(args...);
     }
   };
+
+
+    // serialization interface
+    class MapDefaultSer : public ISerialization
+    {
+    public:
+        //设置地图
+        virtual void setMap(const std::shared_ptr<IMap> &pmap) = 0;
+        //加载地图
+        virtual void loadMap(const std::string &path, bool frame = true,bool mpts = true)  = 0;
+        //保存地图
+        virtual void saveMap(const std::string &path,bool frame = true,bool mpts = true) = 0;
+    protected:
+        std::shared_ptr<IMap>    mpMap;
+    };
+
 } // namespace Position
 
 //输出
-#define PROMT_S(X)   Position::PWriter::Promt(X);
-#define PROMT_V(X,...) Position::PWriter::Promt(X,__VA_ARGS__);
+#define PROMT_S(X)   Position::PStaticWriter::Promt(X);
+#define PROMT_V(X,...) Position::PStaticWriter::Promt(X,__VA_ARGS__);
 
 //仅为调试
-#define PROMTD_S(X)   Position::PWriter::PromtDebug(X);
-#define PROMTD_V(X,...) Position::PWriter::PromtDebug(X,__VA_ARGS__);
+#define PROMTD_S(X)   Position::PStaticWriter::PromtDebug(X);
+#define PROMTD_V(X,...) Position::PStaticWriter::PromtDebug(X,__VA_ARGS__);
 
 #endif

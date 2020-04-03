@@ -13,6 +13,7 @@
 #include "P_Frame.h"
 
 #include "P_Utils.h"
+#include "fstream"
 
 
 
@@ -242,9 +243,112 @@ void GetFeatureMatch(Position::FrameVector &frames,bool bsave)
 }
 
 
+//mat -> str
+std::string mat2str(const Mat &mat)
+{
+    const int sz = mat.cols * mat.rows;
+
+    string str;
+    str.append("[");
+
+    for(int i = 0; i < mat.rows; ++i)
+    {
+        for(int j = 0; j < mat.cols; ++j)
+        {
+            MATTYPE a = mat.at<double>(i,j);
+            str.append(std::to_string(a)+",");
+        }
+    }
+   
+    str.pop_back();
+    str.append("]");
+    cout << str.c_str() << endl;
+    return str;
+}
+
+
+//str -> mat
+cv::Mat str2mat(const std::string &str)
+{
+    if(!str.empty())
+    {
+        assert(*str.begin()  == '[');
+        assert(*str.rbegin() == ']');
+
+        const string sbs = str.substr(1,str.size() - 2);
+        Position::StringVector values = Position::PUtils::SplitString(sbs,",");
+        int n = sqrt(values.size());
+        cv::Mat m = cv::Mat::eye(n,n,MATCVTYPE);
+        for(int i = 0 ; i < n; ++i)
+        {
+            for(int j = 0; j < n; ++j)
+            {
+                m.at<MATTYPE>(i, j) = atof(values[i * n + j].c_str());
+            }
+        }
+        return m;
+    }
+    return cv::Mat();
+}
+
+
+class MapSer
+{
+public:
+
+    //打开文件
+    bool open(const std::string &path,std::ios::openmode type)
+    {
+        mfile.open(path, type);
+        return mfile.is_open();
+    }
+
+    void read(const std::string &path)
+    {
+        if(open(path,std::ios::in))
+        {
+
+        }
+    }
+
+    void write(const std::string &path)
+    {
+        if(open(path,std::ios::out))
+        {
+
+        }
+    }
+
+public:
+    void readLine(const std::string &line)
+    {
+        char name[20];
+        char value[255];
+
+        sscanf(line.c_str(),"%s %s",name,value);
+        cout << name << endl;
+        cout << value << endl;
+    }
+    void writeLine(const std::string &name, cv::Mat &pose)
+    {
+
+        // mfile << name + " " + pose
+    }
+protected:
+    fstream mfile;
+};
 
 int main(void)
 {  
+    // MapSer().readLine("test [1,2,3]");
+
+    Mat mat = (Mat_<double>(3,3) << 1,2,3,4,5,6,7,7,8);
+
+    cout << str2mat(mat2str(mat).c_str() ) << endl;
+
+
+    return 0;
+
     Position::CameraParam camera;
     Position::FrameHelper::initParams(GETCFGVALUE(sCfg,ImgWd,int),GETCFGVALUE(sCfg,ImgHg,int),&camera);
 

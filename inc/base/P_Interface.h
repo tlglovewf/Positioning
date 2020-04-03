@@ -210,9 +210,15 @@ namespace Position
     };
 
     // serialization interface
-    class IWriter : public IBase
+    class ISerialization : public IBase
     {
     public:
+        //设置地图
+        virtual void setMap(const std::shared_ptr<IMap> &pmap) = 0;
+        //加载地图
+        virtual void loadMap(const std::string &path, bool frame = true,bool mpts = true)  = 0;
+        //保存地图
+        virtual void saveMap(const std::string &path,bool frame = true,bool mpts = true) = 0;
     };
 
     // visual interface
