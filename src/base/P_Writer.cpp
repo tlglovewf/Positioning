@@ -13,7 +13,8 @@ namespace Position
                                      if(open(PATH,std::ios::MD))    \
                                      {
 
-#define ENDFILEREGION()              }                              \
+#define ENDFILEREGION()               mfile.close();                \
+                                     }                               \
                                   }                                 \
                                   catch(const std::exception& e)    \
                                   {                                 \
@@ -42,6 +43,8 @@ namespace Position
         getline(mfile,head);
         if(head == HEADTRACSTR)
         {
+            PROMT_S("load trace file.")
+          
             while(!mfile.eof())
             {//遍历文件 创建关键帧
                 string line;
@@ -52,10 +55,11 @@ namespace Position
                 assert(svs.size() == 2);
                 FrameData data;
                 data._name = svs[0];
-                IFrame *pf = new PFrame(data);
+                IFrame *pf = new PFrame(data,mpMap->frameCount());
                 pf->setPose(PConverter::str2CVMat(svs[1]));
                 mpMap->createKeyFrame(pf);
             }
+            PROMT_S("trac file loaded successfully!");
         }
         else
         {
@@ -86,12 +90,6 @@ namespace Position
         ENDFILEREGION()
     }
 
-    //合并地图
-    void PMapTraceSer::combineMap(const std::string &path1,const std::string &path2, const std::string &outpath) 
-    {
-        assert(NULL);
-    }
-
      //加载地图轨迹
     void PMapPointsSer::loadMap(const std::string &path) 
     {
@@ -103,6 +101,7 @@ namespace Position
         getline(mfile,head);
         if(head == HEADMPSTR)
         {
+            PROMT_S("load map points file.")
             while(!mfile.eof())
             {//遍历文件 创建关键帧
                 string line;
@@ -115,6 +114,7 @@ namespace Position
                     continue;
                 mpMap->createMapPoint(pt);
             }
+            PROMT_S("mpts file loaded successfully!");
         }
         else
         {
@@ -144,11 +144,5 @@ namespace Position
         }
 
         ENDFILEREGION()
-    }
-
-    //合并地图
-    void PMapPointsSer::combineMap(const std::string &path1,const std::string &path2, const std::string &outpath) 
-    {
-        assert(NULL);
     }
 }

@@ -131,8 +131,6 @@ protected:
         virtual void loadMap(const std::string &path);
         //保存地图
         virtual void saveMap(const std::string &path);
-        //合并地图
-        virtual void combineMap(const std::string &path1,const std::string &path2, const std::string &outpath);
     };
 
     //地图点云持久化
@@ -143,8 +141,6 @@ protected:
         virtual void loadMap(const std::string &path);
         //保存地图
         virtual void saveMap(const std::string &path);
-        //合并地图
-        virtual void combineMap(const std::string &path1,const std::string &path2, const std::string &outpath);
     };
 
 } // namespace Position
