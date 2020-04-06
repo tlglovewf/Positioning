@@ -33,7 +33,7 @@ include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX11)
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
    add_definitions(-DCOMPILEDWITHC11)
    message(STATUS "Using flag -std=c++11.")
 elseif(COMPILER_SUPPORTS_CXX0X)
@@ -59,7 +59,7 @@ else()
    message("opencv path :" ${OpenCV_LIBS})
 endif()
 
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3  REQUIRED)
 find_package(Pangolin REQUIRED)
 if(NOT Pangolin_FOUND)
    message(FATAL_ERROR "Pangolin not found.")
@@ -143,24 +143,26 @@ ${Pangolin_LIBRARIES}
 if(CMAKE_HOST_APPLE)
    if(CMAKE_BUILD_TYPE EQUAL Release)
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.dylib
+         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.dylib
          ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib)
    else()
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.dylib
+         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2od.dylib
          ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2d.dylib)
    endif()
 else()
    if(CMAKE_BUILD_TYPE EQUAL Release)
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2o.so)
+         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so)
    else()
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/ThirdParty/g2o/lib/libg2od.so)
+         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2od.so
+         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2d.so)
    endif()
 endif()
 target_link_libraries(${Positioning}
-${PROJECT_SOURCE_DIR}/ThirdParty/GeographicLib/lib/libGeographic.a)
+${PROJECT_SOURCE_DIR}/Thirdparty/GeographicLib/lib/libGeographic.a)
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
