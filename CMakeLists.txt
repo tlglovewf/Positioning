@@ -59,7 +59,7 @@ else()
    message("opencv path :" ${OpenCV_LIBS})
 endif()
 
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3  REQUIRED)
 find_package(Pangolin REQUIRED)
 if(NOT Pangolin_FOUND)
    message(FATAL_ERROR "Pangolin not found.")
