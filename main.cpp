@@ -142,7 +142,25 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 {
     string outpath = GETCFGVALUE(pCfg,OutPath,string) + "/";
 
-    Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
+    std::shared_ptr<Position::IMap> baseMap(new Position::PMap());
+    std::shared_ptr<Position::IMap> secMap(new Position::PMap());
+
+    Position::MapSerManager::Instance()->setMap(baseMap);
+    Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac1.txt");
+    Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(outpath + "mpts1.txt");
+
+    Position::MapSerManager::Instance()->setMap(secMap);
+    Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac.txt");
+    Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(outpath + "mpts.txt");
+
+    Position::MapSerManager::Instance()->combineMap(baseMap,secMap);
+
+    Position::IViewer *pv = Position::PFactory::CreateViewer(Position::eVPangolin,pCfg);
+    pv->setMap(baseMap);
+    pv->renderLoop();
+
+
+    // Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
 }
 
 

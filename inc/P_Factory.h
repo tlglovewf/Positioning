@@ -191,6 +191,8 @@ namespace Position
         //显示地图
         void displayMap(const std::shared_ptr<IConfig> &pCfg, const std::string &trac,const std::string &mpts);
 
+        //融合地图  secMap -> baseMap
+        void combineMap(std::shared_ptr<IMap> &baseMap, const std::shared_ptr<IMap> &secMap);
     protected:
         ISerialization *mpTracSer;
         ISerialization *mpPtSer;

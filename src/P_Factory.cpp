@@ -196,4 +196,30 @@ namespace Position
         pv->setMap(pmap);
         pv->renderLoop();
     }
+    //融合地图  secMap -> baseMap
+    void MapSerManager::combineMap(std::shared_ptr<IMap> &baseMap, const std::shared_ptr<IMap> &secMap)
+    {
+        KeyFrameVector fms  = baseMap->getAllFrames();
+        KeyFrameVector sfms = secMap->getAllFrames();
+
+        //获取第一个地图最后一帧 当做第二个地图的起止位姿
+        IKeyFrame *pLast = *fms.rbegin(); 
+
+        for(size_t i = 0;i < sfms.size(); ++i)
+        {
+            sfms[i]->setPose(sfms[i]->getPose() * pLast->getPose());
+            baseMap->addKeyFrame(sfms[i]);
+        }
+        //写地图点
+        MapPtVector mapts =  secMap->getAllMapPts();
+        for(size_t i = 0; i < mapts.size(); ++i)
+        {
+            cv::Mat post = mapts[i]->getWorldPos();
+            Mat pt = Mat(4,1,MATCVTYPE);
+            post.copyTo(pt.rowRange(0,3));
+            pt.at<double>(3) = 1.0;
+            mapts[i]->setWorldPos(pLast->getPose() * pt);
+            baseMap->addMapPoint(mapts[i]);
+        }
+    }                   
 }
