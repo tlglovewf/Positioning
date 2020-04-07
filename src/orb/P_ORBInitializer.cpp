@@ -469,8 +469,6 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     cv::Mat t1=t;
     cv::Mat t2=-t;
 
-    cout << t << endl;
-
     // Reconstruct with the 4 hyphoteses and check
     vector<cv::Point3f> vP3D1, vP3D2, vP3D3, vP3D4;
     BolVector vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;

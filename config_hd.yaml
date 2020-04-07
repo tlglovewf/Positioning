@@ -29,10 +29,10 @@ HdCamk3: 0.000000000
 HdCamp1: 0.002193266
 HdCamp2: 0.000100047
 
-ImgPath: "/Users/TLG/Downloads/data/hd/Image36-0"
-PosPath: "/Users/TLG/Downloads/data/hd/0326/data1/camera.txt"
+ImgPath: "/media/tlg/work/tlgfiles/HDData/0326-1/Image-0"
+PosPath: "/media/tlg/work/tlgfiles/HDData/0326cam/data1/camera.txt"
 
-OutPath: "/Users/TLG/Downloads/data/hd/result/"
+OutPath: "/media/tlg/work/tlgfiles/HDData/result/"
 
 ImgWd:  1440
 ImgHg:  1080
@@ -44,7 +44,7 @@ EdNo: 100  #100
 
 
 #vocabulary path 
-VocPath: "/Users/TLG/Documents/Positioning/Vocabulary/ORBvoc.txt"
+VocPath: "/home/tlg/Documents/Sources/Positioning/Vocabulary/ORBvoc.txt"
 
 #feature params
 FeatureCnt:   2000  #特征点提取数量

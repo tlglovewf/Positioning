@@ -3,8 +3,8 @@ project(CV_Project)
 
 #set cmake build type
 IF(NOT CMAKE_BUILD_TYPE)
-   SET(CMAKE_BUILD_TYPE Debug)
-#   SET(CMAKE_BUILD_TYPE Release)
+#   SET(CMAKE_BUILD_TYPE Debug)
+   SET(CMAKE_BUILD_TYPE Release)
 ENDIF()
 
 #print build type
@@ -15,9 +15,10 @@ MESSAGE("Build  type: " ${CMAKE_BUILD_TYPE})
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -O0 -g -march=native")
 
 #release compile setting
-# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
- 
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
+endif()
 
 # osx settting 
 if(CMAKE_HOST_APPLE)
@@ -141,7 +142,7 @@ ${Pangolin_LIBRARIES}
 )
 
 if(CMAKE_HOST_APPLE)
-   if(CMAKE_BUILD_TYPE EQUAL Release)
+   if(CMAKE_BUILD_TYPE STREQUAL "Release")
       target_link_libraries(${Positioning}
          ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.dylib
          ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib)
@@ -151,7 +152,7 @@ if(CMAKE_HOST_APPLE)
          ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2d.dylib)
    endif()
 else()
-   if(CMAKE_BUILD_TYPE EQUAL Release)
+   if(CMAKE_BUILD_TYPE STREQUAL "Release")
       target_link_libraries(${Positioning}
          ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
          ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so)

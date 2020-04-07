@@ -1,26 +1,32 @@
 #build thirdparty lib
 cd Thirdparty 
 #DBoW2
+echo "build dbow2..."
 cd DBoW2
 mkdir build
 cd build
 cmake ..
 make -j4
 #g2o
+echo "build g2o ..."
 cd ../../g2o
-mkdir build && cd build
+mkdir build
+cd build
 cmake ..
 make -j4
 #geographiclib
+echo "build geographiclib ..."
 cd ../../GeographicLib
-mkdir build && cd build
+mkdir build 
+cd build
 cmake ..
 make -j4
 
 #build positioning
-#cd ../../../
-#mkdir build
-#cd build
-#cmake ..
-#make -j
+echo "build positioning ..."
+cd ../../../
+mkdir build
+cd build
+cmake ..
+make -j4
 #../output/Positioning

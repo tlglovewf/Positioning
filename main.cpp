@@ -178,8 +178,8 @@ int main(void)
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
-    MapDisplay(pCfg);
-    return 0;
+    // MapDisplay(pCfg);
+    // return 0;
 
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
