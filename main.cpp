@@ -168,6 +168,60 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 
 
 
+void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
+{
+    const string bathpath = "/media/tlg/work/tlgfiles/hdoutformat/vslam.batch";
+    const string outpath  = "/media/tlg/work/tlgfiles/hdoutformat/out.txt"; 
+    
+    const string imgpath  = GETCFGVALUE(pCfg,ImgPath,string);
+
+    std::shared_ptr<Position::IProjList> prjlist(new HdPosePrj());
+    prjlist->loadPrjList(bathpath);
+    Position::PrjBatchVector &batches = prjlist->getPrjList();
+
+    Position::PrjBatchVIter it = batches.begin();
+    Position::PrjBatchVIter ed = batches.end();
+
+    std::shared_ptr<Position::IData> pData(new HdData(pCfg));
+
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eMultiVision,pCfg,pData));
+    std::shared_ptr<Position::IMap> map = pTraj->getMap();
+
+    int index = 0;
+    for(; it != ed; ++it)
+    {
+        if(index++ > 2)
+            break;
+        cout << "Load Batch:" << it->_btname.c_str() << endl;
+
+        Position::FrameDataVector framedatas;
+        framedatas.reserve(it->_n);
+        for(int i = 0; i < it->_n; ++i)
+        {
+            Position::FrameData fdata;
+            fdata._name = it->_names[i];
+            fdata._img  = imread(imgpath + "/" + it->_names[i] + ".jpg");
+            cvtColor(fdata._img,fdata._img,CV_RGB2GRAY);
+            framedatas.emplace_back(fdata);
+        }
+        cout << "frame data size : " << framedatas.size() << endl;
+        if(pTraj->process(framedatas))
+        {
+            cout << "Set Pose." << endl;
+            Position::KeyFrameVector frames = map->getAllFrames();
+            Position::IMap::SortFrames(frames);
+
+            for(int i = 0; i < frames.size(); ++i)
+            {
+                assert(frames[i]->getData()._name == it->_names[i]);
+                it->_poses.emplace_back(frames[i]->getPose());
+            }
+        }
+        pTraj->reset();
+    }
+    prjlist->saveMap(outpath);
+}
+
 int main(void)
 {  
 
@@ -181,7 +235,10 @@ int main(void)
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
-    MapDisplay(pCfg);
+    // MapDisplay(pCfg);
+
+    LoadList(pCfg);
+
     return 0;
 
 #if USECONTROLLER

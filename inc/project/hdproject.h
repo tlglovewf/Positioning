@@ -36,7 +36,7 @@ public:
 };
 
 // serialization interface
-class HdPosePrj : public Position::ISerialization, public Position::IProjList
+class HdPosePrj : public Position::IProjList
 {
 public:
     //加载项目列表

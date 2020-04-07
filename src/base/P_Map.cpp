@@ -2,6 +2,15 @@
 
 namespace Position
 {
+      //sort
+    void IMap::SortFrames(KeyFrameVector &frames)
+    {
+        std::sort(frames.begin(), frames.end(),[](const IKeyFrame *pl, const IKeyFrame *pr)->bool
+        {
+            return pl->index() < pr->index();
+        });
+    }
+
     void PMap::clear()
     {
         for(KeyFmSetIter it = mMapFms.begin(); it != mMapFms.end(); ++it)
@@ -19,5 +28,6 @@ namespace Position
         mnFrameCnt = 0;
         mnMapPtCnt = 0;
         mMaxFmId   = 0;
+        mpCurrent  = NULL;
     }
 }

@@ -198,7 +198,7 @@ void HdPosePrj::saveMap(const std::string &path)
 {
     assert(!path.empty());
     BEGINFILEREGION(path,out)
-    
+    PROMTD_V("save hd prj result to : ",path.c_str());
     //head    
     mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
           << std::setw(9)  << "ImageName"

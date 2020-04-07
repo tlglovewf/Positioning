@@ -148,6 +148,8 @@ namespace Position
     class IMap : public IBase
     {
     public:
+        //sort
+        static void SortFrames(KeyFrameVector &frames); 
         //创建关键帧
         virtual IKeyFrame* createKeyFrame(IFrame *frame) = 0;
         //创建地图点
@@ -209,16 +211,7 @@ namespace Position
         virtual double getTimeFromName(const std::string &name) = 0;
     };
 
-    //project batch file
-    class IProjList : public IBase
-    {
-    public:
-        //加载项目列表
-        virtual void loadPrjList(const std::string &path) = 0;
-
-        //获取项目列表
-        virtual PrjBatchVector& getPrjList() = 0;
-    };
+  
 
     // serialization interface
     class ISerialization : public IBase
@@ -230,6 +223,17 @@ namespace Position
         virtual void loadMap(const std::string &path)  = 0;
         //保存地图
         virtual void saveMap(const std::string &path) = 0;
+    };
+
+      //project batch file
+    class IProjList : public ISerialization
+    {
+    public:
+        //加载项目列表
+        virtual void loadPrjList(const std::string &path) = 0;
+
+        //获取项目列表
+        virtual PrjBatchVector& getPrjList() = 0;
     };
 
     // visual interface

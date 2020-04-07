@@ -78,10 +78,7 @@ namespace Position
         KeyFrameVector keyfms = std::move(mpMap->getAllFrames());
         if(keyfms.empty())
             return;
-        sort(keyfms.begin(),keyfms.end(),[](const IKeyFrame *pl,const IKeyFrame *pr)->bool
-        {//排序
-            return pl->index() < pr->index();
-        });
+        IMap::SortFrames(keyfms);
         //write head 
         mfile << HEADTRACSTR << endl;
         for(size_t i = 0; i < keyfms.size(); ++i)

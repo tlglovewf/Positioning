@@ -36,6 +36,7 @@ namespace Position
     cv::Mat PMultiVisionTrajProcesser::track(const FrameData &data)
     {
         assert(!data._img.empty());
+        
         Mat grayimg ;
 
         if( !mCam.D.empty() || fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
@@ -46,13 +47,13 @@ namespace Position
         {//先只考虑rbg模式的
             cvtColor(grayimg,grayimg,CV_RGB2GRAY);
         }
+
         FrameData temp = data;
         temp._img = grayimg;
         mpCurrent = new PFrame(temp,mpFeature,mpMap->frameCount());
         Position::FrameHelper::assignFeaturesToGrid(mpCurrent);
         if(mStatus == eTrackNoImage)
         {
-           
             mpLast    = mpCurrent;
             mpCurrentKeyFm = createNewKeyFrame();
             mpLastKeyFm    = mpCurrentKeyFm;
@@ -76,12 +77,12 @@ namespace Position
                 return Mat();
             }
         }
-        
+
         assert(mpLast);
         assert(mpCurrent);
         assert(mpLastKeyFm);
         assert(mpCurrentKeyFm);
-        
+
         Position::MatchVector matches = mpFeatureMatcher->match(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm),mFtSearchRadius); 
 
         // if(matches.size() < 80)

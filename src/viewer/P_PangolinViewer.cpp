@@ -292,10 +292,8 @@ namespace Position
 
             glPopMatrix();
         }
-        sort(vpKFs.begin(),vpKFs.end(),[](const IKeyFrame *pl,const IKeyFrame *pr)->bool
-        {//排序
-            return pl->index() < pr->index();
-        });
+
+        IMap::SortFrames(vpKFs);
   
         glLineWidth(mKeyFrameLineWidth);
         glBegin(GL_LINE_STRIP);

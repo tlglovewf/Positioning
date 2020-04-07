@@ -202,7 +202,7 @@ namespace Position
         KeyFrameVector fms  = baseMap->getAllFrames();
         KeyFrameVector sfms = secMap->getAllFrames();
 
-        sort(fms.begin(),fms.end(),[](const IKeyFrame *pl,const IKeyFrame *pr)->bool{return pl->index() < pr->index();});
+        IMap::SortFrames(fms);
 
         //获取第一个地图最后一帧 当做第二个地图的起止位姿
         IKeyFrame *pLast = *fms.rbegin(); 
