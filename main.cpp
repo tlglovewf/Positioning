@@ -141,13 +141,13 @@ protected:
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 {
     string outpath = GETCFGVALUE(pCfg,OutPath,string) + "/";
-
+#if 0
     std::shared_ptr<Position::IMap> baseMap(new Position::PMap());
     std::shared_ptr<Position::IMap> secMap(new Position::PMap());
 
     Position::MapSerManager::Instance()->setMap(baseMap);
-    Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac1.txt");
-    Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(outpath + "mpts1.txt");
+    Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac3.txt");
+    Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(outpath + "mpts3.txt");
 
     Position::MapSerManager::Instance()->setMap(secMap);
     Position::MapSerManager::Instance()->tracSerPtr()->loadMap(outpath + "trac.txt");
@@ -159,8 +159,11 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
     pv->setMap(baseMap);
     pv->renderLoop();
 
+#else
 
-    // Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
+    Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
+
+#endif
 }
 
 

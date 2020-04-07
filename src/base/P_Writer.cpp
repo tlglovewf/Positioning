@@ -75,9 +75,13 @@ namespace Position
         assert(!path.empty());
         BEGINFILEREGION(path,out)
 
-        const KeyFrameVector &keyfms = mpMap->getAllFrames();
+        KeyFrameVector keyfms = std::move(mpMap->getAllFrames());
         if(keyfms.empty())
             return;
+        sort(keyfms.begin(),keyfms.end(),[](const IKeyFrame *pl,const IKeyFrame *pr)->bool
+        {//排序
+            return pl->index() < pr->index();
+        });
         //write head 
         mfile << HEADTRACSTR << endl;
         for(size_t i = 0; i < keyfms.size(); ++i)
@@ -132,7 +136,8 @@ namespace Position
         assert(!path.empty());
         BEGINFILEREGION(path,out)
 
-        const MapPtVector  &pts = mpMap->getAllMapPts();
+        MapPtVector pts = std::move(mpMap->getAllMapPts());
+  
         if(pts.empty())
             return;
         //write head 

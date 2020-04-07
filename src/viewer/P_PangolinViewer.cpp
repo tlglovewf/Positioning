@@ -259,7 +259,7 @@ namespace Position
             IKeyFrame *pKF = vpKFs[i];
             cv::Mat Twc = pKF->getPose().clone();
             Twc = Twc.inv().t();
-            // cout << i << " " << Twc << endl;
+
             glPushMatrix();
 
             glMultMatrixd(Twc.ptr<GLdouble>(0));
@@ -296,6 +296,7 @@ namespace Position
         {//排序
             return pl->index() < pr->index();
         });
+  
         glLineWidth(mKeyFrameLineWidth);
         glBegin(GL_LINE_STRIP);
         glColor3f(0.0f,1.0f,0.0f);
