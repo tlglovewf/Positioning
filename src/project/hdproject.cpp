@@ -142,3 +142,114 @@ bool HdData::loadDatas()
     }
     return false;
 }
+
+#define BEGINFILEREGION(PATH,MD)  try                               \
+                                  {                                 \
+                                     if(open(PATH,std::ios::MD))    \
+                                     {
+
+#define ENDFILEREGION()                 mfile.close();              \
+                                     }                              \
+                                  }                                 \
+                                  catch(const std::exception& e)    \
+                                  {                                 \
+                                      std::cerr << e.what() << '\n';\
+                                  }
+
+
+
+
+ //加载项目列表
+void HdPosePrj::loadPrjList(const std::string &path)
+{
+    assert(!path.empty());
+    BEGINFILEREGION(path,in)
+    
+    while(!mfile.eof())
+    {
+        std::string line;
+        getline(mfile,line);
+        char batchname[20] = {0};
+        int  n;
+        sscanf(line.c_str(),"%s %d",batchname,&n);
+        if(n < 1)
+            continue;
+        int index = 0;
+        
+        Position::BatchItem pv(batchname,n);
+        //read batch files name
+        for(int i = 0;i < n; ++i)
+        {
+            getline(mfile,line);
+            pv._names.emplace_back(line);
+        }
+        mBatches.emplace_back(pv);
+    }
+    ENDFILEREGION()
+}
+
+//加载地图
+void HdPosePrj::loadMap(const std::string &path)
+{
+    //add more ...
+}
+//保存地图
+void HdPosePrj::saveMap(const std::string &path)
+{
+    assert(!path.empty());
+    BEGINFILEREGION(path,out)
+    
+    //head    
+    mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
+          << std::setw(9)  << "ImageName"
+          << std::setw(7)  << "valid"
+          << std::setw(15) << "R11"
+          << std::setw(15) << "R12"
+          << std::setw(15) << "R13"
+          << std::setw(15) << "R21"
+          << std::setw(15) << "R22"
+          << std::setw(15) << "R23"
+          << std::setw(15) << "R31"
+          << std::setw(15) << "R32"
+          << std::setw(15) << "R33"
+          << std::setw(15) << "T1"
+          << std::setw(15) << "T2"
+          << std::setw(15) << "T3"
+          << std::endl;
+    
+    Position::PrjBatchVIter it = mBatches.begin();
+    Position::PrjBatchVIter ed = mBatches.end();
+    for(;it != ed; ++it)
+    {
+        if(it->isvaild())
+        {
+            //batch info
+            mfile << it->_btname.c_str() << " " << it->_n << std::endl;
+            for(int i = 0;i < it->_n; ++i)
+            {
+                //pose
+                mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
+                      << std::setw(9)  << it->_names[i].c_str()
+                      << std::setw(7)  << (!it->_poses.empty());
+                const Mat &pose =  it->_poses[i];
+                //尺度信息
+                double scale = 1.0;
+                mfile << std::setiosflags(std::ios::fixed) << std::setprecision(9) << std::setiosflags(std::ios::right)
+                      << std::setw(15) << pose.at<double>(0,0)
+                      << std::setw(15) << pose.at<double>(0,1)
+                      << std::setw(15) << pose.at<double>(0,2)
+                      << std::setw(15) << pose.at<double>(1,0)
+                      << std::setw(15) << pose.at<double>(1,1)
+                      << std::setw(15) << pose.at<double>(1,2)
+                      << std::setw(15) << pose.at<double>(2,0)
+                      << std::setw(15) << pose.at<double>(2,1)
+                      << std::setw(15) << pose.at<double>(2,2)
+                      << std::setw(15) << pose.at<double>(0,3) * scale
+                      << std::setw(15) << pose.at<double>(1,3) * scale
+                      << std::setw(15) << pose.at<double>(2,3) * scale
+                      << std::endl;
+            }
+        }
+    }
+    ENDFILEREGION()
+}

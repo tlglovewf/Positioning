@@ -209,6 +209,17 @@ namespace Position
         virtual double getTimeFromName(const std::string &name) = 0;
     };
 
+    //project batch file
+    class IProjList : public IBase
+    {
+    public:
+        //加载项目列表
+        virtual void loadPrjList(const std::string &path) = 0;
+
+        //获取项目列表
+        virtual PrjBatchVector& getPrjList() = 0;
+    };
+
     // serialization interface
     class ISerialization : public IBase
     {

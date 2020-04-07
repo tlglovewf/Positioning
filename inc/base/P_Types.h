@@ -192,6 +192,26 @@ struct EpLine
     EpLine(double _a,double _b,double _c):a(_a),b(_b),c(_c){}
 };
 
+//批处理值
+struct BatchItem
+{
+    std::string _btname;
+    int _n;
+    std::vector<string> _names;
+    std::vector<Mat>    _poses;
+    inline bool isvaild()const
+    {
+        return _names.size() == _poses.size();
+    }
+    BatchItem(const std::string &btn,int n):_btname(btn),_n(n)
+    {
+        _names.reserve(n);
+        _poses.reserve(n);
+    }
+};
+typedef vector<BatchItem>                   PrjBatchVector;
+typedef PrjBatchVector::iterator            PrjBatchVIter;
+
 typedef std::vector<PoseData>               PoseVector;
 typedef PoseVector::iterator                PoseVIter;
 

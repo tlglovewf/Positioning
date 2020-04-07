@@ -244,7 +244,7 @@ void GetFeatureMatch(Position::FrameVector &frames,bool bsave)
 }
 
 
-
+#pragma region test
 class MapSer
 {
 public:
@@ -297,21 +297,30 @@ public:
 protected:
     fstream mfile;
 };
+#pragma endregion 
+
+template<unsigned short NN>
+class TTe
+{
+public:
+    TTe()
+    {
+        memset(this, 0, NN);
+    }
+    void display()const
+    {
+        cout << mCnt << endl;
+    }
+protected:
+    int mCnt;
+};
+
 
 int main(void)
 {  
-    // MapSer().readLine("test:[1,2,3]");
-     
-    // Mat mat = (Mat_<double>(9,1) << 1,2,3,4,5,6,7,7,8);
 
-    MapSer().write("/Users/TLG/Documents/Positioning/output/test.txt");
-    MapSer().read("test.txt");
-
-    // cout << str2mat(mat2str(mat).c_str() ) << endl;
-
-
-
-
+    TTe<sizeof(int)>().display();
+    
     return 0;
 
     Position::CameraParam camera;
