@@ -202,13 +202,16 @@ namespace Position
         KeyFrameVector fms  = baseMap->getAllFrames();
         KeyFrameVector sfms = secMap->getAllFrames();
 
+        sort(fms.begin(),fms.end(),[](const IKeyFrame *pl,const IKeyFrame *pr)->bool{return pl->index() < pr->index();});
+
         //获取第一个地图最后一帧 当做第二个地图的起止位姿
         IKeyFrame *pLast = *fms.rbegin(); 
 
         for(size_t i = 0;i < sfms.size(); ++i)
         {
-            sfms[i]->setPose(sfms[i]->getPose() * pLast->getPose());
-            baseMap->addKeyFrame(sfms[i]);
+            IFrame *frame = new PFrame(sfms[i]->getData(),baseMap->frameCount());
+            frame->setPose(sfms[i]->getPose() * pLast->getPose());
+            baseMap->createKeyFrame(frame);
         }
         //写地图点
         MapPtVector mapts =  secMap->getAllMapPts();
@@ -218,7 +221,7 @@ namespace Position
             Mat pt = Mat(4,1,MATCVTYPE);
             post.copyTo(pt.rowRange(0,3));
             pt.at<double>(3) = 1.0;
-            mapts[i]->setWorldPos(pLast->getPose() * pt);
+            mapts[i]->setWorldPos( pt + pLast->getCameraCenter());
             baseMap->addMapPoint(mapts[i]);
         }
     }                   

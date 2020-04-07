@@ -8,10 +8,10 @@
             "name": "Positioning",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/OutPut/Positioning",
+            "program": "${workspaceFolder}/output/Positioning",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/OutPut/",
+            "cwd": "${workspaceFolder}/output/",
             "environment": [],
             "externalConsole": false,
             "MIMode": "lldb"
