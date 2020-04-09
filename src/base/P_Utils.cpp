@@ -46,7 +46,52 @@ namespace Position
         PROMT_V("Hist Similarity ", d, "%" );
     //  putText(img, std::to_string(basebase), Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 1, Scalar(0, 0, 255), 2, CV_AA);
     }
-
+    
+    //绘制特征匹配
+    Mat PUtils::DrawFeatureMatch(const Mat &img1, const Mat &img2,
+                      const KeyPtVector &pt1s, const KeyPtVector &pt2s,
+                      const vector<DMatch> &matches,
+                      const vector<char> &status /*= vector<char>()*/)
+     {
+        int w = img1.cols;
+        int h = img1.rows;
+        Mat keyimg1;
+        Mat keyimg2;
+        //绘制关键点
+        drawKeypoints(img1,pt1s,keyimg1,CV_RGB(0,0,255));
+        drawKeypoints(img2,pt2s,keyimg2,CV_RGB(0,0,255));
+        const int textpos = 50;
+        //绘制文字信息
+        putText(keyimg1,"keypoint size:" + std::to_string(pt1s.size()),cv::Point2f(textpos,textpos),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
+        putText(keyimg2,"keypoint size:" + std::to_string(pt2s.size()),cv::Point2f(textpos,textpos),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
+        
+        Mat matchimg;
+        //横向拼接图像
+        hconcat(keyimg1, keyimg2, matchimg);
+        int count = 0;
+        for(int i = 0;i < matches.size();++i)
+        {
+            Point2f ptf1 =  pt1s[matches[i].queryIdx].pt;
+            Point2f ptf2 =  pt2s[matches[i].trainIdx].pt + Point2f(w,0);
+            const int thickness = 3;
+            if(status.empty() || status[i])
+            {//绿点绘制 正确匹配对
+                circle(matchimg,ptf1,thickness,CV_RGB(0,255,0), thickness);
+                circle(matchimg,ptf2,thickness,CV_RGB(0,255,0), thickness);
+                line(matchimg,ptf1,ptf2,CV_RGB(0,255,0),thickness - 1);
+                ++count;
+            }
+            else
+            {//红点绘制错误匹配点
+                circle(matchimg,ptf1,thickness,CV_RGB(255,0,0), thickness);
+                circle(matchimg,ptf2,thickness,CV_RGB(255,0,0), thickness);
+                line(matchimg,ptf1,ptf2,CV_RGB(255,0,0),thickness - 1);
+            }
+        }
+        putText(matchimg,"total match:" + std::to_string(matches.size()),cv::Point2f(textpos,textpos * 2),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
+        putText(matchimg,"good  match:" + std::to_string(count) + " | " + std::to_string(100 * (count / (float)matches.size())) + "%",cv::Point2f(textpos,textpos * 3),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
+        return matchimg;
+    }
 
 
     //直方图均衡

@@ -250,6 +250,13 @@ public:
         return inlier / (float)status.size();
     }
 
+    //绘制匹配图
+    //status  单应矩阵或者基础矩阵 ransac计算的掩码数组
+    Mat DrawFeatureMatch(const Mat &img1, const Mat &img2,
+                      const KeyPtVector &pt1s, const KeyPtVector &pt2s,
+                      const vector<DMatch> &matches,
+                      const vector<char> &status = vector<char>());
+
     //绘制相交线
     static void DrawCrossLine(Mat &img ,int width, int height)
     {
