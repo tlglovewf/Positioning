@@ -259,6 +259,7 @@ typedef std::vector<cv::Point3f>            Pt3Vector;
 typedef std::vector<cv::DMatch>             MatchVector;
 
 typedef std::vector<size_t>                 SzVector;
+typedef std::vector<u8>                     U8Vector;
 typedef std::vector<int>                    IntVector;
 typedef std::vector<bool>                   BolVector;
 typedef std::vector<float>                  FloatVector;

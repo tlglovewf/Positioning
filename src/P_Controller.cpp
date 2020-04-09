@@ -116,7 +116,7 @@ void PositionController::run()
      }
      if(mpViewer)
      {//如果有可视接口 显示该段
-         mpViewer->renderLoop();
+        //  mpViewer->renderLoop();
      }
 }
 

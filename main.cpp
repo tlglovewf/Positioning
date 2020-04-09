@@ -11,7 +11,7 @@
 
 #include "P_Map.h"
 #include "P_Factory.h"
-
+#include "P_Utils.h"
 using namespace std;
 using namespace cv;
 
@@ -237,15 +237,17 @@ int main(void)
 
     // MapDisplay(pCfg);
 
-    LoadList(pCfg);
+    // LoadList(pCfg);
 
-    return 0;
+    // return 0;
 
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
 
+    Position::Time_Interval t;
+    t.start();
     system->run();
-
+    t.prompt("cost : ");
     return 0;
 #else
     //multi vision situation test 

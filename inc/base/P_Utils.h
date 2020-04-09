@@ -237,8 +237,18 @@ public:
 
     //直方图均衡
     static void ImageHistEqualized(const Mat &img, Mat &outimg);
+
     //绘制直方图
     static void HistDraw(const Mat &img);
+
+    //计算内点率 
+    //status  基础矩阵或者单应矩阵 ransac计算出的掩码数组
+    static float ComputeInlierRate(const U8Vector &status)
+    {
+        int inlier = std::count_if(status.begin(), status.end(),[](u8 n)->bool{
+                return n > 0;});
+        return inlier / (float)status.size();
+    }
 
     //绘制相交线
     static void DrawCrossLine(Mat &img ,int width, int height)
@@ -489,9 +499,11 @@ public:
     }
     /* 输出
 	 */
-    inline void prompt(const std::string &str)
+    inline void prompt(const std::string &str,bool isreset = false)
     {
         std::cout << str.c_str() << end() << "s" << std::endl;
+        if(isreset)
+            start();
     }
 
 protected:
