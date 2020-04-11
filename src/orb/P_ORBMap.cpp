@@ -113,6 +113,7 @@ namespace Position
         mspKeyFrames.clear();
         mnMaxKFid = 0;
         mvpReferenceMapPoints.clear();
+        mpCurrent = NULL;
         // mvpKeyFrameOrigins.clear();
     }
 }

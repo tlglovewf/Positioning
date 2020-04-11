@@ -87,9 +87,10 @@ namespace Position
                 for(size_t i = 0; i < framedatas.size(); ++i)
                 {
                     track(framedatas[i]);
+
                     if(mpViewer)
                     {
-                        mpViewer->renderOnce();
+                        waitKey(1);
                     }
                 }
 

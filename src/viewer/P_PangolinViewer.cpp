@@ -8,6 +8,7 @@ namespace Position
     {
         mWinW = GETCFGVALUE(mCfg, ViewerW, int);
         mWinH = GETCFGVALUE(mCfg, ViewerH, int);
+        mFrameViewer = std::unique_ptr<PFrameViewer>(new PFrameViewer());
     }
     
     //初始化
@@ -148,12 +149,10 @@ namespace Position
             {
                 drawRelLines();
             }
+
             pangolin::FinishFrame();
-            // cv::Mat img = mFDrawer->drawFrame(mPosition->currentFrame());
-            // const int scale = 2;
-            // cv::resize(img,img,cv::Size(img.cols >> scale,img.rows >> scale));
-            // cv::imshow("CurFrame",img);
-            // cv::waitKey(1);
+
+            mFrameViewer->drawFrame();
         }
         mbRender = !pangolin::ShouldQuit();
         return mbRender;

@@ -22,7 +22,7 @@ namespace Position
         {
             mMap = pmap;
         }
-        
+
         //绘制帧
         void drawFrame();
 
@@ -30,8 +30,13 @@ namespace Position
         void drawFrameText(Mat &img,eTrackStatus status, Mat &imText);
 
     protected:
-        eTrackStatus mStatus;
-        std::shared_ptr<IMap> mMap;
+        //更新
+        void drawPts( IKeyFrame *pkf, Mat &im);
+
+    protected:
+        eTrackStatus            mStatus;
+        size_t                  mTrackPts;
+        std::shared_ptr<IMap>   mMap;
     };
 }
 

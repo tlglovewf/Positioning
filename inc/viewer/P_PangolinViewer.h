@@ -7,6 +7,7 @@
 #ifndef __PANGOLINVIWER_H_H_
 #define __PANGOLINVIWER_H_H_
 #include "P_Interface.h"
+#include "P_FrameViewer.h"
 #include <pangolin/pangolin.h>
 
 namespace Position
@@ -22,6 +23,7 @@ namespace Position
         virtual void setMap(const std::shared_ptr<IMap> &pMap) 
         {
             mMap = pMap;
+            mFrameViewer->setMap(mMap);
         }
          //初始化
         virtual void init();
@@ -46,6 +48,7 @@ namespace Position
     protected:
         std::shared_ptr<IConfig>        mCfg;
         std::shared_ptr<IMap>           mMap;
+        std::unique_ptr<PFrameViewer>   mFrameViewer;
 
         pangolin::View                 *mpView;
         pangolin::OpenGlRenderState     mCam;

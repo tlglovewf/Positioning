@@ -84,10 +84,7 @@ void PositionController::run()
         {
             PROMT_S("Traj have been processed suceesfully!");
             const std::shared_ptr<Position::IMap> &map = mpTrajProSelector->getMap();
-            // if(mpViewer)
-            // {
-            //     mpTrajProSelector->setViewer(mpViewer);
-            // }
+
             if(framedatas.size() < 2)
             {//如果只有一帧,使用单张直接定位
                //mpSinglePositioner->position(map->getAllFrames()[0]);

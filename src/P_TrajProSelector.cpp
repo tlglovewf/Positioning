@@ -38,6 +38,7 @@ namespace Position
        mpViewer = pviewer;
        assert(mpViewer);
        mpViewer->setMap(mpCurrentTrajPro->getMap());
+       mpCurrentTrajPro->setViewer(pviewer);
    }
 
    //重置状态

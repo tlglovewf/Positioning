@@ -208,6 +208,7 @@ void ORBTracking::Track()
             if(mpMap->keyFrameInMap() <=5)
             {
                 PROMT_S("Track Lost,Not enough frame can track again. reseting ...");
+                Reset();
                 return;
             }
         }
