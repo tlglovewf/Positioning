@@ -6,6 +6,7 @@ namespace Position
    TrajProSelector::TrajProSelector(const std::shared_ptr<IConfig> &pCfg, const std::shared_ptr<IData> &pdata)
    {
        mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eUniformSpeed,pCfg,pdata));
+       mpCurrentTrajPro = mpUniformVTrajPro;
    }
 
      //处理帧数据
@@ -36,7 +37,6 @@ namespace Position
    {
        mpViewer = pviewer;
        assert(mpViewer);
-       mpViewer->init();
        mpViewer->setMap(mpCurrentTrajPro->getMap());
    }
 
@@ -46,4 +46,14 @@ namespace Position
        assert(mpCurrentTrajPro);
        mpCurrentTrajPro->reset();
    }
+
+    //等待处理
+    void TrajProSelector::waitingForHandle()
+    {
+        if(mpCurrentTrajPro)
+        {
+            mpCurrentTrajPro->wait();
+        }
+    }
+
 } // namespace Position

@@ -28,6 +28,19 @@ namespace Position
 
         //重置状态
         void reset();
+
+        //等待处理
+        void waitingForHandle();
+
+        //释放
+        void release()
+        {
+            if(mpCurrentTrajPro)
+            {
+                mpCurrentTrajPro->over();
+            }
+        }
+
     protected:
         std::shared_ptr<ITrajProcesser>   mpCurrentTrajPro;  
 

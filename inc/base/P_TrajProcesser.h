@@ -37,6 +37,7 @@ namespace Position
         virtual cv::Mat track(const FrameData &data)
         {
             assert(NULL);
+            return cv::Mat();
         }
 
         //状态
@@ -100,13 +101,12 @@ namespace Position
         {
             mpViewer = viewer;
         }
-    protected:
-        //等待处理结束
-        virtual void waitForProc()
-        {
-            //add more
-        }
 
+        //等待
+        virtual void wait()
+        {
+            assert(NULL);
+        }
     protected:
 
         std::shared_ptr<IMap>       mpMap;

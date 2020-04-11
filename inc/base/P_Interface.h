@@ -114,6 +114,9 @@ namespace Position
         //帧目标
         virtual TargetVector& getTargets() = 0;
 
+         //获取关键点
+        virtual const KeyPtVector& getKeys()const = 0;
+        
         //获取旋转 平移分量
         virtual Mat getRotation() = 0;
         virtual Mat getTranslation() = 0;
@@ -153,14 +156,17 @@ namespace Position
         //创建关键帧
         virtual IKeyFrame* createKeyFrame(IFrame *frame) = 0;
         //创建地图点
-        virtual IMapPoint* createMapPoint(const cv::Mat &pose) = 0;
+        virtual IMapPoint* createMapPoint(const cv::Mat &pose)     = 0;
         virtual IMapPoint* createMapPoint(const cv::Point3f &pose) = 0;
+
         //加入/移除关键帧
         virtual void addKeyFrame(IKeyFrame *pKF) = 0;
-        virtual void rmKeyFrame(IKeyFrame *pKF) = 0;
+        virtual void rmKeyFrame(IKeyFrame *pKF)  = 0;
+
         //加入/移除地图点
         virtual void addMapPoint(IMapPoint *pMp) = 0;
-        virtual void rmMapPoint(IMapPoint *pMp) = 0;
+        virtual void rmMapPoint(IMapPoint *pMp)  = 0;
+
         //清空
         virtual void clear() = 0;
 
@@ -188,6 +194,8 @@ namespace Position
         //用于多线程 地图更新锁
         virtual std::mutex& mapUpdateMutex() = 0;
 
+        //当前帧
+        virtual IKeyFrame* currentKeyFrame() = 0;
     };
 
     
@@ -248,6 +256,8 @@ namespace Position
         virtual bool renderOnce() = 0;
         //绘制循环
         virtual void renderLoop() = 0;
+        //绘制状态
+        virtual bool isRender()const = 0;
     };
 
     //检测对象
@@ -315,6 +325,8 @@ namespace Position
         virtual void reset() = 0;
         //结束
         virtual void over() = 0;
+        //等待处理
+        virtual void wait() = 0;
         //当前帧
         virtual IKeyFrame* current()const = 0;
         //上一帧

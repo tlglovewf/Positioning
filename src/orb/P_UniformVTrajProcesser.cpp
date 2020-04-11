@@ -35,33 +35,23 @@ namespace Position
 
         mpLocalMapper = std::make_shared<ORBLocalMapping>(mpMap);
         mptLocalMapping = std::unique_ptr<thread>( new thread(&Position::ORBLocalMapping::Run,mpLocalMapper.get()));
-        mptLocalMapping->detach();
-        mpLoopCloser = std::make_shared<ORBLoopClosing>(mpMap, mpKeyFrameDatabase, mpVocabulary, false);
-        mptLoopClosing = std::unique_ptr<thread>(new thread(&Position::ORBLoopClosing::Run, mpLoopCloser.get()));
-        mptLoopClosing->detach();
+   
+        //mpLoopCloser = std::make_shared<ORBLoopClosing>(mpMap, mpKeyFrameDatabase, mpVocabulary, false);
+        //mptLoopClosing = std::unique_ptr<thread>(new thread(&Position::ORBLoopClosing::Run, mpLoopCloser.get()));
+
         mpTracker->SetLocalMapper(mpLocalMapper);
-        mpTracker->SetLoopClosing(mpLoopCloser);
+        //mpTracker->SetLoopClosing(mpLoopCloser);
 
         mpLocalMapper->SetTracker(mpTracker);
-        mpLocalMapper->SetLoopCloser(mpLoopCloser);
+        //mpLocalMapper->SetLoopCloser(mpLoopCloser);
 
-        mpLoopCloser->SetTracker(mpTracker);
-        mpLoopCloser->SetLocalMapper(mpLocalMapper);
+        //mpLoopCloser->SetTracker(mpTracker);
+        //mpLoopCloser->SetLocalMapper(mpLocalMapper);
     }
 
     PUniformVTrajProcesser::~PUniformVTrajProcesser()
     {
-         over();
-    }
-
-    //等待处理结束
-    void PUniformVTrajProcesser::waitForProc()
-    {
-        while(mpLocalMapper->isFinished() && mpLoopCloser->isFinished())
-        {
-            usleep(1000);
-        }
-        PROMT_S("FrameDatas have Processed over.");
+       
     }
 
      //跟踪
@@ -76,6 +66,17 @@ namespace Position
         return mpTracker->track(data);
     }
 
+    //等待
+    void PUniformVTrajProcesser::wait()
+    {
+        while(!mpLocalMapper->AcceptKeyFrames())
+        {
+            usleep(100);
+        }
+
+        PROMT_S("FrameDatas have Processed over.");
+    }
+
     //重置
     void PUniformVTrajProcesser::reset()
     {
@@ -85,12 +86,18 @@ namespace Position
     //结束
     void PUniformVTrajProcesser::over()
     {
-        mpLocalMapper->RequestFinish();
-        mpLoopCloser->RequestFinish();
-
-        while(!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())
+        if(mptLocalMapping && mptLocalMapping->joinable())
         {
-            usleep(5000);
+            mpLocalMapper->RequestFinish();
+            mptLocalMapping->join();
+            cout << "local mapping thread over." << endl;
+        }
+        
+        if(mptLoopClosing && mptLoopClosing->joinable())
+        {
+            mpLoopCloser->RequestFinish();
+            mptLoopClosing->join();
+            cout << "closing thread over." << endl;
         }
     }
 }

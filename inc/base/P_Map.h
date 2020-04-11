@@ -106,6 +106,7 @@ namespace Position
         virtual MapPtVector getReferenceMapPoints() 
         {
             assert(NULL);
+            return MapPtVector();
         }
         //最大帧号
         virtual u64 getMaxKFid()
@@ -136,6 +137,11 @@ namespace Position
             assert(NULL);
         }
 
+        //当前帧
+        virtual IKeyFrame* currentKeyFrame() 
+        {
+            return mpCurrent;
+        }
     protected:
         MapPtSet    mMapPts;
         KeyFmSet    mMapFms;

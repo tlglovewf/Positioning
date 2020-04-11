@@ -23,12 +23,14 @@ namespace Position
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
         {
             assert(NULL);
+            return false;
         }
 
          //返回sigma参数(主要用于优化 信息矩阵)
         virtual const FloatVector& getSigma2() const 
         {
             assert(NULL);
+            return FloatVector();
         }
     protected:
         //初始化

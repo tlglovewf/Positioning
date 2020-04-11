@@ -12,130 +12,18 @@
 #include "P_Map.h"
 #include "P_Factory.h"
 #include "P_Utils.h"
+
+#include "P_FrameViewer.h"
+
+#include "P_PangolinViewer.h"
+
+#include <thread>
+
 using namespace std;
 using namespace cv;
 
 #define WEIYA           0  //是否为weiya数据
 #define USECONTROLLER   1  //是否启用定位框架
-
-
-
-//动态物体
-class DynamicObjectInfor
-{
-public:
-    typedef map<std::string, cv::Vec3b> Item;
-    typedef Item::const_iterator        ItemIter;
-    //单例
-    static DynamicObjectInfor* Instance()
-    {
-        static DynamicObjectInfor instance;
-        return &instance;
-    }
-    //加载
-    void load(const std::string &path)
-    {
-        if(path.empty())
-        {
-            PROMT_S("Path error~  Semantics Config File Loaded failed.")
-        }
-        try
-        {
-            ifstream segfile;
-            segfile.open(path);
-
-            if(segfile.is_open())
-            {
-                PROMT_S("Begin to load semantics");
-                while(!segfile.eof())
-                {
-                    std::string str;
-                    getline(segfile,str);
-                    trimString(str);//去首尾空格
-                    if(str.empty() || str[0] == '#')
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        int s = str.find_first_of(":");
-                        int v = str.find_first_of("#");//剔除注释
-                        string name = str.substr(0,s);
-                        string result = str.substr(s+1,(v - s)-1);
-                        trimString(result);
-                        int r,g,b;
-                        sscanf( result.c_str(), "%d, %d, %d",&b,&g,&r);
-                        cv::Vec3b vv(r,g,b);
-                        mObjs.insert(std::make_pair(name,vv));
-                        PROMT_V(name.c_str(),vv);
-                    }
-                }
-            }
-            segfile.close();
-            PROMT_S("End load semantics");
-        }
-        catch(const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-        }
-    }
-
-    // //
-    // void rmFeatureByDynamicObj(const Mat &segImg,Position::MatchVector &matches)
-    // {
-
-    // }
-
-    // bool isFeatureDynamicObj(IFrame *pframe, const Point2f &pt)
-    // {
-
-    // }
-
-    //[] 运算符
-    cv::Vec3b operator[](const std::string &name)const
-    {
-        ItemIter it = mObjs.find(name);
-        if(it != mObjs.end())
-        {
-            return it->second;
-        }
-        else
-        {
-            return cv::Vec3b();
-        }
-    }
-
-    //开始
-    ItemIter begin()const
-    {
-        return mObjs.begin();
-    }
-
-    //结束
-    ItemIter end()const
-    {
-        return mObjs.end();
-    }
-
-protected:
-    //剔除前后空格
-    void trimString(std::string & str )
-    {
-        if(str.empty())
-            return;
-        int s = str.find_first_not_of(" ");
-        int e = str.find_last_not_of(" ");
-
-        if( s == string::npos || 
-            e == string::npos)
-            return;
-
-        str = str.substr(s,e-s+1);
-    }
-    
-protected:
-    map<std::string, cv::Vec3b> mObjs;
-};
 
 
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
@@ -211,7 +99,7 @@ void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
             Position::KeyFrameVector frames = map->getAllFrames();
             Position::IMap::SortFrames(frames);
 
-            for(int i = 0; i < frames.size(); ++i)
+            for(size_t i = 0; i < frames.size(); ++i)
             {
                 assert(frames[i]->getData()._name == it->_names[i]);
                 it->_poses.emplace_back(frames[i]->getPose());
@@ -239,6 +127,18 @@ int main(void)
 
     // LoadList(pCfg);
 
+    // std::unique_ptr<Position::IViewer> pviewer(new Position::Pangolin_Viewer(pCfg));
+    // std::shared_ptr<Position::IMap> pmap(new Position::PMap());
+    // pviewer->setMap(pmap);
+
+    // // pviewer->renderLoop();
+    // std::thread *thread = new std::thread(&Position::IViewer::renderLoop, pviewer.get());
+
+    // while(1)
+    // {
+    //     ;
+    // }
+    
     // return 0;
 
 #if USECONTROLLER
@@ -247,7 +147,7 @@ int main(void)
     Position::Time_Interval t;
     t.start();
     system->run();
-    t.prompt("cost : ");
+    // t.prompt("total cost : ");
     return 0;
 #else
     //multi vision situation test 

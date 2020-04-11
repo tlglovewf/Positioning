@@ -8,6 +8,7 @@
 #define __PCONTROLLER_H_H_
 #include "P_Interface.h"
 #include "P_TrajProSelector.h"
+#include <thread>
 
 // position controller class
 class PositionController
@@ -36,6 +37,7 @@ protected:
     std::unique_ptr<Position::IPositioning>     mpSinglePositioner;
     std::unique_ptr<Position::TrajProSelector>  mpTrajProSelector;
 
+    std::unique_ptr<std::thread>                mptViewer; 
 };
 
 #endif

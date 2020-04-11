@@ -43,7 +43,11 @@ namespace Position
         {
              return mData._targets;
         }
-
+        //获取关键点
+        virtual const KeyPtVector& getKeys()const 
+        {
+            return mvKeysUn;
+        }
         //更新下一帧
         virtual void updateNext(IKeyFrame *next) 
         {

@@ -23,6 +23,7 @@ namespace Position
         virtual bool loadDatas()
         {
             assert(NULL);
+            return false;
         }
 
         //第一个元素
@@ -47,6 +48,7 @@ namespace Position
         virtual double getTimeFromName(const std::string &name) 
         {
             assert(NULL);
+            return 0.0;
         }
     protected:
         //清理

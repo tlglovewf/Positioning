@@ -4,7 +4,7 @@
 
 namespace Position
 {
-    ORBMap::ORBMap():mnMaxKFid(0)
+    ORBMap::ORBMap():mnMaxKFid(0),mpCurrent(NULL)
     {
     }
 
@@ -12,6 +12,7 @@ namespace Position
     {
         unique_lock<mutex> lock(mMutexMap);
         mspKeyFrames.insert(pKF);
+        mpCurrent = pKF;
         if(pKF->index() > mnMaxKFid)
             mnMaxKFid=pKF->index();
     }
@@ -58,14 +59,22 @@ namespace Position
         return MapPtVector(mspMapPoints.begin(),mspMapPoints.end());
     }
 
+    IKeyFrame* ORBMap::currentKeyFrame()
+    {
+        unique_lock<mutex> lock(mMutexMap);
+        return mpCurrent;
+    }
+
     u64 ORBMap::mapptCount()
     {
         assert(NULL);
+        return 0;
     }
 
     u64 ORBMap::frameCount()
     {
        assert(NULL);
+       return 0;
     }
 
     //获取点、帧数量

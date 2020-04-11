@@ -31,6 +31,7 @@ namespace Position
         virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches ,Pt3Vector &vPts)
         {
             assert(NULL);
+            return false;
         }
 
     protected:

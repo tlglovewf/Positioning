@@ -220,6 +220,12 @@ namespace Position
         {
             return mpFrame->getCameraCenter();
         }
+
+        //获取关键点
+        virtual const KeyPtVector& getKeys()const
+        {
+            return mpFrame->getKeys();
+        }
     protected:
         IFrame      *mpFrame;
         IKeyFrame   *mpNext;

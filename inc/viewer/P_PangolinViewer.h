@@ -11,32 +11,6 @@
 
 namespace Position
 {
-    class IFrameDrawer : public IBase
-    {
-    public:
-        virtual void updateState(eTrackStatus eStatus) = 0;
-        //绘制帧
-        virtual Mat drawFrame( IFrame *frame)  = 0;
-    };
-
-    //绘制帧
-    class CVFrameDrawer : public IFrameDrawer
-    {
-    public:
-        //绘制帧
-        virtual Mat drawFrame( IFrame *frame) ;
-
-        //更新状态
-        virtual void updateState(eTrackStatus eStatus)
-        {
-            mStatus = eStatus;
-        }
-    protected:
-        //绘制文本信息
-        void drawTextInfo(cv::Mat &img, cv::Mat &txtimg);
-    protected:
-        eTrackStatus mStatus;
-    };
     //pangolin可视化
     class Pangolin_Viewer : public IViewer
     {
@@ -55,10 +29,16 @@ namespace Position
         virtual bool renderOnce();
         //绘制循环
         virtual void renderLoop();
-
+         //绘制状态
+        virtual bool isRender()const 
+        {
+            return mbRender;
+        }
     protected:
         //绘制帧
         void drawFrames();
+        //绘制轨迹线
+        void drawTraceLine();
         //绘制地图点
         void drawMapPoints();
         //绘制关联线
@@ -66,8 +46,6 @@ namespace Position
     protected:
         std::shared_ptr<IConfig>        mCfg;
         std::shared_ptr<IMap>           mMap;
-
-        std::unique_ptr<IFrameDrawer>   mFDrawer;
 
         pangolin::View                 *mpView;
         pangolin::OpenGlRenderState     mCam;
@@ -78,6 +56,7 @@ namespace Position
         float                           mViewZ;
 
         bool                            mbInit;
+        bool                            mbRender;
         int                             mWinW;
         int                             mWinH;
     };

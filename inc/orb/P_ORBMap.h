@@ -16,15 +16,18 @@ namespace Position
         virtual IKeyFrame* createKeyFrame(IFrame *frame) 
         {
             assert(NULL);
+            return NULL;
         }
         //创建地图点
         virtual IMapPoint* createMapPoint(const cv::Mat &pose) 
         {
             assert(NULL);
+            return NULL;
         }
         virtual IMapPoint* createMapPoint(const cv::Point3f &pose)
         {
             assert(NULL);
+            return NULL;
         }
 
         //加入/移除地图点
@@ -72,12 +75,16 @@ namespace Position
         // This avoid that two points are created simultaneously in separate threads (id conflict)
         std::mutex mMutexPointCreation;
 
+        //当前帧
+        virtual IKeyFrame* currentKeyFrame();
+
     protected:
         MapPtSet               mspMapPoints;
         KeyFmSet               mspKeyFrames;
 
         MapPtVector            mvpReferenceMapPoints;
 
+        IKeyFrame             *mpCurrent;
 
         u64 mnMaxKFid;
 

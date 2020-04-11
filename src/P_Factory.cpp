@@ -57,7 +57,11 @@ namespace Position
             case ePoseEstCV:
                 return new CVPoseEstimation();
             default:
-                assert(NULL);
+                {
+                    assert(NULL);
+                    return NULL;
+                }
+                
         }
     }
 
@@ -71,7 +75,10 @@ namespace Position
              case eOpG2o:
                 return new G2oOptimizer();
              default:
-                assert(NULL);
+                {
+                    assert(NULL);
+                    return NULL;
+                }
          }
      }
 
@@ -89,10 +96,11 @@ namespace Position
             case ePDepthImage:
                 /* code */
                 return new DepthLImgPositioning(cam);
-                break;
             default:
+            {
                 assert(NULL);
-                break;
+                return NULL;
+            }
          }
      }
     /*
@@ -105,7 +113,10 @@ namespace Position
              case eFMDefault:
                 return new PFeatureMatcher(ratio,bcheckori);
             default:
-                assert(NULL);
+                {
+                    assert(NULL);
+                    return NULL;
+                }
          }
      }
     /*
@@ -118,7 +129,10 @@ namespace Position
             case eVPangolin:
                 return new Pangolin_Viewer(pcfg);
             default:
-                assert(NULL);
+                {
+                    assert(NULL);
+                    return NULL;
+                }
         }
     }
 
@@ -150,7 +164,10 @@ namespace Position
             case eNormalChecker:
                 return new PChecker();
             default:
-                assert(NULL);
+                {
+                    assert(NULL);
+                    return NULL;
+                }
         }   
     }
 

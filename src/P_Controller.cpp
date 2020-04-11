@@ -31,6 +31,8 @@ PositionController::PositionController(const shared_ptr<Position::IDetector> &pd
     if(GETCFGVALUE(mpConfig,ViewEnable,int))
     {
         mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg));
+        mpTrajProSelector->setViewer(mpViewer);
+        mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop,mpViewer));
     }
     mpChecker  = std::unique_ptr<Position::IChecker>(Position::PFactory::CreateChecker(Position::eNormalChecker));
 
@@ -46,78 +48,81 @@ void PositionController::run()
     Position::FrameDataVIter ed = mpData->end();
     const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
     bool hasTarget =  false;
-     while( it != ed)
-     {//帧循环 构建局部场景
-         int  oThs = 0;
-         Position::FrameDataVector framedatas; 
-         for(;it != ed ;++it)
-         {//遍历帧
-            
-             const std::string picpath = imgpath + it->_name;
-             it->_img = imread(picpath,IMREAD_UNCHANGED);
-             it->_targets = mpDetector->detect(it->_img);
+    while( it != ed)
+    {//帧循环 构建局部场景
+        int  oThs = 0;
+        Position::FrameDataVector framedatas; 
+        for(;it != ed ;++it)
+        {//遍历帧
+           
+            const std::string picpath = imgpath + it->_name;
+            it->_img = imread(picpath,IMREAD_UNCHANGED);
+            it->_targets = mpDetector->detect(it->_img);
+             if(!mpChecker->check(*it))
+                continue;
+            framedatas.push_back(*it);
+           //  if(it->_targets.empty())
+           //  {
+           //      hasTarget = false;
+           //      if(oThs++ > maxThFrameCnt)
+           //      {//连续帧没有探测到物体 闭合定位场景
+           //          break;
+           //      }
+           //  }
+           //  else
+           //  {   
+           //      oThs = 0;
+           //      hasTarget = true;
+           //  }
+        }
+        if(framedatas.empty())
+        {
+            continue;
+        }
+        //处理场景帧,计算位姿
+        if(mpTrajProSelector->handle(framedatas))
+        {
+            PROMT_S("Traj have been processed suceesfully!");
+            const std::shared_ptr<Position::IMap> &map = mpTrajProSelector->getMap();
+            // if(mpViewer)
+            // {
+            //     mpTrajProSelector->setViewer(mpViewer);
+            // }
+            if(framedatas.size() < 2)
+            {//如果只有一帧,使用单张直接定位
+               //mpSinglePositioner->position(map->getAllFrames()[0]);
+               PROMT_S("Single image position.");
+            }
+            else
+            {//如果有多帧 使用多帧定位
+               // mpMulPositioner->position(map);
+               PROMT_S("Multi images position.");
+            }
+        }
+        else
+        {//位姿推算失败
+           PROMT_S("------------------");
+           PROMT_S("position failed.");
+           PROMT_S("------------------");
+           //ADD More
+        }
+        //等待线程处理
+        mpTrajProSelector->waitingForHandle();
+        //完成一段轨迹推算  记录结果
+        saveResult();
+        mpTrajProSelector->reset();//重置状态
+    }
 
-              if(!mpChecker->check(*it))
-                 continue;
+    mpTrajProSelector->release();
 
-             framedatas.push_back(*it);
-            //  if(it->_targets.empty())
-            //  {
-            //      hasTarget = false;
-
-            //      if(oThs++ > maxThFrameCnt)
-            //      {//连续帧没有探测到物体 闭合定位场景
-            //          break;
-            //      }
-
-            //  }
-            //  else
-            //  {   
-            //      oThs = 0;
-            //      hasTarget = true;
-            //  }
-         }
-
-         if(framedatas.empty())
-         {
-             continue;
-         }
-         //处理场景帧,计算位姿
-         if(mpTrajProSelector->handle(framedatas))
-         {
-             PROMT_S("Traj have been processed suceesfully!");
-             const std::shared_ptr<Position::IMap> &map = mpTrajProSelector->getMap();
-             if(mpViewer)
-             {
-                 mpTrajProSelector->setViewer(mpViewer);
-             }
-             if(framedatas.size() < 2)
-             {//如果只有一帧,使用单张直接定位
-                //mpSinglePositioner->position(map->getAllFrames()[0]);
-                PROMT_S("Single image position.");
-             }
-             else
-             {//如果有多帧 使用多帧定位
-                // mpMulPositioner->position(map);
-                PROMT_S("Multi images position.");
-             }
-         }
-         else
-         {//位姿推算失败
-            PROMT_S("------------------");
-            PROMT_S("position failed.");
-            PROMT_S("------------------");
-            //ADD More
-         }
-
-         //完成一段轨迹推算  记录结果
-         saveResult();
-         mpTrajProSelector->reset();//重置状态
-     }
-     if(mpViewer)
-     {//如果有可视接口 显示该段
-        //  mpViewer->renderLoop();
-     }
+    if(mpViewer)
+    {//如果有可视接口 显示该段
+       //  mpViewer->renderLoop();
+        if(mptViewer->joinable())
+        {
+            mptViewer->join();
+        }
+    }
 }
 
 

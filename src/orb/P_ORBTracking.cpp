@@ -924,6 +924,8 @@ void ORBTracking::UpdateLocalKeyFrames()
 //重定位(当运动模型跟踪丢失 且追参考帧追踪也丢失了 才进行)
 bool ORBTracking::Relocalization()
 {
+    if(!mpKeyFrameDB)
+        return false;
     PROMT_S("Track lost Relocalization.");
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
@@ -1099,7 +1101,7 @@ void ORBTracking::Reset()
 
     // Reset Loop Closing
     PROMTD_S("Reseting Loop Closing...")
-    mpLoopClosing->RequestReset();
+    // mpLoopClosing->RequestReset();
     PROMTD_S(" done")
 
     // Clear BoW Database

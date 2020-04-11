@@ -20,6 +20,7 @@ namespace Position
         virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2) 
         {
             assert(NULL);
+            return 0;
         }
         
         //ba 优化

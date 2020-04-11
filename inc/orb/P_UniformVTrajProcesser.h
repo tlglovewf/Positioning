@@ -32,14 +32,13 @@ namespace Position
 
         //结束
         virtual void over();
-    protected:
-        //等待处理结束
-        virtual void waitForProc();
 
+        //等待
+        virtual void wait();
     private:
        std::unique_ptr<std::thread>         mptLocalMapping;
        std::unique_ptr<std::thread>         mptLoopClosing;
-  
+
        std::shared_ptr<ORBTracking>         mpTracker;
        std::shared_ptr<ORBLocalMapping>     mpLocalMapper;
        std::shared_ptr<ORBLoopClosing>      mpLoopCloser;

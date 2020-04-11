@@ -22,6 +22,7 @@ namespace Position
         virtual double score(const Mat &cur,const Point2f &pt) 
         {
             assert(NULL);
+            return 0.0;
         }
     };
 

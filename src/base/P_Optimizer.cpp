@@ -114,7 +114,7 @@ namespace Position
             {
                 g2o::EdgeSE3ProjectXYZOnlyPose* e = vpEdgesMono[i];
 
-                const size_t idx = vnIndexEdgeMono[i];
+                // const size_t idx = vnIndexEdgeMono[i];
 
                 // if(pFrame->mvbOutlier[idx])
                 // {

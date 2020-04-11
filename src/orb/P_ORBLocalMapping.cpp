@@ -93,9 +93,9 @@ void ORBLocalMapping::Run()
         SetAcceptKeyFrames(true);
 
         if(CheckRequestFinish())
+        {
             break;
-
-        // usleep(3000);
+        }
     }
 
     SetFinish();
