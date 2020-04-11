@@ -62,7 +62,7 @@ namespace Position
         UndistortKeyPoints();
 
         mvpMapPoints = MapPtVector(N,NULL);
-        mvbOutlier = BolVector(N,false);
+        mvbOutlier = U8Vector(N,false);
 
         // This is done only for the first Frame (or after a change in the calibration)
         if(mbInitialComputations)

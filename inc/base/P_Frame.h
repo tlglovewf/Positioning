@@ -61,6 +61,13 @@ namespace Position
             return mIndex;
         }
 
+         //获取外点
+        virtual u8& outlier(int index)  
+        {
+            assert(index < mbOutlier.size());
+            return mbOutlier[index];
+        }
+
         //获取中心点
         virtual const Mat& getCameraCenter()const 
         {
@@ -87,7 +94,7 @@ namespace Position
         Mat                         mOw;
         std::shared_ptr<IFeature>   mFeature;
         vector<vector<SzVector> >   mGrid;
-
+        U8Vector                    mbOutlier;
     private:
         DISABLEDCP(PFrame)
     };
@@ -169,14 +176,19 @@ namespace Position
            if(NULL == pt)
                 return;
            pt->rmObservation(this);
+           if(pt->observations() < 1)
+                pt->release();
            MapPtVIter it =  find(mPts.begin(),mPts.end(),pt);
-           (*it) = NULL;
+           if(it != mPts.end())
+                (*it) = NULL;
         }
         virtual void rmMapPoint(int index) 
         {
             assert(index > -1 && index < mPts.size());
             assert(mPts[index]);
             mPts[index]->rmObservation(this);
+            if(mPts[index]->observations() < 1)
+                mPts[index]->release();
             mPts[index] = NULL;
         }
          //帧目标

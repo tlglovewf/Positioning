@@ -156,6 +156,19 @@ namespace Position
                 PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Begin Pose Op");
                 mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
                 PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Pose Op Finished");
+
+                for(size_t i = 0; i < temps.size(); ++i)
+                {
+                    if(temps[i])
+                    {
+                        if(IFRAME(mpCurrentKeyFm)->outlier(i))
+                        {
+                            IFRAME(mpCurrentKeyFm)->outlier(i) = false;
+                            mpCurrentKeyFm->rmMapPoint(i);
+                        }
+                    }
+                }
+
                 PROMTD_V("Pose", mpCurrentKeyFm->getPose());
             }
             else

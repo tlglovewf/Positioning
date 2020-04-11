@@ -133,7 +133,9 @@ bool   FrameHelper::mInit = false;
     {
         assert(pFeature.get());
         pFeature->detect(data,mKeypts,mDescript);
+        
         mN = mKeypts.size();
+        mbOutlier = U8Vector(mN,false);
         mIndex = index;
         mPose = Mat::eye(4,4,MATCVTYPE);
         mOw = Mat::zeros(4,1,MATCVTYPE);

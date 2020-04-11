@@ -128,8 +128,6 @@ namespace Position
 
         //Color order (true RGB, false BGR, ignored if grayscale)
         bool mbRGB;
-
-        list<ORBMapPoint*> mlpTemporalPoints;
     };
 
 } 

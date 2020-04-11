@@ -114,25 +114,25 @@ namespace Position
             {
                 g2o::EdgeSE3ProjectXYZOnlyPose* e = vpEdgesMono[i];
 
-                // const size_t idx = vnIndexEdgeMono[i];
+                const size_t idx = vnIndexEdgeMono[i];
 
-                // if(pFrame->mvbOutlier[idx])
-                // {
-                //     e->computeError();
-                // }
+                if(IFRAME(pFrame)->outlier(idx))
+                {
+                    e->computeError();
+                }
 
                 //卡方检验计算出的阈值(假设测量有一个像素的偏差)
                 const float chi2 = e->chi2();
 
                 if(chi2>chi2Mono[it])
                 {                
-                    // pFrame->mvbOutlier[idx]=true;
+                    IFRAME(pFrame)->outlier(idx) = true;
                     e->setLevel(1);
                     nBad++;
                 }
                 else
                 {
-                    // pFrame->mvbOutlier[idx]=false;
+                    IFRAME(pFrame)->outlier(idx) = false;
                     e->setLevel(0);
                 }
 

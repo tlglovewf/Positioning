@@ -80,6 +80,13 @@ namespace Position
 
         SzVector GetFeaturesInArea(const float &x, const float  &y, const float  &r, const int minLevel=-1, const int maxLevel=-1) const;
 
+         //获取外点
+        virtual u8& outlier(int index)  
+        {
+            assert(index < mvbOutlier.size());
+            return mvbOutlier[index];
+        }
+
     public:
         // Vocabulary used for relocalization.
         ORBVocabulary* mpORBvocabulary;
@@ -120,7 +127,7 @@ namespace Position
         MapPtVector mvpMapPoints;
 
         // Flag to identify outlier associations.
-        BolVector mvbOutlier;
+        U8Vector mvbOutlier;
 
         // Keypoints are assigned to cells in a grid to reduce matching complexity when projecting MapPoints.
         static float mfGridElementWidthInv;

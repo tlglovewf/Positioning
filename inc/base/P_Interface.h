@@ -97,6 +97,8 @@ namespace Position
         virtual FrameData getData()const = 0;
         //获取关键点
         virtual const KeyPtVector& getKeys()const = 0;
+        //获取外点
+        virtual u8& outlier(int index)  = 0;
         //获取特征点数量
         virtual int getKeySize()const = 0;
         //获取描述子
@@ -116,7 +118,7 @@ namespace Position
 
          //获取关键点
         virtual const KeyPtVector& getKeys()const = 0;
-        
+
         //获取旋转 平移分量
         virtual Mat getRotation() = 0;
         virtual Mat getTranslation() = 0;

@@ -176,16 +176,10 @@ void ORBTracking::Track()
                     {
                         mCurrentFrame.mvbOutlier[i] = false;
                         mCurrentFrame.mvpMapPoints[i]=static_cast<ORBMapPoint*>(NULL);
+                       
+                        delete pMP;
                     }
             }
-
-            // Delete temporal MapPoints
-            for(list<ORBMapPoint*>::iterator lit = mlpTemporalPoints.begin(), lend =  mlpTemporalPoints.end(); lit!=lend; lit++)
-            {
-                ORBMapPoint* pMP = *lit;
-                delete pMP;
-            }
-            mlpTemporalPoints.clear();
 
             // Check if we need to insert a new keyframe
             if(NeedNewKeyFrame())
@@ -255,7 +249,7 @@ void ORBTracking::MonocularInitialization()
             if(mpInitializer)
                 delete mpInitializer;
 
-            mpInitializer =  new Initializer(mCurrentFrame,2.0,200);
+            mpInitializer =  new Initializer(mCurrentFrame,2.0,300);
 
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
 
@@ -509,8 +503,10 @@ bool ORBTracking::TrackReferenceKeyFrame()
 
                 mCurrentFrame.mvpMapPoints[i]=static_cast<ORBMapPoint*>(NULL);
                 mCurrentFrame.mvbOutlier[i]=false;
+
                 pMP->mbTrackInView = false;
                 pMP->mnLastFrameSeen = mCurrentFrame.mnId;
+
                 nmatches--;
             }
             else if(mCurrentFrame.mvpMapPoints[i]->observations()>0)
