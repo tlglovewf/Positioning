@@ -152,7 +152,7 @@ namespace Position
 
             pangolin::FinishFrame();
 
-            // mFrameViewer->drawFrame();
+            mFrameViewer->drawFrame();
         }
         mbRender = !pangolin::ShouldQuit();
         return mbRender;

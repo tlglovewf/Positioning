@@ -18,10 +18,14 @@ Initializer::Initializer(const ORBFrame &ReferenceFrame, float sigma, int iterat
 
     mvKeys1 = ReferenceFrame.mvKeysUn;
 
+    refImg = ReferenceFrame.getData()._img;
+
     mSigma = sigma;
     mSigma2 = sigma*sigma;
     mMaxIterations = iterations;
 }
+
+static int s_max = 0;
 
 bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vMatches12, cv::Mat &R21, cv::Mat &t21,
                              vector<cv::Point3f> &vP3D, BolVector &vbTriangulated)
@@ -100,13 +104,41 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     cout << "match siz : " << mvMatches12.size () << endl;
     cout << "RH " << RH << " " << SF <<  endl;
     cout << "--" << SF / (mvMatches12.size()) << endl;
+
+    bool bRet = false;
+
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.45)
-        return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
+        bRet = ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
     else //if(pF_HF>0.6)
-        return ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
+        bRet = ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
 
-    return false;
+    if(!bRet)
+    {
+        cout << "reconstruct error!" << endl;
+        Position::MatchVector matches;
+
+        for(int i = 0; i < 8; ++i)
+        {
+            DMatch item;
+            item.queryIdx = mvMatches12[mvSets[s_max][i]].first;
+            item.trainIdx = mvMatches12[mvSets[s_max][i]].second;
+            item.distance = 0;
+            matches.push_back(item);
+        }
+
+        Mat mm;
+        cv::drawMatches(refImg,mvKeys1,CurrentFrame.getData()._img,mvKeys2,matches,mm,CV_RGB(255,0,0));
+
+        resize(mm,mm, Size(mm.cols >> 1, mm.rows >> 1));
+
+        imshow("test", mm);
+
+        waitKey(0);
+        exit(0);
+    }
+
+    return bRet;
 }
 
 
@@ -184,6 +216,7 @@ void Initializer::FindFundamental(BolVector &vbMatchesInliers, float &score, cv:
     BolVector vbCurrentInliers(N,false);
     float currentScore;
 
+   
     // Perform all RANSAC iterations and save the solution with highest score
     for(int it=0; it<mMaxIterations; it++)
     {
@@ -207,6 +240,7 @@ void Initializer::FindFundamental(BolVector &vbMatchesInliers, float &score, cv:
             F21 = F21i.clone();
             vbMatchesInliers = vbCurrentInliers;
             score = currentScore;
+            s_max = it;
         }
     }
 }

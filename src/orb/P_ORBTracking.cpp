@@ -310,8 +310,9 @@ void ORBTracking::MonocularInitialization()
         }
         else
         {
-#if 1 // test init 
+
             PROMT_S("Initialize Failed !!!");
+#if 0 // test init 
             MatchVector matches;
             for(int i = 0;i < mvIniMatches.size();++i)
             {
@@ -922,9 +923,15 @@ void ORBTracking::UpdateLocalKeyFrames()
 //重定位(当运动模型跟踪丢失 且追参考帧追踪也丢失了 才进行)
 bool ORBTracking::Relocalization()
 {
+    PROMT_S("Track lost Relocalization.");
+
+    mState = eTrackNoReady;
+
+    return false;
+
     if(!mpKeyFrameDB)
         return false;
-    PROMT_S("Track lost Relocalization.");
+    
     // Compute Bag of Words Vector
     mCurrentFrame.ComputeBoW();
 

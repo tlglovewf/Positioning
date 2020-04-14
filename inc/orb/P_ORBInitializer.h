@@ -66,6 +66,8 @@ private:
     // Calibration
     cv::Mat mK;
 
+    cv::Mat refImg;
+
     // Standard Deviation and Variance
     float mSigma, mSigma2;
 

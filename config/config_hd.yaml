@@ -40,8 +40,8 @@ ImgHg:  1080
 ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
-StNo: 1375   #11000
-EdNo: 1376   #100
+StNo: 1300   #11000
+EdNo: 1400   #100
 
 
 #vocabulary path 
@@ -56,7 +56,7 @@ MatchRatio:   0.8   #匹配比例(比例越大,匹配要求越低,匹配点越�
 
 
 #Visualization
-ViewEnable: 0
+ViewEnable: 1
 ViewerW:    1080
 ViewerH:    768
 ViewptX:    0

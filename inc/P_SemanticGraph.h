@@ -103,7 +103,14 @@ public:
                   }
              }
         }
-
+        else if(mCurSem.second.empty())
+        {
+            return false;
+        }
+        else
+        {
+            ;
+        }
         assert(!mCurSem.second.empty());
 
         return isDynamicObj(pt,mCurSem.second);   

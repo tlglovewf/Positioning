@@ -18,16 +18,16 @@ namespace Position
 
         mpVocabulary = std::make_shared<ORBVocabulary>();
         PROMT_S("Begin to load vocabulary!")
-        // Time_Interval time;
-        // time.start();
-        // bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
-        // if(!bVocLoad)
-        // {
-        //     PROMT_S("vocabulary path error~!");  
-        //     PROMT_V("Failed to open at: ",vocpath.c_str());
-        //     exit(-1);
-        // }
-        // time.prompt("Voc loaded cost:");
+        Time_Interval time;
+        time.start();
+        bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
+        if(!bVocLoad)
+        {
+            PROMT_S("vocabulary path error~!");  
+            PROMT_V("Failed to open at: ",vocpath.c_str());
+            exit(-1);
+        }
+        time.prompt("Voc loaded cost:");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
 
