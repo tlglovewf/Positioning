@@ -50,8 +50,8 @@ namespace Position
     //绘制特征匹配
     Mat PUtils::DrawFeatureMatch(const Mat &img1, const Mat &img2,
                       const KeyPtVector &pt1s, const KeyPtVector &pt2s,
-                      const vector<DMatch> &matches,
-                      const vector<char> &status /*= vector<char>()*/)
+                      const MatchVector &matches,
+                      const U8Vector &status /*= U8Vector()*/)
      {
         int w = img1.cols;
         int h = img1.rows;

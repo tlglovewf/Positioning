@@ -149,6 +149,7 @@ namespace Position
         //路径参数
         StringConfigParam   ImgPath;        //图片路径
         StringConfigParam   PosPath;        //数据路径
+        StringConfigParam   SemPath;        //语义路径
         StringConfigParam   OutPath;        //输出路径
         StringConfigParam   VocPath;        //词典路径
         //可视化参数
@@ -159,6 +160,8 @@ namespace Position
         FloatConfigParam    ViewptY;
         FloatConfigParam    ViewptZ;
         FloatConfigParam    ViewptF;        //视距
+
+        IntConfigParam      MapSave;        //地圖保存
         //add more ...
 
     };

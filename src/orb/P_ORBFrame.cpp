@@ -2,6 +2,7 @@
 #include "P_ORBMapPoint.h"
 #include "P_Converter.h"
 #include "P_ORBmatcher.h"
+#include "P_SemanticGraph.h"
 
 namespace Position
 {
@@ -214,6 +215,10 @@ namespace Position
                 for(size_t j=0, jend=vCell.size(); j<jend; j++)
                 {
                     const cv::KeyPoint &kpUn = mvKeysUn[vCell[j]];
+
+                    if(SemanticGraph::Instance()->isDyobj(kpUn.pt,this->getData()._name))
+                        continue;
+
                     if(bCheckLevels)
                     {
                         if(kpUn.octave<minLevel)

@@ -155,6 +155,8 @@ namespace Position
     public:
         //sort
         static void SortFrames(KeyFrameVector &frames); 
+        static IKeyFrame* CreateKeyFrame(const std::shared_ptr<IMap> &pmap, const FrameData &data, const Mat &pose);
+
         //创建关键帧
         virtual IKeyFrame* createKeyFrame(IFrame *frame) = 0;
         //创建地图点

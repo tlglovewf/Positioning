@@ -7,7 +7,7 @@
 #ifndef _SEMANTICGRAPH_H_H_
 #define _SEMANTICGRAPH_H_H_H
 #include "P_Types.h"
-
+#include "P_Utils.h"
 //动态物体
 class SemanticGraph
 {
@@ -15,8 +15,16 @@ public:
     typedef map<std::string, cv::Vec3b> Item;
     typedef Item::const_iterator        ItemIter;
 
+    const std::string defaultsuffix = "png";
+
+    //是否可用
+    inline bool isEnabled()const
+    {
+        return !mObjs.empty();
+    }
+
     //设置语义路径
-    void setSemanticPath(const std::string &path)
+    inline void setSemanticPath(const std::string &path)
     {
         mPath = path;
     }
@@ -32,7 +40,7 @@ public:
     {
         if(path.empty())
         {
-            cout << "error." << endl;
+            PROMT_S("Semantic image path is error!!!")
         }
         try
         {
@@ -41,7 +49,7 @@ public:
 
             if(segfile.is_open())
             {
-                cout << "load se files." << endl;
+                cout << "Begin to load Semantic object infos" << endl;
                 while(!segfile.eof())
                 {
                     std::string str;
@@ -74,18 +82,36 @@ public:
     }
 
     //是否为动态物体
-    bool isDynamicObj(const Point2f &pt, const std::string &name)
+    bool isDyobj(const Point2f &pt, const std::string &name)
     {
-        Mat img = imread(mPath + name);
-        isDynamicObj(pt, img);
+        if(!isEnabled())
+            return false;
+
+        if(mCurSem.first != name)
+        {
+            mCurSem.first = name;
+             mCurSem.second = imread(mPath+name);
+             if( mCurSem.second.empty())
+             {
+                 string str = name;
+                 Position::PUtils::ReplaceFileSuffix(str,"jpg","png");
+                  mCurSem.second = imread(mPath + str);
+                  if( mCurSem.second.empty())
+                  {
+                      PROMT_S("NO SEM IMAGE");
+                      return false;
+                  }
+             }
+        }
+
+        assert(!mCurSem.second.empty());
+
+        return isDynamicObj(pt,mCurSem.second);   
     }
 
     //是否为动态物体
     bool isDynamicObj(const Point2f &pt,const Mat &seimg)
     {
-        if(seimg.empty())
-            return false;
-        
        cv::Vec3b clr = seimg.at<Vec3b>(pt);
 
        ItemIter it = mObjs.begin();
@@ -120,6 +146,8 @@ protected:
     
 protected:
     map<std::string, cv::Vec3b> mObjs;
+    map<std::string, cv::Mat>   mSemImg;
+    pair<std::string,cv::Mat>   mCurSem;
     std::string                 mPath;
 };
 

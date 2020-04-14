@@ -5,8 +5,9 @@
 #include "P_ORBOptimizer.h"
 #include "P_ORBPnPsolver.h"
 #include "P_Writer.h"
-
+#include "P_Utils.h"
 #include <unistd.h>
+#include "P_SemanticGraph.h"
 
 using namespace std;
 
@@ -271,32 +272,6 @@ void ORBTracking::MonocularInitialization()
         ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
 
-        {
-#if 0 // test init 
-            MatchVector matches;
-            for(int i = 0;i < mvIniMatches.size();++i)
-            {
-                if(mvIniMatches[i] > 0)
-                {
-                    cv::DMatch m;
-                    m.queryIdx = i;
-                    m.trainIdx = mvIniMatches[i];
-                    m.distance = 0;
-                    matches.push_back(m);
-                }
-            }
-
-            cv::Mat otimg;
-            cv::drawMatches(mLastFrame.getData()._img,mLastFrame.mvKeysUn,
-                            mCurrentFrame.getData()._img,mCurrentFrame.mvKeysUn,
-                            matches,otimg);
-            const string text = "match size :" + std::to_string(matches.size());
-            putText(otimg, text , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
-            PROMTD_S("save init image. ");
-            cv::imwrite("/Users/TLG/Downloads/data/hd/orbinit.jpg",otimg);
-#endif
-        }
-
         // Check if there are enough correspondences
         if(nmatches < 80)
         {
@@ -335,7 +310,32 @@ void ORBTracking::MonocularInitialization()
         }
         else
         {
+#if 1 // test init 
             PROMT_S("Initialize Failed !!!");
+            MatchVector matches;
+            for(int i = 0;i < mvIniMatches.size();++i)
+            {
+                if(mvIniMatches[i] >= 0)
+                {
+                    cv::DMatch m;
+                    m.queryIdx = i;
+                    m.trainIdx = mvIniMatches[i];
+                    m.distance = 0;
+                    matches.push_back(m);
+                }
+            }
+            PROMT_S("Begin save match image.");
+            cv::Mat otimg = Position::PUtils::DrawFeatureMatch(mLastFrame.getData()._img,
+                                                mCurrentFrame.getData()._img,
+                                                mLastFrame.getKeys(),
+                                                mCurrentFrame.getKeys(),
+                                                matches);
+            const string text = "match size :" + std::to_string(matches.size());
+            putText(otimg, text , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
+            PROMTD_S("save init image. ");
+            cv::imwrite("/media/tlg/work/tlgfiles/HDData/result/orbinit.jpg",otimg);
+#endif
+            
         }
     }
 }

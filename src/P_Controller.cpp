@@ -82,18 +82,18 @@ void PositionController::run()
         //处理场景帧,计算位姿
         if(mpTrajProSelector->handle(framedatas))
         {
-            PROMT_S("Traj have been processed suceesfully!");
+            // PROMT_S("Traj have been processed suceesfully!");
             const std::shared_ptr<Position::IMap> &map = mpTrajProSelector->getMap();
 
             if(framedatas.size() < 2)
             {//如果只有一帧,使用单张直接定位
                //mpSinglePositioner->position(map->getAllFrames()[0]);
-               PROMT_S("Single image position.");
+            //    PROMT_S("Single image position.");
             }
             else
             {//如果有多帧 使用多帧定位
                // mpMulPositioner->position(map);
-               PROMT_S("Multi images position.");
+            //    PROMT_S("Multi images position.");
             }
         }
         else
@@ -125,15 +125,18 @@ void PositionController::run()
 
 void PositionController::saveResult()
 {
-    Position::Time_Interval time;
-    time.start();
-    Position::MapSerManager::Instance()->setMap(mpTrajProSelector->getMap());
-    PROMT_S("Begin to save map");
-    const std::string path = GETCFGVALUE(mpConfig,OutPath,string) + "/";
-    Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path + "trac.txt");
-    time.prompt("Saving trace cost:");
-    Position::MapSerManager::Instance()->mpPtSerPtr()->saveMap(path + "mpts.txt");
-    time.prompt("Saving map points cost:");
-    PROMT_S("Save map successflly!");
+    if(GETCFGVALUE(mpConfig,MapSave,int))
+    {
+        Position::Time_Interval time;
+        time.start();
+        Position::MapSerManager::Instance()->setMap(mpTrajProSelector->getMap());
+        PROMT_S("Begin to save map");
+        const std::string path = GETCFGVALUE(mpConfig,OutPath,string) + "/";
+        Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path + "trac.txt");
+        time.prompt("Saving trace cost:");
+        Position::MapSerManager::Instance()->mpPtSerPtr()->saveMap(path + "mpts.txt");
+        time.prompt("Saving map points cost:");
+        PROMT_S("Save map successflly!");
+    }
 }
 

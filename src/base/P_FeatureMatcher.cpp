@@ -194,10 +194,10 @@ namespace Position
         return matches;
     }
 
-
+    //knn匹配
     void knn_match(const Mat &descriptor1,const Mat &descriptor2, const  cv::Ptr<DescriptorMatcher> &match,MatchVector &matches)
     {
-        const float minRatio = 0.5; //
+        const float minRatio = 0.45; //
         const int k = 2;
         
         std::vector<std::vector<DMatch> > knnMatches;
@@ -215,15 +215,15 @@ namespace Position
     }
 
 
-    PCVMatcher::PCVMatcher():mMatcher(new cv::BFMatcher(cv::NORM_HAMMING))
+    PKnnMatcher::PKnnMatcher():mMatcher(new cv::FlannBasedMatcher())
     {
 
     }
 
     //匹配  返回匹配对
-    MatchVector PCVMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
+    MatchVector PKnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
-        assert(preframe);
+    assert(preframe);
         assert(curframe);
         
         const Mat &descriptorLeft = preframe->getDescript();
@@ -238,8 +238,4 @@ namespace Position
 
         return goods;
     }
-
-
-
-
 } // namespace Position

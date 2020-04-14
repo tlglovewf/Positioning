@@ -16,6 +16,7 @@ namespace Position
                       MatchRatio(0.8),
                       SearchRadius(200),
                       ImgPath(""),
+                      SemPath(""),
                       PosPath(""),
                       OutPath(""),
                       VocPath(""),
@@ -25,7 +26,8 @@ namespace Position
                       ViewptX(0),
                       ViewptY(0),
                       ViewptZ(0),
-                      ViewptF(0)
+                      ViewptF(0),
+                      MapSave(0)
     {
         PUSH_MAP(StNo);
         PUSH_MAP(EdNo);
@@ -39,6 +41,7 @@ namespace Position
         PUSH_MAP(ScaleFactor);
         PUSH_MAP(MatchRatio);
         PUSH_MAP(ImgPath);
+        PUSH_MAP(SemPath);
         PUSH_MAP(PosPath);
         PUSH_MAP(OutPath);
         PUSH_MAP(VocPath);
@@ -49,6 +52,7 @@ namespace Position
         PUSH_MAP(ViewptY);
         PUSH_MAP(ViewptZ);
         PUSH_MAP(ViewptF);
+        PUSH_MAP(MapSave);
     }
 
     //析构
@@ -87,6 +91,7 @@ namespace Position
             READ_VALUE(ScaleFactor);
             READ_VALUE(MatchRatio);
             READ_VALUE(ImgPath);
+            READ_VALUE(SemPath);
             READ_VALUE(PosPath);
             READ_VALUE(OutPath);
             READ_VALUE(VocPath);
@@ -97,6 +102,7 @@ namespace Position
             READ_VALUE(ViewptY);
             READ_VALUE(ViewptZ);
             READ_VALUE(ViewptF);
+            READ_VALUE(MapSave);
             //其他信息加载
             loadmore();
         }

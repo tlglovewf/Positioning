@@ -24,11 +24,11 @@ namespace Position
         float   mfNNratio;
     };
 
-    //cv 匹配  默认 汉明暴力匹配
-    class PCVMatcher : public IFeatureMatcher
+    //cv 匹配  汉明距离 knn近临匹配
+    class PKnnMatcher : public IFeatureMatcher
     {
-    public:
-        PCVMatcher();
+    public:  
+        PKnnMatcher();
 
           //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 

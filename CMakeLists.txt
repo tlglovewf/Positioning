@@ -175,3 +175,9 @@ target_link_libraries(Positioning ${Positioning})
 add_executable(SimpleTest
 simpletest.cpp)
 target_link_libraries(SimpleTest ${Positioning})
+
+add_executable(PoseEstimate
+twoframe/poseestimate.cpp 
+twoframe/ASiftDetector.cpp)
+target_link_libraries(PoseEstimate ${Positioning})
+

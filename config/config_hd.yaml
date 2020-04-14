@@ -1,0 +1,68 @@
+%YAML:1.0
+
+#---------------------------------
+#hd data preprocess config file
+#---------------------------------
+
+  
+
+# HdCamFx: 1204.100702372
+# HdCamFy: 1210.073064003
+# HdCamCx: 731.315716622
+# HdCamCy: 548.808242006
+# HdCamk1: -0.091441807
+# HdCamk2: 0.088316997
+# HdCamk3: 0.0
+# HdCamp1: 0.000245020
+# HdCamp2: -0.000004751
+
+# ImgPath: "/Users/TLG/Downloads/data/hd/image"
+#PosPath: "/Users/TLG/Downloads/data/hd/camera.txt"
+
+HdCamFx: 1201.093480021
+HdCamFy: 1201.700469966
+HdCamCx: 732.166707527
+HdCamCy: 561.641423523
+HdCamk1: -0.089838292
+HdCamk2: 0.078488821
+HdCamk3: 0.000000000
+HdCamp1: 0.002193266
+HdCamp2: 0.000100047
+
+ImgPath: "/media/tlg/work/tlgfiles/HDData/0326-1/Image-0/"
+SemPath: "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/"
+PosPath: "/media/tlg/work/tlgfiles/HDData/0326cam/data1/camera.txt"
+
+OutPath: "/media/tlg/work/tlgfiles/HDData/result/"
+
+ImgWd:  1440
+ImgHg:  1080
+ImgFps: 20  #0 every frame is keyframe
+ImgRgb: 1  #rgb 1  rbg 0 
+
+StNo: 1375   #11000
+EdNo: 1376   #100
+
+
+#vocabulary path 
+VocPath: "/home/tlg/Documents/Sources/Positioning/Vocabulary/ORBvoc.txt"
+
+#feature params
+FeatureCnt:   2000  #特征点提取数量
+PyramidLevel: 8     #图片金字塔层数
+ScaleFactor:  1.2   #图片金字塔缩小比
+SearchRadius: 20    #视觉匹配搜索范围
+MatchRatio:   0.8   #匹配比例(比例越大,匹配要求越低,匹配点越多)
+
+
+#Visualization
+ViewEnable: 0
+ViewerW:    1080
+ViewerH:    768
+ViewptX:    0
+ViewptY:    -10
+ViewptZ:    -0.1
+ViewptF:    800
+
+#ISerialization
+MapSave: 0

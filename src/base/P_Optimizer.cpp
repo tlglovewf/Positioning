@@ -58,7 +58,7 @@ namespace Position
                 {
                     //only monocular 
                     nInitialCorrespondences++;
-                    // pFrame->mvbOutliner[i] = false;
+                    IFRAME(pFrame)->outlier(i) = false;
                     Eigen::Matrix<double,2,1> obs;
                     const cv::KeyPoint &kp = IFRAME(pFrame)->getKeys()[i];
                     obs << kp.pt.x, kp.pt.y ;
@@ -99,7 +99,8 @@ namespace Position
         // We perform 4 optimizations, after each optimization we classify observation as inlier/outlier
         // At the next optimization, outliers are not included, but at the end they can be classified as inliers again.
         const float chi2Mono[4]={CHITH,CHITH,CHITH,CHITH};
-        const int its[4]={10,10,10,10};    
+        const int nit = 15;
+        const int its[4]={nit,nit,nit,nit};    
 
         int nBad=0;
         for(size_t it=0; it<4; it++)

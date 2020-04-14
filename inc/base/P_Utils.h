@@ -76,6 +76,9 @@ public:
         return std::string();
     }
 
+#define JPGSTR "jpg"
+#define PNGSTR "png"
+
     /* 后缀
     */
     static bool IsPicSuffix(const char *pName,size_t len)
@@ -88,8 +91,20 @@ public:
         }
         const char *pSuffix =  &pName[len - suffix];
 
-        return !strcasecmp(pSuffix, "jpg") | !strcasecmp(pSuffix, "png");
+        return !strcasecmp(pSuffix, JPGSTR) | !strcasecmp(pSuffix, PNGSTR);
     }
+
+    /* 替换后缀
+    */
+    static void ReplaceFileSuffix(string &name,const string &pfix, const string &efix)
+    {
+        assert(pfix.size() == efix.size());
+        size_t n = name.find_first_of(pfix);
+        name.replace(n,efix.size(),efix);
+    }
+
+#undef JPGSTR
+#undef PNGSTR
     /* 扫描目录下文件名
     */
     static int LoadPathNames( const std::string &dirpath, Position::StringVector &files )
@@ -252,10 +267,10 @@ public:
 
     //绘制匹配图
     //status  单应矩阵或者基础矩阵 ransac计算的掩码数组
-    Mat DrawFeatureMatch(const Mat &img1, const Mat &img2,
+    static Mat DrawFeatureMatch(const Mat &img1, const Mat &img2,
                       const KeyPtVector &pt1s, const KeyPtVector &pt2s,
-                      const vector<DMatch> &matches,
-                      const vector<char> &status = vector<char>());
+                      const MatchVector &matches,
+                      const U8Vector &status = U8Vector());
 
     //绘制相交线
     static void DrawCrossLine(Mat &img ,int width, int height)

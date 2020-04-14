@@ -8,6 +8,8 @@
 
 //#include<stdint-gcc.h>
 
+#include "P_SemanticGraph.h"
+
 using namespace std;
 
 namespace Position
@@ -681,6 +683,11 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
                     continue;
                 //获取对应的特征点
                 const cv::KeyPoint &kp1 = pKF1->mvKeysUn[idx1];
+
+                //動態點剔除
+                if(SemanticGraph::Instance()->isDyobj(kp1.pt,pKF1->getData()._name))
+                    continue;
+
                 //以及当前特征点对应的描述子
                 const cv::Mat &d1 = pKF1->mDescriptors.row(idx1);
                 

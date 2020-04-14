@@ -11,6 +11,13 @@ namespace Position
         });
     }
 
+    IKeyFrame* IMap::CreateKeyFrame(const std::shared_ptr<IMap> &pmap, const FrameData &data, const Mat &pose)
+    {
+        Position::IFrame *frame = new Position::PFrame(data,pmap->frameCount());
+        frame->setPose(pose);
+        return pmap->createKeyFrame(frame);
+    }
+
     void PMap::clear()
     {
         for(KeyFmSetIter it = mMapFms.begin(); it != mMapFms.end(); ++it)

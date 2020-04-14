@@ -97,8 +97,11 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
     const float minpallax = 0.1;
     const int mintri = 50;
+    cout << "match siz : " << mvMatches12.size () << endl;
+    cout << "RH " << RH << " " << SF <<  endl;
+    cout << "--" << SF / (mvMatches12.size()) << endl;
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-    if(RH>0.40)
+    if(RH>0.45)
         return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
     else //if(pF_HF>0.6)
         return ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);

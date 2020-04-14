@@ -42,7 +42,7 @@ namespace Position
         mpView = &pangolin::CreateDisplay()
                       .SetBounds(pangolin::Attach::Pix(25), 1.0, 0, 1.0, -(float)mWinW / mWinH)
                       .SetHandler(new pangolin::Handler3D(mCam));
-
+        PROMT_S("init pangolin viewer successfully.");
         mbInit = true;
     }
     void Pangolin_Viewer::renderLoop()
@@ -109,7 +109,7 @@ namespace Position
     
         pangolin::OpenGlMatrix Twc;
         Twc.SetIdentity();
-    
+        
         static bool bFollow = true;
     
         {
@@ -152,7 +152,7 @@ namespace Position
 
             pangolin::FinishFrame();
 
-            mFrameViewer->drawFrame();
+            // mFrameViewer->drawFrame();
         }
         mbRender = !pangolin::ShouldQuit();
         return mbRender;
@@ -284,6 +284,8 @@ namespace Position
         {
             IKeyFrame *pKF = vpKFs[i];
             cv::Mat Twc = pKF->getPose().clone();
+            if(Twc.empty())
+                continue;
             Twc = Twc.inv().t();
 
             glPushMatrix();
@@ -357,7 +359,7 @@ namespace Position
         for (size_t i = 1; i < vpKFs.size(); ++i)
         {
             const Mat &p = vpKFs[i]->getCameraCenter();
-    
+
             glVertex3f((float)p.at<MATTYPE>(0),
                        (float)p.at<MATTYPE>(1),
                        (float)p.at<MATTYPE>(2));

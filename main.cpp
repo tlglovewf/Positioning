@@ -17,13 +17,15 @@
 
 #include "P_PangolinViewer.h"
 
+#include "P_SemanticGraph.h"
+
 #include <thread>
 
 using namespace std;
 using namespace cv;
 
 #define WEIYA           0  //是否为weiya数据
-#define USECONTROLLER   0  //是否启用定位框架
+#define USECONTROLLER   1  //是否启用定位框架
 
 
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
@@ -114,19 +116,25 @@ int main(void)
 {  
 
 #if WEIYA
-    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config_weiya.yaml"); 
+    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config/config_weiya.yaml"); 
     std::shared_ptr<Position::IData> pData(new WeiyaData(pCfg));
 #else
-    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<HdConfig>("../config_hd.yaml"); 
+    std::shared_ptr<Position::IConfig> pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IData> pData(new HdData(pCfg));
 #endif
+
+    std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
+    if(!sempath.empty())
+    {
+        SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
+        SemanticGraph::Instance()->setSemanticPath(sempath);
+    }
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
     // MapDisplay(pCfg);
 
     // LoadList(pCfg);
-
 
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
