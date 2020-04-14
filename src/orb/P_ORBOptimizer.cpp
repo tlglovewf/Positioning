@@ -247,6 +247,7 @@ int Optimizer::PoseOptimization(ORBFrame *pFrame)
 
                 g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
                 e->setRobustKernel(rk);
+                //设置鲁棒核函数的核
                 rk->setDelta(deltaMono);
 
                 e->fx = pFrame->fx;

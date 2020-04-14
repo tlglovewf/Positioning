@@ -148,8 +148,8 @@ bool   FrameHelper::mInit = false;
             mData._img.release();
         }
     }
-    PKeyFrame::PKeyFrame(IFrame *pframe,IKeyFrame *prev,PMap *pMap):
-    mpFrame(pframe),mpNext(NULL),mpPre(NULL),mpMap(pMap),mbBad(false)
+    PKeyFrame::PKeyFrame(IFrame *pframe,IKeyFrame *prevFrame,PMap *pMap):
+    mpFrame(pframe),mpNext(NULL),mpPre(prevFrame),mpMap(pMap),mbBad(false)
     {
         mPts.resize(mpFrame->getKeySize());
     }

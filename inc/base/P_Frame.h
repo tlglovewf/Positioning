@@ -105,7 +105,7 @@ namespace Position
 
     protected:
           //构造
-        PKeyFrame(IFrame *pframe,IKeyFrame *prev,PMap *pMap);
+        PKeyFrame(IFrame *pframe,IKeyFrame *prevFrame,PMap *pMap);
         ~PKeyFrame();
 
     public:

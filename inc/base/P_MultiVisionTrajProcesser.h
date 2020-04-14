@@ -20,6 +20,9 @@ namespace Position
          //跟踪
         virtual cv::Mat track(const FrameData &data);
 
+
+         //处理
+        virtual bool process(const FrameDataVector &framedatas);
     protected:
         //关键帧创建
         virtual bool needCreateNewKeyFrame()

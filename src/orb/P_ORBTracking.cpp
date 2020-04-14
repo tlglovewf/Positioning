@@ -392,7 +392,6 @@ void ORBTracking::CreateInitialMapMonocular()
 
     Optimizer::GlobalBundleAdjustemnt(mpMap,20);
 
-    cout << "global bundle adjustment" << endl;
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
     cv::Mat tmp = pKFcur->getPose().col(3);
@@ -447,6 +446,8 @@ void ORBTracking::CreateInitialMapMonocular()
     mpMap->setReferenceMapPoints(mvpLocalMapPoints);
 
     // mpMap->mvpKeyFrameOrigins.push_back(pKFini); //for loop closing  
+
+    mVelocity = mCurrentFrame.getPose();
 
     mState = eTrackOk;
 

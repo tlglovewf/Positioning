@@ -275,16 +275,18 @@ namespace Position
 
             g2o::VertexSE3Expmap *vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->index()));
             g2o::SE3Quat SE3quat = vSE3->estimate();
-            if(nIndex == 0)
-            {
-                pKF->setPose(PConverter::toCvMat(SE3quat));
-            }
-            else
-            {
-                // pKF->mTcwGBA.create(4,4,MATCVTYPE);
-                // PConverter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
-                // pKF->mnBAGlobalForKF = nLoopKF;
-            }
+
+            pKF->setPose(PConverter::toCvMat(SE3quat));
+            // if(nIndex == 0)
+            // {
+            //     pKF->setPose(PConverter::toCvMat(SE3quat));
+            // }
+            // else
+            // {
+            //     // pKF->mTcwGBA.create(4,4,MATCVTYPE);
+            //     // PConverter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
+            //     // pKF->mnBAGlobalForKF = nLoopKF;
+            // }
             
         }
 
@@ -300,17 +302,19 @@ namespace Position
 
             g2o::VertexSBAPointXYZ *vPoint = static_cast<g2o::VertexSBAPointXYZ*>(optimizer.vertex(pMP->index() + maxKFid + 1));
 
-            if(0 == nIndex)
-            {
-                pMP->setWorldPos(PConverter::toCvMat(vPoint->estimate()));
-                // pMP->updateNormalAndDepth();
-            }
-            else
-            {
-                // pMP->mPosGBA.create(3,1,MATCVTYPE);
-                // PConverter::toCvMat(vPoint->estimate()).copyTo(pMP->mPosGBA);
-                // pMP->mnBAGlobalForKF = nLoopKF;
-            }
+
+            pMP->setWorldPos(PConverter::toCvMat(vPoint->estimate()));
+            // if(0 == nIndex)
+            // {
+            //     // pMP->setWorldPos(PConverter::toCvMat(vPoint->estimate()));
+            //     // pMP->updateNormalAndDepth();
+            // }
+            // else
+            // {
+            //     // pMP->mPosGBA.create(3,1,MATCVTYPE);
+            //     // PConverter::toCvMat(vPoint->estimate()).copyTo(pMP->mPosGBA);
+            //     // pMP->mnBAGlobalForKF = nLoopKF;
+            // }
         }
     }
 }

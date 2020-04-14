@@ -60,7 +60,7 @@ namespace Position
     {
         if (NULL == pkf)
             return;
-        const Mat &pose = pkf->getPose();
+        const Mat &pose = pkf->getPose().clone();
         if (pose.empty())
         {
             M.SetIdentity();
@@ -137,13 +137,13 @@ namespace Position
             {
                 drawFrames();
             }
-            if (menuShowPoints)
-            {
-                drawMapPoints();
-            }
             if (menuShowTraceLine)
             {
                 drawTraceLine();
+            }
+            if (menuShowPoints)
+            {
+                drawMapPoints();
             }
             if (menuShowLines)
             {

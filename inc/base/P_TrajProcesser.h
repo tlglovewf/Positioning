@@ -99,8 +99,9 @@ namespace Position
         }
          //设置可视接口
         virtual void setViewer(const std::shared_ptr<IViewer> &viewer) 
-        {
+        {   
             mpViewer = viewer;
+            mpViewer->setMap(mpMap);
         }
 
         //等待

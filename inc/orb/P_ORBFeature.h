@@ -89,7 +89,7 @@ namespace Position {
         std::vector<cv::Mat> mvImagePyramid;
 
     protected:
-
+        
         void ComputePyramid(cv::Mat image);
         void ComputeKeyPointsOctTree(std::vector<KeyPtVector>& allKeypoints);    
         KeyPtVector DistributeOctTree(const KeyPtVector& vToDistributeKeys, const int &minX,

@@ -102,7 +102,7 @@ namespace Position
 
         resize(img,imText,Size(img.cols,img.rows + textSize.height));
         imText(Rect2i(0,img.rows,img.cols,textSize.height)).setTo(0);
-        cv::putText(imText, s.str(), cv::Point(5, imText.rows ), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar(255, 255, 255), 1, 8);
+        cv::putText(imText, s.str(), cv::Point(5, imText.rows ), cv::FONT_HERSHEY_PLAIN, 1, CV_RGB(255,0,0), 1, 8);
     }
 
 } // namespace Position

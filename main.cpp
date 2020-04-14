@@ -23,7 +23,7 @@ using namespace std;
 using namespace cv;
 
 #define WEIYA           0  //是否为weiya数据
-#define USECONTROLLER   1  //是否启用定位框架
+#define USECONTROLLER   0  //是否启用定位框架
 
 
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
@@ -127,19 +127,6 @@ int main(void)
 
     // LoadList(pCfg);
 
-    // std::unique_ptr<Position::IViewer> pviewer(new Position::Pangolin_Viewer(pCfg));
-    // std::shared_ptr<Position::IMap> pmap(new Position::PMap());
-    // pviewer->setMap(pmap);
-
-    // // pviewer->renderLoop();
-    // std::thread *thread = new std::thread(&Position::IViewer::renderLoop, pviewer.get());
-
-    // while(1)
-    // {
-    //     ;
-    // }
-    
-    // return 0;
 
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
@@ -147,7 +134,7 @@ int main(void)
     Position::Time_Interval t;
     t.start();
     system->run();
-    // t.prompt("total cost : ");
+    t.prompt("total cost : ");
     return 0;
 #else
     //multi vision situation test 
@@ -159,6 +146,11 @@ int main(void)
     Position::FrameDataVector datas;
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();
+     //可视化帧数据
+    std::shared_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    std::thread mainthread(&Position::IViewer::renderLoop,pv.get());
+    //  pv->setMap(map);
+     pTraj->setViewer(pv);
     //插入帧数据
     for(;iter != ed ; ++iter)
     {
@@ -171,10 +163,8 @@ int main(void)
     //处理帧数据
     pTraj->process(datas);
 
-    //可视化帧数据
-    std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
-    pv->setMap(map);
-    pv->renderLoop();
+   
+    mainthread.join();
 #endif
     return 0;
 }

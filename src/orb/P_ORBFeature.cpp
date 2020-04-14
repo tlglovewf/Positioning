@@ -38,13 +38,15 @@ const int EDGE_THRESHOLD = 19;
 
 #pragma region ORBextractor
 
+//灰度质心法计算特征点方向
 static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
 {
     int m_01 = 0, m_10 = 0;
-
+    //计算质心位置
     const uchar* center = &image.at<uchar> (cvRound(pt.y), cvRound(pt.x));
 
     // Treat the center line differently, v=0
+    // v = 0 这行单独计算
     for (int u = -HALF_PATCH_SIZE; u <= HALF_PATCH_SIZE; ++u)
         m_10 += u * center[u];
 
@@ -53,13 +55,14 @@ static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
     for (int v = 1; v <= HALF_PATCH_SIZE; ++v)
     {
         // Proceed over the two lines
+        //上下两条线同时计算
         int v_sum = 0;
         int d = u_max[v];
         for (int u = -d; u <= d; ++u)
         {
             int val_plus = center[u + v*step], val_minus = center[u - v*step];
-            v_sum += (val_plus - val_minus);
-            m_10 += u * (val_plus + val_minus);
+            v_sum += (val_plus - val_minus);//计算上下是有符号的
+            m_10 += u * (val_plus + val_minus);//这边加是由于U已经确定好了符号
         }
         m_01 += v * v_sum;
     }
@@ -432,7 +435,7 @@ ORBextractor::ORBextractor(int _nfeatures, float _scaleFactor, int _nlevels,
         ++v0;
     }
 }
-
+//计算角度 （旋转不变）
 static void computeOrientation(const Mat& image, KeyPtVector& keypoints, const vector<int>& umax)
 {
     for (KeyPtVector::iterator keypoint = keypoints.begin(),
@@ -500,19 +503,20 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 }
 
+//图像划分成四叉树形式,将特征点划分到这些节点中
 KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys, const int &minX,
                                        const int &maxX, const int &minY, const int &maxY, const int &N, const int &level)
 {
     // Compute how many initial nodes   
     const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
-
+    //获取节点间的间隔
     const float hX = static_cast<float>(maxX-minX)/nIni;
 
     list<ExtractorNode> lNodes;
 
     vector<ExtractorNode*> vpIniNodes;
     vpIniNodes.resize(nIni);
-
+    //创建节点
     for(int i=0; i<nIni; i++)
     {
         ExtractorNode ni;
@@ -527,6 +531,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
     }
 
     //Associate points to childs
+    //根据特征点的坐标 分配子节点
     for(size_t i=0;i<vToDistributeKeys.size();i++)
     {
         const cv::KeyPoint &kp = vToDistributeKeys[i];
@@ -536,7 +541,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
     list<ExtractorNode>::iterator lit = lNodes.begin();
 
     while(lit!=lNodes.end())
-    {
+    {   //如果只含一个特征点的时候 不再划分
         if(lit->vKeys.size()==1)
         {
             lit->bNoMore=true;
@@ -552,6 +557,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
 
     int iteration = 0;
 
+    //节点 及其包含的特征点数
     vector<pair<int,ExtractorNode*> > vSizeAndPointerToNode;
     vSizeAndPointerToNode.reserve(lNodes.size()*4);
 
@@ -562,7 +568,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
         int prevSize = lNodes.size();
 
         lit = lNodes.begin();
-
+        //节点分解次数
         int nToExpand = 0;
 
         vSizeAndPointerToNode.clear();
@@ -579,6 +585,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
             {
                 // If more than one point, subdivide
                 ExtractorNode n1,n2,n3,n4;
+                //四叉树分裂
                 lit->DivideNode(n1,n2,n3,n4);
 
                 // Add childs if they contain points
@@ -635,7 +642,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
             bFinish = true;
         }
         else if(((int)lNodes.size()+nToExpand*3)>N)
-        {
+        {//节点展开次数x3 大于需要包含的节点数量
 
             while(!bFinish)
             {
@@ -703,6 +710,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
     }
 
     // Retain the best point in each node
+    // 保留每个节点最好的特征点
     KeyPtVector vResultKeys;
     vResultKeys.reserve(nfeatures);
     for(list<ExtractorNode>::iterator lit=lNodes.begin(); lit!=lNodes.end(); lit++)
@@ -726,19 +734,22 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
     return vResultKeys;
 }
 
+//计算特征点四叉树
 void ORBextractor::ComputeKeyPointsOctTree(vector<KeyPtVector>& allKeypoints)
 {
     allKeypoints.resize(nlevels);
 
+    //grid 大小
     const float W = 30;
-
+    //根据金子塔层数 划分块进行特征提取
     for (int level = 0; level < nlevels; ++level)
     {
+        //得到每一层图像进行特征检测区域上下两个坐标
         const int minBorderX = EDGE_THRESHOLD-3;
         const int minBorderY = minBorderX;
         const int maxBorderX = mvImagePyramid[level].cols-EDGE_THRESHOLD+3;
         const int maxBorderY = mvImagePyramid[level].rows-EDGE_THRESHOLD+3;
-
+        //用于分配关键点
         KeyPtVector vToDistributeKeys;
         vToDistributeKeys.reserve(nfeatures*10);
 
@@ -749,7 +760,7 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<KeyPtVector>& allKeypoints)
         const int nRows = height/W;
         const int wCell = ceil(width/nCols);
         const int hCell = ceil(height/nRows);
-
+        //在每个格子内进行fast特征检测
         for(int i=0; i<nRows; i++)
         {
             const float iniY =minBorderY+i*hCell;
@@ -772,13 +783,13 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<KeyPtVector>& allKeypoints)
                 KeyPtVector vKeysCell;
                 FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
                      vKeysCell,iniThFAST,true);
-
+                //如果检测到的fast特征为空,则降低阈值再进行检测
                 if(vKeysCell.empty())
                 {
                     FAST(mvImagePyramid[level].rowRange(iniY,maxY).colRange(iniX,maxX),
                          vKeysCell,minThFAST,true);
                 }
-
+                //计算特征点实际位置
                 if(!vKeysCell.empty())
                 {
                     for(KeyPtVector::iterator vit=vKeysCell.begin(); vit!=vKeysCell.end();vit++)
@@ -794,7 +805,7 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<KeyPtVector>& allKeypoints)
 
         KeyPtVector & keypoints = allKeypoints[level];
         keypoints.reserve(nfeatures);
-
+        //将特征点进行八叉树划分
         keypoints = DistributeOctTree(vToDistributeKeys, minBorderX, maxBorderX,
                                       minBorderY, maxBorderY,mnFeaturesPerLevel[level], level);
 

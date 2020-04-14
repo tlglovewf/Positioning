@@ -13,8 +13,8 @@ namespace Position
                    {
                         mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pcfg,MatchRatio,float)));
-                        // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
-                        mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
+                        mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
+                        // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
                         mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
 
                         mCam = pdata->getCamera();
@@ -30,6 +30,36 @@ namespace Position
     {
         assert(mpCurrent);
         return mpMap->createKeyFrame(mpCurrent);
+    }
+
+    bool PMultiVisionTrajProcesser::process(const FrameDataVector &framedatas)
+    {
+        if(framedatas.size() < 2)
+        {
+            return false;
+        }
+        else
+        {
+            for(size_t i = 0; i < framedatas.size(); ++i)
+            {
+                track(framedatas[i]);
+
+                if(mpViewer)
+                {
+                    waitKey(1);
+                }
+            }
+
+            // global optimization
+            Position::KeyFrameVector keyframes(mpMap->getAllFrames());
+            Position::MapPtVector    mappts(mpMap->getAllMapPts());
+            bool pBstop = false;
+            PROMT_V("Begin global optimization", keyframes.size());
+            mpOptimizer->bundleAdjustment(keyframes,mappts,mpFeature->getSigma2(),5, &pBstop);
+            PROMT_S("End Optimization.");
+
+            return true;
+        }
     }
 
     //跟踪
@@ -85,6 +115,7 @@ namespace Position
 
         Position::MatchVector matches = mpFeatureMatcher->match(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm),mFtSearchRadius); 
 
+
         // if(matches.size() < 80)
         // {
         //     matches = pMatcher->match(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm),searchradius * 2);
@@ -114,7 +145,7 @@ namespace Position
             PROMTD_V("Save to",outname.c_str());
             imwrite(outname,oimg);
 #endif
-
+    
             mpEst->setFrames(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm));
             Mat R,t;
             Position::Pt3Vector pts;
@@ -139,7 +170,6 @@ namespace Position
                         mpt = mpt / mpt.at<MATTYPE>(3);
                         mppt = mpMap->createMapPoint(mpt); 
                         mpLastKeyFm->addMapPoint(mppt,item.queryIdx);
-                        
                     }
                     else
                     {
@@ -149,13 +179,13 @@ namespace Position
                 }
 
                 auto temps = mpCurrentKeyFm->getWorldPoints();
-                PROMTD_V("frame mppts size: " ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
+                PROMTD_V("frame mppts size" ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
                 {
                     return item != NULL;
                 }));
-                PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Begin Pose Op");
+                // PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Begin Pose Op");
                 mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
-                PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Pose Op Finished");
+                // PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Pose Op Finished");
 
                 for(size_t i = 0; i < temps.size(); ++i)
                 {
@@ -169,7 +199,7 @@ namespace Position
                     }
                 }
 
-                PROMTD_V("Pose", mpCurrentKeyFm->getPose());
+                // PROMTD_V("Pose", mpCurrentKeyFm->getPose());
             }
             else
             {
@@ -181,14 +211,6 @@ namespace Position
             mpCurrent   = NULL;
             mpCurrentKeyFm = NULL;
         }
-
-         // global optimization
-        Position::KeyFrameVector keyframes(mpMap->getAllFrames());
-        Position::MapPtVector    mappts(mpMap->getAllMapPts());
-        bool pBstop = false;
-        PROMT_S("Begin global optimization");
-        mpOptimizer->bundleAdjustment(keyframes,mappts,mpFeature->getSigma2(),5, &pBstop);
-        PROMT_S("End Optimization.");
         mStatus = eTrackOk;
         return mpLastKeyFm->getPose();
     }

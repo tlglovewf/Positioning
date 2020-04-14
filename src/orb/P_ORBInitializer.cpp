@@ -9,7 +9,9 @@
 
 namespace Position
 {
-
+//初始化
+//@param sigma      
+//@param iterations 最大迭代次数
 Initializer::Initializer(const ORBFrame &ReferenceFrame, float sigma, int iterations)
 {
     mK = ReferenceFrame.mK.clone();
@@ -49,6 +51,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     vAllIndices.reserve(N);
     SzVector vAvailableIndices;
 
+    //根据匹配对数量赋值特征点序号
     for(int i=0; i<N; i++)
     {
         vAllIndices.push_back(i);
@@ -58,12 +61,13 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     mvSets = vector< SzVector >(mMaxIterations,SzVector(8,0));
 
     DUtils::Random::SeedRandOnce(0);
-    //以迭代次数创建数组,从匹配对中随机选取8个数据
+    //以迭代次数创建数组,每组数据 包括8个点数据
     for(int it=0; it<mMaxIterations; it++)
     {
         vAvailableIndices = vAllIndices;
 
         // Select a minimum set
+        // 每组随机选取8个点
         for(size_t j=0; j<8; j++)
         {
             int randi = DUtils::Random::RandomInt(0,vAvailableIndices.size()-1);
@@ -80,7 +84,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     BolVector vbMatchesInliersH, vbMatchesInliersF;
     float SH, SF;
     cv::Mat H, F;
-
+    //计算基础(或者单应) 评分(评分越高 置信越高) 
     thread threadH(&Initializer::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
     thread threadF(&Initializer::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
 
@@ -194,9 +198,9 @@ void Initializer::FindFundamental(BolVector &vbMatchesInliers, float &score, cv:
         F21i = T2t*Fn*T1;
 
         currentScore = CheckFundamental(F21i, vbCurrentInliers, mSigma);
-
+        //判断当前评分与最高分
         if(currentScore>score)
-        {
+        {//大于最高分,则重新赋值基础矩阵，以及内点，得分
             F21 = F21i.clone();
             vbMatchesInliers = vbCurrentInliers;
             score = currentScore;
@@ -284,6 +288,8 @@ cv::Mat Initializer::ComputeF21(const vector<cv::Point2f> &vP1,const vector<cv::
     return  u*cv::Mat::diag(w)*vt;
 }
 
+//检测单应  点到点的关系
+//score = 所有点(2 * th - (同名点互相的重投影平方差之和) / (sigma * sigma))  双重重投影
 float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVector &vbMatchesInliers, float sigma)
 {   
     const int N = mvMatches12.size();
@@ -369,6 +375,8 @@ float Initializer::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVe
     return score;
 }
 
+//检测基础矩阵（双重重投影误差） F 表示 点与线的关系
+// score = 所有点(2 * th - (同名点在各自帧到极线距离之和) /（sigma*sigma）)
 float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInliers, float sigma)
 {
     const int N = mvMatches12.size();
@@ -386,9 +394,9 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
     vbMatchesInliers.resize(N);
 
     float score = 0;
-
+    //卡方检验，表示有95% 把握说吗两个事件相关
     const float th = 3.841;
-   
+    //卡方分布,用于计算内点
     const float thScore = CHITH;
 
     const float invSigmaSquare = 1.0/(sigma*sigma);
@@ -407,22 +415,23 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
 
         // Reprojection error in second image
         // l2=F21x1=(a2,b2,c2)
-
+        //计算极线
         const MATTYPE a2 = f11*u1+f12*v1+f13;
         const MATTYPE b2 = f21*u1+f22*v1+f23;
         const MATTYPE c2 = f31*u1+f32*v1+f33;
-
+        
         const MATTYPE num2 = a2*u2+b2*v2+c2;
-
+        //点到直线距离的平方 |AX+BY+C|2/|A2+B2|
         const MATTYPE squareDist1 = num2*num2/(a2*a2+b2*b2);
-
+        //计算卡方测试值
         const MATTYPE chiSquare1 = squareDist1*invSigmaSquare;
-
+        //判断点关联性
         if(chiSquare1>th)
             bIn = false;
         else
             score += thScore - chiSquare1;
 
+        // 反算
         // Reprojection error in second image
         // l1 =x2tF21=(a1,b1,c1)
 
@@ -433,7 +442,7 @@ float Initializer::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInli
         const MATTYPE num1 = a1*u1+b1*v1+c1;
 
         const MATTYPE squareDist2 = num1*num1/(a1*a1+b1*b1);
-
+        //
         const MATTYPE chiSquare2 = squareDist2*invSigmaSquare;
 
         if(chiSquare2>th)
@@ -487,7 +496,7 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     int nMinGood = max(static_cast<int>(0.8*N),minTriangulated);
 
     int nsimilar = 0;
-    const int  thMxGood = 0.7 * maxGood;
+    const int  thMxGood = 0.75 * maxGood;
     if(nGood1 > thMxGood)
         nsimilar++;
     if(nGood2 > thMxGood)
@@ -730,6 +739,10 @@ void Initializer::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, 
     x3D = x3D.rowRange(0,3)/x3D.at<MATTYPE>(3);
 }
 
+//归一化特征点 
+//设置所有keypt的像素均值为原点,方差为单位矩阵I
+//计算基础和单应 要先归一化
+//作用：H依赖特征点的位置 不同特征点尺度因子不相同,为了H不受这个的影响,具有相似不变性 需要先进行归一化
 void Initializer::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
 {
     float meanX = 0;
@@ -764,7 +777,7 @@ void Initializer::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNorm
 
     float sX = 1.0/meanDevX;
     float sY = 1.0/meanDevY;
-
+    //用均值进行单位化
     for(int i=0; i<N; i++)
     {
         vNormalizedPoints[i].x = vNormalizedPoints[i].x * sX;
@@ -784,7 +797,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
                        const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, BolVector &vbGood, float &parallax)
 {
     // Calibration parameters
-    const float thparallax = 1;//0.99998;//大概1°  点到两帧关心夹角最小阈值
+    const float thparallax = 1;//0.99998;//大概1°  点到两帧光心夹角最小阈值
     const float fx = K.at<MATTYPE>(0,0);
     const float fy = K.at<MATTYPE>(1,1);
     const float cx = K.at<MATTYPE>(0,2);
@@ -864,7 +877,8 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &
         float invZ2 = 1.0/p3dC2.at<MATTYPE>(2);
         im2x = fx*p3dC2.at<MATTYPE>(0)*invZ2+cx;
         im2y = fy*p3dC2.at<MATTYPE>(1)*invZ2+cy;
-
+        
+        //计算重投影误差平方和
         float squareError2 = (im2x-kp2.pt.x)*(im2x-kp2.pt.x)+(im2y-kp2.pt.y)*(im2y-kp2.pt.y);
 
         if(squareError2>th2)
