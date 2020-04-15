@@ -124,11 +124,11 @@ int main(void)
 #endif
 
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
-    // if(!sempath.empty())
-    // {
-    //     SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
-    //     SemanticGraph::Instance()->setSemanticPath(sempath);
-    // }
+    if(!sempath.empty())
+    {
+        SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
+        SemanticGraph::Instance()->setSemanticPath(sempath);
+    }
 
     std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
 
