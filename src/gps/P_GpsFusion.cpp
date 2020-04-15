@@ -18,7 +18,7 @@ namespace  Position
 
         KeyFrameVector vpkfs = pmap->getAllFrames();
         IMap::SortFrames(vpkfs);
-
+        //只为测试
         const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
         const std::string strfus = "/media/tlg/work/tlgfiles/HDData/result/est.txt";
         std::ofstream fori;
@@ -26,7 +26,7 @@ namespace  Position
 
         std::ofstream ffuse;
         ffuse.open(strfus);
-
+        //测试gps融合效果 添加的偏移
         const double dt = 0.0001;
 
         for(size_t i = 0; i <vpkfs.size(); ++i)
