@@ -41,7 +41,7 @@ ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
 StNo: 1300   #11000
-EdNo: 1400   #100
+EdNo: 1500   #100
 
 
 #vocabulary path 

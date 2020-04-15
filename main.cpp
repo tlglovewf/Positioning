@@ -114,7 +114,6 @@ void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
 
 int main(void)
 {  
-
 #if WEIYA
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config/config_weiya.yaml"); 
     std::shared_ptr<Position::IData> pData(new WeiyaData(pCfg));

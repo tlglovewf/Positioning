@@ -13,6 +13,7 @@ namespace Position
     class GpsFunsion : public IGpsFusion
     {
     public:
-        
+         //融合
+        virtual bool fuse(const std::shared_ptr<IMap> &pmap, const CameraParam &cam);
     };
 }

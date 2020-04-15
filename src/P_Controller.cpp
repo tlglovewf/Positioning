@@ -3,7 +3,7 @@
 #include "P_Map.h"
 #include "P_Writer.h"
 #include "P_Utils.h"
-
+#include "P_GpsFusion.h"
 
 //间隔最大的帧数
 const int maxThFrameCnt = 3;
@@ -39,6 +39,7 @@ PositionController::PositionController(const shared_ptr<Position::IDetector> &pd
     const Position::CameraParam &cam = mpData->getCamera();
     mpMulPositioner     = std::unique_ptr<Position::IPositioning>(Position::PFactory::CreatePositioning(Position::ePMultiImage,cam)); 
     mpSinglePositioner  = std::unique_ptr<Position::IPositioning>(Position::PFactory::CreatePositioning(Position::ePSingleImage,cam));
+    mpGpsFunsion        = std::unique_ptr<Position::IGpsFusion>(new Position::GpsFunsion());
 }
 
 //运行
@@ -105,6 +106,9 @@ void PositionController::run()
         }
         //等待线程处理
         mpTrajProSelector->waitingForHandle();
+
+        mpGpsFunsion->fuse(mpTrajProSelector->getMap(),mpData->getCamera());
+        
         //完成一段轨迹推算  记录结果
         saveResult();
         mpTrajProSelector->reset();//重置状态
@@ -115,7 +119,7 @@ void PositionController::run()
     if(mpViewer)
     {//如果有可视接口 显示该段
        //  mpViewer->renderLoop();
-        if(mptViewer->joinable())
+        if(mptViewer && mptViewer->joinable())
         {
             mptViewer->join();
         }

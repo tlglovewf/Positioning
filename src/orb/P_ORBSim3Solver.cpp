@@ -3,6 +3,7 @@
 
 #include "P_ORBKeyFrame.h"
 #include "P_ORBmatcher.h"
+#include "P_Utils.h"
 
 #include "Thirdparty/DBoW2/DUtils/Random.h"
 
@@ -191,22 +192,7 @@ cv::Mat Sim3Solver::find(BolVector &vbInliers12, int &nInliers)
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers12,nInliers);
 }
-//计算矩心
-void Sim3Solver::ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
-{
-    // 将二维数组转化为向量
-    // src：输入矩阵
-    // dst：通过处理输入矩阵的所有行/列而得到的单行/列向量
-    // dim：矩阵被简化后的维数索引.0意味着矩阵被处理成一行,1意味着矩阵被处理成为一列,-1时维数将根据输出向量的大小自动选择.
-    // CV_REDUCE_SUM： 输出是矩阵的所有行/列的和
-    cv::reduce(P,C,1,CV_REDUCE_SUM);
-    C = C/P.cols;
 
-    for(int i=0; i<P.cols; i++)
-    {
-        Pr.col(i)=P.col(i)-C;
-    }
-}
 //计算sim3 p1 p2 为相机坐标系下地图点集(一列代表一个点)
 //计算  |sR t|
 //     |0  1|
@@ -223,8 +209,8 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     cv::Mat O2(3,1,Pr2.type()); // Centroid of P2
 
     //计算质心   o代表点质心(点的平均值)  Pr表示点与质心的差值
-    ComputeCentroid(P1,Pr1,O1);
-    ComputeCentroid(P2,Pr2,O2);
+    Position::PUtils::ComputeCentroid(P1,Pr1,O1);
+    Position::PUtils::ComputeCentroid(P2,Pr2,O2);
 
     // Step 2: Compute M matrix
     //计算pr1-> pr2变换矩阵

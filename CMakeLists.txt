@@ -122,12 +122,9 @@ src/orb/P_ORBFrame.cpp
 src/orb/P_ORBKeyFrameDatabase.cpp
 src/orb/P_ORBSim3Solver.cpp
 src/orb/P_ORBInitializer.cpp
-src/gps/chframe.cc
-src/gps/global_map.cc
-src/gps/map_point.cc
-src/gps/separate_map.cc
-src/gps/sim3_match.cc
-src/gps/sim3opt.cpp
+src/gps/GpsGlobalMap.cpp
+src/gps/GpsSim3Optimizer.cpp
+src/gps/P_GpsFusion.cpp
 src/P_Factory.cpp
 src/P_TrajProSelector.cpp
 src/P_Controller.cpp

@@ -404,10 +404,12 @@ namespace Position
 
     };
 
-
+    //gps融合
     class IGpsFusion : public IBase
     {
     public:
+        //融合
+        virtual bool fuse(const std::shared_ptr<IMap> &pmap, const CameraParam &cam) = 0;
     };
 
 } // namespace Position

@@ -36,6 +36,8 @@ protected:
     std::unique_ptr<Position::IPositioning>     mpMulPositioner;
     std::unique_ptr<Position::IPositioning>     mpSinglePositioner;
     std::unique_ptr<Position::TrajProSelector>  mpTrajProSelector;
+    std::unique_ptr<Position::IGpsFusion>       mpGpsFunsion;
+    
 
     std::unique_ptr<std::thread>                mptViewer; 
 };

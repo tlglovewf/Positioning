@@ -1,6 +1,6 @@
 #pragma once
 
-#include "global_map.h"
+#include "GpsGlobalMap.h"
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
 #include <iostream>
@@ -83,23 +83,22 @@ struct GPSData
 };
 
 
-class Sim3Opt
+class GpsSim3Optimizer
 {
 public:
-    Sim3Opt();
-    ~Sim3Opt();
-    //TODO:为globalmap添加gps数据
-    void GPS_input(const GPSData& GPS_msg);
+    GpsSim3Optimizer();
+    ~GpsSim3Optimizer();
     void beginOpt();
-    void setOrbMap(gm::GlobalMap& globalmap);
+    void setOrbMap(gps::GpsGlobalMap& globalmap);
     void getGlobalGPS(double time,double& latitude, double& longitude, double& altitude);
+    void getFrameXYZ(int index, double &x, double &y, double &z);
 private:
     void ComputeSim3();//计算sim3
-    void pose_graph_opti_se3_hu();
+    void pose_graph_opti_se3();
     void GPS2XYZ(double latitude, double longitude, double altitude, double* xyz);
     void XYZ2GPS(double* xyz , double& latitude, double& longitude, double& altitude);
 
-    gm::GlobalMap mGlobalMap;
+    gps::GpsGlobalMap mGlobalMap;
     
     GeographicLib::LocalCartesian geoConverter;//gps坐标转换器
 

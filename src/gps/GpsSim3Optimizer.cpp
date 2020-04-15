@@ -1,6 +1,5 @@
-#include "sim3opt.h"
-#include <sim3_match.h>
-
+#include "GpsSim3Optimizer.h"
+#include "P_Utils.h"
 
 //使用sim3对in_pose进行变换得到out_pose
 static void transformPoseUseSim3(Eigen::Matrix4d& sim3, Eigen::Matrix4d& in_pose,  Eigen::Matrix4d& out_pose)
@@ -16,52 +15,126 @@ static void transformPoseUseSim3(Eigen::Matrix4d& sim3, Eigen::Matrix4d& in_pose
     out_pose.block(0,3,4,1) = t_out;
 }
 
-Sim3Opt::Sim3Opt()
+GpsSim3Optimizer::GpsSim3Optimizer()
 {
    initGPS = false;
-   mGlobalMap.ReleaseMap();
-   //mGlobalMap = NULL;
 }
 
-Sim3Opt::~Sim3Opt()
+GpsSim3Optimizer::~GpsSim3Optimizer()
 {
     
 }
 
-//要求消息的是间t已与视觉部分同步
-void Sim3Opt::GPS_input(const GPSData& GPS_msg)
+//视觉融合gps数据的sim3计算
+    //P1:gps数据[t1,t2,t3,.....]
+    //P2:对应的视觉平移数据[t1,t2,t3,...]
+static void GpsVoComputeSim3(cv::Mat &P1, cv::Mat &P2, cv::Mat& mT12i, double& scale)
 {
-    double xyz[3];
-    double latitude = GPS_msg.lat;
-    double longitude = GPS_msg.lon;
-    double altitude = GPS_msg.alt;
-    double time = GPS_msg.t;
-    double pos_accuracy = GPS_msg.conf;
-
-    GPS2XYZ(latitude, longitude, altitude, xyz);
-
-    Eigen::Vector3d gps_position(xyz[0],xyz[1],xyz[2]);
-    for(int i = 0 ;i < mGlobalMap.frames.size(); i++)
+    cv::Mat mR12i;
+    cv::Mat mt12i;
+    float ms12i;
+    std::vector<bool> mvbInliersi;
+    int mnInliersi;
+    cv::Mat Pr1(P1.size(),P1.type()); // Relative coordinates to centroid (set 1)
+    cv::Mat Pr2(P2.size(),P2.type()); // Relative coordinates to centroid (set 2)
+    cv::Mat O1(3,1,Pr1.type()); // Centroid(质心) of P1
+    cv::Mat O2(3,1,Pr2.type()); // Centroid(质心) of P2
+    Position::PUtils::ComputeCentroid(P1,Pr1,O1);
+    Position::PUtils::ComputeCentroid(P2,Pr2,O2);
+    // Step 2: Compute M matrix
+    cv::Mat M = Pr2*Pr1.t();//3*N x N*3 = 3*3
+    // Step 3: Compute N matrix
+    double N11, N12, N13, N14, N22, N23, N24, N33, N34, N44;
+    cv::Mat N(4,4,P1.type());//4*4
+    N11 = M.at<float>(0,0)+M.at<float>(1,1)+M.at<float>(2,2);
+    N12 = M.at<float>(1,2)-M.at<float>(2,1);
+    N13 = M.at<float>(2,0)-M.at<float>(0,2);
+    N14 = M.at<float>(0,1)-M.at<float>(1,0);
+    N22 = M.at<float>(0,0)-M.at<float>(1,1)-M.at<float>(2,2);
+    N23 = M.at<float>(0,1)+M.at<float>(1,0);
+    N24 = M.at<float>(2,0)+M.at<float>(0,2);
+    N33 = -M.at<float>(0,0)+M.at<float>(1,1)-M.at<float>(2,2);
+    N34 = M.at<float>(1,2)+M.at<float>(2,1);
+    N44 = -M.at<float>(0,0)-M.at<float>(1,1)+M.at<float>(2,2);
+    N = (cv::Mat_<float>(4,4) << N11, N12, N13, N14,
+                                N12, N22, N23, N24,
+                                N13, N23, N33, N34,
+                                N14, N24, N34, N44);
+    // Step 4: Eigenvector of the highest eigenvalue
+    cv::Mat eval, evec;
+    cv::eigen(N,eval,evec); //evec[0] is the quaternion of the desired rotation
+    cv::Mat vec(1,3,evec.type());
+    (evec.row(0).colRange(1,4)).copyTo(vec); //extract imaginary part of the quaternion (sin*axis)
+    // Rotation angle. sin is the norm of the imaginary part, cos is the real part
+    double ang=atan2(norm(vec),evec.at<float>(0,0));
+    vec = 2*ang*vec/norm(vec); //Angle-axis representation. quaternion angle is the half
+    mR12i.create(3,3,P1.type());
+    cv::Rodrigues(vec,mR12i); // computes the rotation matrix from angle-axis
+    // Step 5: Rotate set 2
+    cv::Mat P3 = mR12i*Pr2;
+    
+    // Step 6: Scale
+    double nom = Pr1.dot(P3);
+    cv::Mat aux_P3(P3.size(),P3.type());
+    aux_P3=P3;
+    cv::pow(P3,2,aux_P3);
+    double den = 0;
+    for(int i=0; i<aux_P3.rows; i++)
     {
-        if (mGlobalMap.frames[i]->time_stamp - time < 0.01 && mGlobalMap.frames[i]->time_stamp - time > -0.01)
+        for(int j=0; j<aux_P3.cols; j++)
         {
-            mGlobalMap.frames[i]->gps_position = gps_position;
-            mGlobalMap.frames[i]->gps_accu = 1;
-
-            break;
+            den+=aux_P3.at<float>(i,j);
         }
-        
+    }
+    ms12i = nom/den;
+    // Step 7: Translation
+    mt12i.create(1,3,P1.type());
+    mt12i = O1 - ms12i*mR12i*O2;
+    // Step 8: Transformation
+    // Step 8.1 T12
+    mT12i = cv::Mat::eye(4,4,P1.type());
+    cv::Mat sR = ms12i*mR12i;
+    scale=ms12i;
+    sR.copyTo(mT12i.rowRange(0,3).colRange(0,3));
+    mt12i.copyTo(mT12i.rowRange(0,3).col(3));
+}
+    
+    //视觉融合gps数据的sim3计算
+    //P1:gps数据平移vector
+    //P2:视觉数据平移vector
+void GpsVoComputeSim3(std::vector<Eigen::Vector3d>& P1, std::vector<Eigen::Vector3d>& P2, Eigen::Matrix4d& T12i_eig, double& scale)
+{
+    //[t1,t2,t3,......]
+    cv::Mat p1mat(3, P1.size(), CV_32FC1);//3*P1.size()
+    cv::Mat p2mat(3, P2.size(), CV_32FC1);
+    for(int i=0; i<P1.size(); i++)
+    {
+        p1mat.at<float>(0, i)=P1[i](0);
+        p1mat.at<float>(1, i)=P1[i](1);
+        p1mat.at<float>(2, i)=P1[i](2);
+        p2mat.at<float>(0, i)=P2[i](0);
+        p2mat.at<float>(1, i)=P2[i](1);
+        p2mat.at<float>(2, i)=P2[i](2);
+    }
+    cv::Mat pose_mat;
+    GpsVoComputeSim3(p1mat, p2mat, pose_mat, scale);
+    for(int i=0; i<4; i++)
+    {
+        for(int j=0; j<4; j++)
+        {
+            T12i_eig(i, j)=pose_mat.at<float>(i, j);
+        }
     }
 }
 
-void Sim3Opt::beginOpt()
+void GpsSim3Optimizer::beginOpt()
 {
     //1.计算sim3 2.优化
     ComputeSim3();
-    pose_graph_opti_se3_hu();
+    pose_graph_opti_se3();
 }
 
-void Sim3Opt::GPS2XYZ(double latitude, double longitude, double altitude, double* xyz)
+void GpsSim3Optimizer::GPS2XYZ(double latitude, double longitude, double altitude, double* xyz)
 {
     if(!initGPS)
     {
@@ -74,14 +147,25 @@ void Sim3Opt::GPS2XYZ(double latitude, double longitude, double altitude, double
 }
 
 //将gps世界坐标系下的姿态转为gps绝对坐标
-void Sim3Opt::XYZ2GPS(double* xyz , double& latitude, double& longitude, double& altitude)
+void GpsSim3Optimizer::XYZ2GPS(double* xyz , double& latitude, double& longitude, double& altitude)
 {
     //void Reverse(real x, real y, real z, real& lat, real& lon, real& h)
     geoConverter.Reverse(xyz[0],xyz[1],xyz[2],latitude,longitude,altitude);
 }
 
+void GpsSim3Optimizer::getFrameXYZ(int index, double &x, double &y, double &z)
+{
+    if(index >= mGlobalMap.frames.size())
+        return;
+    
+    Eigen::Vector3d position = mGlobalMap.frames[index]->getPose().block(0,3,3,1);
+    double xyz[3] = {0};
+    x = position[0];
+    y = position[1];
+    z = position[2];
+}
 
-void Sim3Opt::getGlobalGPS(double time,double& latitude, double& longitude, double& altitude)
+void GpsSim3Optimizer::getGlobalGPS(double time,double& latitude, double& longitude, double& altitude)
 {
     for(int i = 0 ;i < mGlobalMap.frames.size(); i++)
     {
@@ -100,14 +184,13 @@ void Sim3Opt::getGlobalGPS(double time,double& latitude, double& longitude, doub
 
 }
 
-void Sim3Opt::ComputeSim3()
+void GpsSim3Optimizer::ComputeSim3()
 {
-    std::vector<gm::GlobalMap> out_maps;
+    std::vector<gps::GpsGlobalMap> out_maps;
     int last_frame_id=0;
     
     for(int nn=10; nn<mGlobalMap.frames.size(); nn++)//从第10帧开始遍历地图中所有帧
     {
-        //std::cout<<"mGlobalMap.frames.size() = "<<mGlobalMap.frames.size()<<std::endl;
         int cur_frame_id=nn;
 
         std::vector<Eigen::Vector3d> pc_frame;//视觉得到的平移twc
@@ -115,7 +198,7 @@ void Sim3Opt::ComputeSim3()
         
         for(int i=last_frame_id; i <= cur_frame_id; i++)//遍历当前帧之前的所有帧，统计gps数据置信度小于30的帧
         {
-            std::shared_ptr<gm::Frame> frame = mGlobalMap.frames[i];
+            std::shared_ptr<gps::GpsFrame> frame = mGlobalMap.frames[i];
             if(frame->gps_accu<30)//gps_accu越小表示精确度越高，这里选取精确度较高的gps数据
             {
                 //std::cout<<"frame->position = "<<frame->position<<std::endl;
@@ -134,9 +217,9 @@ void Sim3Opt::ComputeSim3()
             double scale_12;
             Eigen::Matrix4d T12;
             //计算pc_gps和pc_frame之间的sim3变换，即是计算gps和视觉参考系两个坐标系之间的sim3变换？
-            chamo::ComputeSim3(pc_gps, pc_frame , T12, scale_12);//这里得到的T12已经含有尺度scale_12
-            std::cout<<"sim3 = "<<T12<<std::endl;
-            std::cout<<"scale_12 = "<<scale_12<<std::endl;
+            GpsVoComputeSim3(pc_gps, pc_frame , T12, scale_12);//这里得到的T12已经含有尺度scale_12
+            // std::cout<<"sim3 = "<<T12<<std::endl;
+            // std::cout<<"scale_12 = "<<scale_12<<std::endl;
             Eigen::Matrix3d R_tran=T12.block(0,0,3,3);
             double scale=R_tran.block(0,0,3,1).norm();
             std::cout<<"scale = "<<scale<<std::endl;
@@ -153,27 +236,18 @@ void Sim3Opt::ComputeSim3()
                 avg_err=avg_err+err/pc_gps.size();
                 pc_frame_transformed_temp.push_back(posi_gps_homo.block(0,0,3,1));
             }
-            std::cout<<"avg_err: "<<cur_frame_id<<" | "<<pc_gps.size()<<" | "<<avg_err<<std::endl;
-            //if(avg_err>FLAGS_err_thres || cur_frame_id==map.frames.size()-1){
+            //std::cout<<"avg_err: "<<cur_frame_id<<" | "<<pc_gps.size()<<" | "<<avg_err<<std::endl;
             if(cur_frame_id==mGlobalMap.frames.size()-1)//如果到了最后一帧
             {
-                //创建从last_frame_id到cur_frame_id的子图
-                //gm::GlobalMap submap;
-                //mGlobalMap.CreateSubMap(last_frame_id, cur_frame_id, submap);
-
                 for(int j=0; j<mGlobalMap.frames.size(); j++)//遍历子图的每一帧
                 {
                     //使用sim3对每一帧位姿进行变换
                     Eigen::Matrix4d pose_transformed_temp;
                     Eigen::Matrix4d temp_pose=mGlobalMap.frames[j]->getPose();
                     transformPoseUseSim3(T12, temp_pose, pose_transformed_temp);
-                    mGlobalMap.frames[j]->setPose(pose_transformed_temp);//Tgwc
-                    std::cout<<"sim3转换后的pose"<<std::endl;
-                    std::cout<<"map.frames[j]->direction = "<<mGlobalMap.frames[j]->direction.w()<<","<<mGlobalMap.frames[j]->direction.x()<<","<<mGlobalMap.frames[j]->direction.y()<<","<<mGlobalMap.frames[j]->direction.z()<<std::endl;
-                    
+                    mGlobalMap.frames[j]->setPose(pose_transformed_temp);//Tgwc   
                 }
                 int huhu = 0;
-                //std::cin>>huhu;
                 for(int j=0; j<mGlobalMap.mappoints.size(); j++)//遍历子图的每一个地图点
                 {
                     //使用sim3对地图点坐标进行变换
@@ -192,51 +266,33 @@ void Sim3Opt::ComputeSim3()
     
 }
 
-
-
-void Sim3Opt::pose_graph_opti_se3_hu()
+void GpsSim3Optimizer::pose_graph_opti_se3()
 {
     mGlobalMap.AssignKpToMp();
     mGlobalMap.CalConnections();
     mGlobalMap.CheckConsistence();
     //计算共视关系
-    //std::cout<<"12"<<std::endl;
+
     mGlobalMap.CalConnections();
-    //std::cout<<"cccc"<<std::endl;
+
     //检查共视关系是否正确
     mGlobalMap.CheckConnections();
     mGlobalMap.FilterTrack();
 
     g2o::SparseOptimizer optimizer;
-    optimizer.setVerbose(true);
+    optimizer.setVerbose(false);
     g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(
         new g2o::BlockSolverX(
             new g2o::LinearSolverEigen<g2o::BlockSolverX::PoseMatrixType>()));
 
-    //solver->setUserLambdaInit(1e-16);
     optimizer.setAlgorithm(solver);
     
-    for (size_t i = 0; i < mGlobalMap.frames.size(); i++)
-    {
-        std::cout<<"map.frames[i]->gps_position ="<<mGlobalMap.frames[i]->gps_position<<std::endl;
-        std::cout<<"map.frames[i]->position = "<<mGlobalMap.frames[i]->position<<std::endl;
-        std::cout<<"map.frames[i]->direction = "<<mGlobalMap.frames[i]->direction.w()<<","<<mGlobalMap.frames[i]->direction.x()<<","<<mGlobalMap.frames[i]->direction.y()<<","<<mGlobalMap.frames[i]->direction.z()<<std::endl;
-    }
-    int hu = 0;
-    //std::cin>>hu;
     std::vector<g2o::VertexSE3Expmap*> v_se3_list;//存放所有优化的顶点
     
     //存放frame和其姿态顶点的对应关系
-    std::map<std::shared_ptr<gm::Frame>, g2o::VertexSE3Expmap*> frame_to_vertex;
-    std::map<g2o::VertexSE3Expmap*, std::shared_ptr<gm::Frame>> vertex_to_frame;
-//     std::vector<Eigen::Vector3d> debug_points;
-//     for(int n=0; n<map.frames.size(); n++){
-//         if(map.frames[n]->isborder==true){
-//             debug_points.push_back(map.frames[n]->position);
-//         }
-//     }
-//     show_mp_as_cloud(debug_points, "debug1");
-//     ros::spin();
+    std::map<std::shared_ptr<gps::GpsFrame>, g2o::VertexSE3Expmap*> frame_to_vertex;
+    std::map<g2o::VertexSE3Expmap*, std::shared_ptr<gps::GpsFrame>> vertex_to_frame;
+
     bool any_fix_frame=false;
     for(int i=0; i<mGlobalMap.frames.size(); i++)//遍历所有帧
     {
@@ -244,11 +300,7 @@ void Sim3Opt::pose_graph_opti_se3_hu()
         Eigen::Matrix<double,3,3> R(mGlobalMap.frames[i]->direction);
         Eigen::Matrix<double,3,1> t=mGlobalMap.frames[i]->position;
         vSE3->setEstimate(g2o::SE3Quat(R,t).inverse());//Tcgw
-        vSE3->setFixed(mGlobalMap.frames[i]->isborder);
-        if(mGlobalMap.frames[i]->isborder==true)
-        {
-            any_fix_frame=true;
-        }
+        vSE3->setFixed(false);
         
         vSE3->setId(i);
         vSE3->setMarginalized(false);
@@ -269,10 +321,6 @@ void Sim3Opt::pose_graph_opti_se3_hu()
     std::vector<g2o::EdgePosiPreSE3*> gps_edges;//存储所有gps的边
     for(int i=0; i<mGlobalMap.frames.size(); i++)
     {
-        if(mGlobalMap.frames[i]->isborder==true)
-        {
-            continue;
-        }
         if(mGlobalMap.frames[i]->gps_accu<30 && mGlobalMap.frames[i]->gps_accu>0)
         {
             g2o::EdgePosiPreSE3* e = new g2o::EdgePosiPreSE3();//一元边
@@ -297,12 +345,10 @@ void Sim3Opt::pose_graph_opti_se3_hu()
     std::vector<g2o::EdgeSE3*> se3_edge_list;
     for(int i=0; i<mGlobalMap.pose_graph_v1.size(); i++)
     {
-        //std::cout<<Eigen::Matrix3d(map.pose_graph_e_rot[i])<<std::endl;
-        //std::cout<<map.pose_graph_e_posi[i].transpose()<<std::endl;
+
         g2o::SE3Quat Sji(mGlobalMap.pose_graph_e_rot[i],mGlobalMap.pose_graph_e_posi[i]);
         g2o::EdgeSE3* e = new g2o::EdgeSE3();//二元边
-        //std::cout<<"v1: "<<frame_to_vertex[map.pose_graph_v1[i]]->estimate().inverse().translation().transpose()<<std::endl;
-        //std::cout<<"obs: "<<(frame_to_vertex[map.pose_graph_v2[i]]->estimate().inverse().rotation().toRotationMatrix()*Sji.translation()+frame_to_vertex[map.pose_graph_v2[i]]->estimate().inverse().translation()).transpose()<<std::endl;
+
         if(mGlobalMap.pose_graph_v1.size() != mGlobalMap.pose_graph_v2.size())
         {
             std::cout<<"connection frame null!!"<<std::endl;
@@ -321,13 +367,13 @@ void Sim3Opt::pose_graph_opti_se3_hu()
         e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(frame_to_vertex[mGlobalMap.pose_graph_v1[i]]));
         e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(frame_to_vertex[mGlobalMap.pose_graph_v2[i]]));
         e->setMeasurement(Sji);
-        //std::cout<<map.pose_graph_weight[i]<<std::endl;
+
         if(mGlobalMap.pose_graph_weight[i]<1)
         {
             mGlobalMap.pose_graph_weight[i]=100;
         }
         Eigen::Matrix<double,6,6> matLambda = Eigen::Matrix<double,6,6>::Identity()*mGlobalMap.pose_graph_weight[i]*2;
-        //Eigen::Matrix<double,6,6> matLambda = Eigen::Matrix<double,6,6>::Identity();
+
         e->information() = matLambda;
 
         g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
@@ -362,10 +408,10 @@ void Sim3Opt::pose_graph_opti_se3_hu()
     std::cout<<"sim3 edge err before: "<<avg_error<<std::endl;
     
     optimizer.initializeOptimization();
-    //optimizer.computeInitialGuess();
+
     optimizer.optimize(100);
     
-    avg_error=0;
+    avg_error=0; 
     for(int i=0; i<gps_edges.size(); i++)
     {
         gps_edges[i]->computeError();
@@ -397,21 +443,17 @@ void Sim3Opt::pose_graph_opti_se3_hu()
 }
 
 
-void Sim3Opt::setOrbMap(gm::GlobalMap& globalmap)//为融合优化器添加orbslam地图
+void GpsSim3Optimizer::setOrbMap(gps::GpsGlobalMap& globalmap)//为融合优化器添加orbslam地图
 {
-    for (size_t i = 0; i < globalmap.frames.size(); i++)
-    {
-        std::cout<<"globalmap.frames[i]->direction = "<<globalmap.frames[i]->direction.w()<<","<<globalmap.frames[i]->direction.x()<<","<<globalmap.frames[i]->direction.y()<<","<<globalmap.frames[i]->direction.z()<<std::endl;
-    }
+    // for (size_t i = 0; i < globalmap.frames.size(); i++)
+    // {
+    //     std::cout<<"globalmap.frames[i]->direction = "<<globalmap.frames[i]->direction.w()<<","<<globalmap.frames[i]->direction.x()<<","<<globalmap.frames[i]->direction.y()<<","<<globalmap.frames[i]->direction.z()<<std::endl;
+    // }
     mGlobalMap = globalmap;
-    for (size_t i = 0; i < mGlobalMap.frames.size(); i++)
-    {
-        std::cout<<"mGlobalMap.frames[i]->direction = "<<mGlobalMap.frames[i]->direction.w()<<","<<mGlobalMap.frames[i]->direction.x()<<","<<mGlobalMap.frames[i]->direction.y()<<","<<mGlobalMap.frames[i]->direction.z()<<std::endl;
-    }
-    int n=0;
-    //std::cin>>n;
-    std::cout<<"finish setOrbMap"<<std::endl;
-    std::cout<<"finish setOrbMap"<<std::endl;
+    // for (size_t i = 0; i < mGlobalMap.frames.size(); i++)
+    // {
+    //     std::cout<<"mGlobalMap.frames[i]->direction = "<<mGlobalMap.frames[i]->direction.w()<<","<<mGlobalMap.frames[i]->direction.x()<<","<<mGlobalMap.frames[i]->direction.y()<<","<<mGlobalMap.frames[i]->direction.z()<<std::endl;
+    // }
 }
 
 

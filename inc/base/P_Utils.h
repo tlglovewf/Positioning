@@ -393,6 +393,24 @@ public:
         return (vStart.x - v.x) * (vEnd.y - v.y) - (vEnd.x - v.x) * (vStart.y - v.y);
     }
 
+     //计算质心
+    //P:[t1,t2,t3,.....]
+    static void ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
+    {
+        // 将二维数组转化为向量
+        // src：输入矩阵
+        // dst：通过处理输入矩阵的所有行/列而得到的单行/列向量
+        // dim：矩阵被简化后的维数索引.0意味着矩阵被处理成一行,1意味着矩阵被处理成为一列,-1时维数将根据输出向量的大小自动选择.
+        // CV_REDUCE_SUM： 输出是矩阵的所有行/列的和
+        cv::reduce(P,C,1,cv::REDUCE_SUM);//将二维数组转化为向量，第3个参数表示转为1列。这里即是把P的每行数据t1,t2,t3,....相加
+        C = C/P.cols;//相加后除以总列数得到平均数，即是质心
+
+        for(int i=0; i<P.cols; i++)
+        {
+            Pr.col(i)=P.col(i)-C;
+        }
+    }
+
 #define YD_EPS_REAL32 1e-6
     /**
      * 判断线段与线段是否相交(跨立试验）
