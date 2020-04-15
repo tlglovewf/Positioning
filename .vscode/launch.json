@@ -14,7 +14,7 @@
             "cwd": "${workspaceFolder}/output/",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
         {
             "name": "Simpletest",
@@ -26,7 +26,7 @@
             "cwd": "${workspaceFolder}/OutPut/",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb"
+            "MIMode": "gdb"
         },
     ]
 }
