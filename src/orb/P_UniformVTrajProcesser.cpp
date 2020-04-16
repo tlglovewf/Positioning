@@ -51,7 +51,7 @@ namespace Position
 
     PUniformVTrajProcesser::~PUniformVTrajProcesser()
     {
-       
+       over();
     }
 
      //跟踪
@@ -60,7 +60,7 @@ namespace Position
         if(mbReset)
         {
             mpTracker->Reset();
-            mbReset = true;
+            mbReset = false;
         }
         PROMTD_V("Load",data._name);
         return mpTracker->track(data);

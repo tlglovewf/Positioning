@@ -100,7 +100,14 @@ public:
     {
         assert(pfix.size() == efix.size());
         size_t n = name.find_first_of(pfix);
-        name.replace(n,efix.size(),efix);
+        if(string::npos == n)
+        {
+           name = name + "." + efix;
+        }
+        else
+        {
+            name.replace(n,efix.size(),efix);
+        }
     }
 
 #undef JPGSTR

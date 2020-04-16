@@ -74,13 +74,13 @@ void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::IData> pData(new HdData(pCfg));
 
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eMultiVision,pCfg,pData));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,pCfg,pData));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
 
     int index = 0;
     for(; it != ed; ++it)
     {
-        if(index++ > 2)
+        if(index++ > 1)
             break;
         cout << "Load Batch:" << it->_btname.c_str() << endl;
 
@@ -91,13 +91,17 @@ void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
             Position::FrameData fdata;
             fdata._name = it->_names[i];
             fdata._img  = imread(imgpath + "/" + it->_names[i] + ".jpg");
-            cvtColor(fdata._img,fdata._img,CV_RGB2GRAY);
+            if(fdata._img.channels() > 1)
+            {
+                cvtColor(fdata._img,fdata._img,CV_RGB2GRAY);
+            }
+            
             framedatas.emplace_back(fdata);
         }
         cout << "frame data size : " << framedatas.size() << endl;
         if(pTraj->process(framedatas))
         {
-            cout << "Set Pose." << endl;
+            cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
             Position::IMap::SortFrames(frames);
 
@@ -133,7 +137,8 @@ int main(void)
 
     // MapDisplay(pCfg);
 
-    // LoadList(pCfg);
+    LoadList(pCfg);
+    return 0;
 
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));

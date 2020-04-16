@@ -14,6 +14,8 @@
 
 #include "project/hdproject.h"
 
+#include "FeatureQuadTree.h"
+
 using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
@@ -286,18 +288,19 @@ float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVe
 
 
 
+
 int main(void)
 {
     SemanticGraph::Instance()->loadObjInfos("segraph.config");
 
-    std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config_hd.yaml"); 
+    std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IData>    pData(new HdData(pCfg));
-    std::shared_ptr<Position::IFeature> pFeature(new SiftFeature);
+    std::shared_ptr<Position::IFeature> pFeature(new FeatureQuadTree());// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
     std::shared_ptr<Position::IFeatureMatcher>  pmatcher(new Position::PKnnMatcher);
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
-    std::shared_ptr<Position::IPoseEstimation>  poseest(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));
+    std::shared_ptr<Position::IPoseEstimation>  poseest(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));//  ePoseEstCV));
     pv->setMap(pmap);
     pData->loadDatas();
     pOptimizer->setCamera(pData->getCamera());
@@ -329,30 +332,30 @@ int main(void)
 
     cv::undistort(aimg1,predata._img,cam.K,cam.D);
     cv::undistort(aimg2,curdata._img,cam.K,cam.D);
-
+    Position::Time_Interval timer;
+    timer.start();
     Position::IFrame *preframe = new Position::PFrame(predata,pFeature, pmap->frameCount());
     Position::IFrame *curframe = new Position::PFrame(curdata,pFeature, pmap->frameCount());
-
+    timer.prompt("feature detect cost",true);
     Position::MatchVector matches;
-   
+  
     Position::MatchVector good_matches =  pmatcher->match(preframe,curframe,5);
-    
+    timer.prompt("feature match cost ",true);
     vector<DMatch>::iterator it = good_matches.begin();
     vector<DMatch>::iterator ed = good_matches.end();
-
+    
     matches.clear();
     matches.reserve(good_matches.size());
     for(; it != ed; ++it)
     {
-        Point2f pt = preframe->getKeys()[it->queryIdx].pt;
-
-        if(!SemanticGraph::Instance()->isDynamicObj(pt,seimg1))
+        // Point2f pt = preframe->getKeys()[it->queryIdx].pt;
+        // if(!SemanticGraph::Instance()->isDynamicObj(pt,seimg1))
         {
             matches.emplace_back(*it);
         }
     }
     good_matches.swap(matches);
-
+    
     vector<Point2f> pt1s;
     vector<Point2f> pt2s;
  
@@ -367,6 +370,7 @@ int main(void)
         cout << "matches not enough~~~" << endl;
         return 0;
     }
+
     Position::U8Vector  stats;
     Position::BolVector bols;
     Mat F = cv::findFundamentalMat(pt1s,pt2s,stats,FM_RANSAC,4.0);
@@ -375,9 +379,9 @@ int main(void)
                             curframe->getKeys(),
                             good_matches,F,bols,2) << endl;
 
-    cout << "bool size : " << std::count_if( bols.begin(), bols.end() ,[](bool bol)->bool{
-        return !bol ;
-    } ) << endl;
+    // cout << "bool size : " << std::count_if( bols.begin(), bols.end() ,[](bool bol)->bool{
+    //     return !bol ;
+    // } ) << endl;
 
     pt1s.clear();
     pt2s.clear();
@@ -403,6 +407,7 @@ int main(void)
     Position::IKeyFrame *curKeyFrame;
     preKeyFrame = pmap->createKeyFrame(preframe);
 
+    cout << "estimate" << endl;
     if(poseest->estimate(R,t,good_matches,pt3ds))
     {
         Mat pose2 = Mat::eye(4,4,CV_64F);
@@ -425,21 +430,27 @@ int main(void)
         pOptimizer->frameOptimization(curKeyFrame,pFeature->getSigma2());
         cout << "after op " << endl;
         cout << curKeyFrame->getPose() << endl;
+
+            cout << "estimate end" << endl;
+
+        //save images
+        Mat img_goodmatch;
+    
+        img_goodmatch = Position::PUtils::DrawFeatureMatch(preframe->getData()._img,
+                                                           curframe->getData()._img,
+                                                           preframe->getKeys(),
+                                                           curframe->getKeys(),
+                                                           good_matches,stats);
+
+        imwrite("/media/tlg/work/tlgfiles/HDData/result/match.jpg",img_goodmatch);
+        cout << "write successfully.." << endl;
+        system("xdg-open /media/tlg/work/tlgfiles/HDData/result/match.jpg");
+
+        pv->renderLoop();
+
     }
 
-    pv->renderLoop();
 
-    //save images
-    Mat img_goodmatch;
-   
-    img_goodmatch = Position::PUtils::DrawFeatureMatch(preframe->getData()._img,
-                                                       curframe->getData()._img,
-                                                       preframe->getKeys(),
-                                                       curframe->getKeys(),
-                                                       good_matches,stats);
-
-    imwrite("/media/tlg/work/tlgfiles/HDData/result/match.jpg",img_goodmatch);
-
-    cout << "write successfully.." << endl;
+    
     return 0;
 }

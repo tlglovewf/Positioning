@@ -84,24 +84,16 @@ public:
     //是否为动态物体
     bool isDyobj(const Point2f &pt, const std::string &name)
     {
+       
         if(!isEnabled())
             return false;
 
         if(mCurSem.first != name)
         {
             mCurSem.first = name;
-             mCurSem.second = imread(mPath+name);
-             if( mCurSem.second.empty())
-             {
-                 string str = name;
-                 Position::PUtils::ReplaceFileSuffix(str,"jpg","png");
-                  mCurSem.second = imread(mPath + str);
-                  if( mCurSem.second.empty())
-                  {
-                      PROMT_S("NO SEM IMAGE");
-                      return false;
-                  }
-             }
+            string str = name;
+            Position::PUtils::ReplaceFileSuffix(str,"jpg",defaultsuffix);
+            mCurSem.second = imread(mPath + str);
         }
         else if(mCurSem.second.empty())
         {
@@ -111,14 +103,17 @@ public:
         {
             ;
         }
-        assert(!mCurSem.second.empty());
-
         return isDynamicObj(pt,mCurSem.second);   
     }
 
     //是否为动态物体
     bool isDynamicObj(const Point2f &pt,const Mat &seimg)
     {
+        if(seimg.empty())
+        {
+            PROMT_S("NO SEM IMAGE");
+            return false;
+        }
        cv::Vec3b clr = seimg.at<Vec3b>(pt);
 
        ItemIter it = mObjs.begin();

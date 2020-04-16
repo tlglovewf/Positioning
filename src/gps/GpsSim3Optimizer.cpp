@@ -142,14 +142,11 @@ void GpsSim3Optimizer::GPS2XYZ(double latitude, double longitude, double altitud
         initGPS = true;
     }
     geoConverter.Forward(latitude, longitude, altitude, xyz[0], xyz[1], xyz[2]);
-    printf("la: %f lo: %f al: %f\n", latitude, longitude, altitude);
-    printf("gps x: %f y: %f z: %f\n", xyz[0], xyz[1], xyz[2]);
 }
 
 //将gps世界坐标系下的姿态转为gps绝对坐标
 void GpsSim3Optimizer::XYZ2GPS(double* xyz , double& latitude, double& longitude, double& altitude)
 {
-    //void Reverse(real x, real y, real z, real& lat, real& lon, real& h)
     geoConverter.Reverse(xyz[0],xyz[1],xyz[2],latitude,longitude,altitude);
 }
 
@@ -218,11 +215,10 @@ void GpsSim3Optimizer::ComputeSim3()
             Eigen::Matrix4d T12;
             //计算pc_gps和pc_frame之间的sim3变换，即是计算gps和视觉参考系两个坐标系之间的sim3变换？
             GpsVoComputeSim3(pc_gps, pc_frame , T12, scale_12);//这里得到的T12已经含有尺度scale_12
-            // std::cout<<"sim3 = "<<T12<<std::endl;
-            // std::cout<<"scale_12 = "<<scale_12<<std::endl;
+
             Eigen::Matrix3d R_tran=T12.block(0,0,3,3);
             double scale=R_tran.block(0,0,3,1).norm();
-            std::cout<<"scale = "<<scale<<std::endl;
+
             float avg_err=0;
             std::vector<Eigen::Vector3d> pc_frame_transformed_temp;
             //计算sim3变换的平均误差：通过sim3变换将视觉平移变换到gps下，再相减得到

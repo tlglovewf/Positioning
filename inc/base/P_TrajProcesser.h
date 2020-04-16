@@ -93,7 +93,7 @@ namespace Position
                         waitKey(1);
                     }
                 }
-
+                wait();
                 return true;
             }
         }

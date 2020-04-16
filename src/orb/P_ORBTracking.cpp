@@ -271,7 +271,7 @@ void ORBTracking::MonocularInitialization()
         // Find correspondences
         ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
-
+        cout << "init over." << endl;
         // Check if there are enough correspondences
         if(nmatches < 80)
         {
@@ -1105,9 +1105,9 @@ void ORBTracking::Reset()
     PROMTD_S(" done")
 
     // Reset Loop Closing
-    PROMTD_S("Reseting Loop Closing...")
+    // PROMTD_S("Reseting Loop Closing...")
     // mpLoopClosing->RequestReset();
-    PROMTD_S(" done")
+    // PROMTD_S(" done")
 
     // Clear BoW Database
     PROMTD_S("Reseting Database...")
@@ -1115,7 +1115,9 @@ void ORBTracking::Reset()
     PROMTD_S(" done")
 
     // Clear Map (this erase MapPoints and KeyFrames)
+    PROMTD_S("Clear Map...");
     mpMap->clear();
+    PROMTD_S(" done");
 
     ORBKeyFrame::nNextId = 0;
     ORBFrame::nNextId = 0;

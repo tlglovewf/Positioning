@@ -27,7 +27,7 @@ namespace  Position
         std::ofstream ffuse;
         ffuse.open(strfus);
         //测试gps融合效果 添加的偏移
-        const double dt = 0.0001;
+        const double dt = 0.00001;
 
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {
@@ -75,16 +75,17 @@ namespace  Position
             gps.alt = pkf->getData()._pos.pos.alt;
             gps.t   = pkf->getData()._pos._t;
             gps.conf = 1;
-            if(i % 10 == 0)
-            {//添加偏移
-                gps.lon += dt;
-            }
+            // if(i % 10 == 0)
+            // {//添加偏移
+            //     gps.lon += dt;
+            // }
 
             MATTYPE xyz[3];
             static bool initGps = false;
             if(!initGps)
             {
                 geoConverter.Reset(gps.lat,gps.lon,gps.alt);
+                sim3opt.geoConverter.Reset(gps.lat,gps.lon,gps.alt);
                 initGps = true;
             }
             geoConverter.Forward(gps.lat,gps.lon,gps.alt,xyz[0],xyz[1],xyz[2]);
@@ -93,6 +94,7 @@ namespace  Position
 
             frame_p->gps_position = gps_position;
             frame_p->gps_accu     = 1;
+
             map.frames.push_back(frame_p);
             BLHCoordinate blh;        
 
@@ -158,11 +160,12 @@ namespace  Position
 
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {
+            
+            double lon,lat,alt;
             double xyz[3] = {0};
             sim3opt.getFrameXYZ(i,xyz[0],xyz[1],xyz[2]);
-            double lon,lat,alt;
             geoConverter.Reverse(xyz[0], xyz[1],xyz[2],lat,lon,alt);
-
+           
             BLHCoordinate blh;
             blh.lon = lon;
             blh.lat = lat;

@@ -92,6 +92,8 @@ public:
     void setOrbMap(gps::GpsGlobalMap& globalmap);
     void getGlobalGPS(double time,double& latitude, double& longitude, double& altitude);
     void getFrameXYZ(int index, double &x, double &y, double &z);
+
+    GeographicLib::LocalCartesian geoConverter;//gps坐标转换器
 private:
     void ComputeSim3();//计算sim3
     void pose_graph_opti_se3();
@@ -100,7 +102,5 @@ private:
 
     gps::GpsGlobalMap mGlobalMap;
     
-    GeographicLib::LocalCartesian geoConverter;//gps坐标转换器
-
     bool initGPS;
 };

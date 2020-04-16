@@ -341,6 +341,7 @@ namespace Position
                                     const MatchPairs &vMatches12, BolVector &vbMatchesInliers,
                                     const cv::Mat &K, Pt3Vector &vP3D, float th2, BolVector &vbGood, float &parallax)
     {
+         const float thparallax = 1;//0.99998;//大概1°  点到两帧光心夹角最小阈值
         // Calibration parameters
         const MATTYPE fx = K.at<MATTYPE>(0,0);
         const MATTYPE fy = K.at<MATTYPE>(1,1);
@@ -396,13 +397,13 @@ namespace Position
             MATTYPE cosParallax = normal1.dot(normal2)/(dist1*dist2);
 
             // Check depth in front of first camera (only if enough parallax, as "infinite" points can easily go to negative depth)
-            if(p3dC1.at<MATTYPE>(2)<=0 && cosParallax<0.99998)
+            if(p3dC1.at<MATTYPE>(2)<=0 && cosParallax<thparallax)
                 continue;
 
             // Check depth in front of second camera (only if enough parallax, as "infinite" points can easily go to negative depth)
             cv::Mat p3dC2 = R*p3dC1+t;
 
-            if(p3dC2.at<MATTYPE>(2)<=0 && cosParallax<0.99998)
+            if(p3dC2.at<MATTYPE>(2)<=0 && cosParallax<thparallax)
                 continue;
 
             // Check reprojection error in first image
@@ -431,7 +432,7 @@ namespace Position
             vP3D[vMatches12[i].first] = cv::Point3f(p3dC1.at<MATTYPE>(0),p3dC1.at<MATTYPE>(1),p3dC1.at<MATTYPE>(2));
             nGood++;
 
-            if(cosParallax<0.99998)
+            if(cosParallax<thparallax)
                 vbGood[vMatches12[i].first]=true;
         }
 
@@ -484,10 +485,10 @@ namespace Position
         t21 = cv::Mat();
 
         //取内部匹配点的一个阈值和设置的最小三角化点位最小好点数量
-        int nMinGood = max(static_cast<int>(0.9*N),minTriangulated);
+        int nMinGood = max(static_cast<int>(0.8*N),minTriangulated);
 
         int nsimilar = 0;
-        const float fsigma = 0.95;
+        const float fsigma = 0.75;
         if(nGood1> fsigma * maxGood)
             nsimilar++;
         if(nGood2> fsigma * maxGood)
@@ -498,10 +499,16 @@ namespace Position
             nsimilar++;
 
         // If there is not a clear winner or not enough triangulated points reject initialization
-        // if(maxGood < nMinGood || nsimilar>1)
-        // {
-        //     return false;
-        // }
+        if(maxGood < nMinGood || nsimilar>1)
+        {
+            cout << "similar" << endl;
+            return false;
+        }
+        else
+        {
+            cout << nGood1 << " " << nGood2 << " " << nGood3 << " " << nGood4 << " " << maxGood << endl;
+        }
+        
 
         // If best reconstruction has enough parallax initialize
         if(maxGood==nGood1)
@@ -518,6 +525,7 @@ namespace Position
         }
         else if(maxGood==nGood2)
         {
+             cout << parallax2 << endl;
             if(parallax2>minParallax)
             {
                 vP3D = vP3D2;
@@ -541,6 +549,7 @@ namespace Position
         }
         else if(maxGood==nGood4)
         {
+            cout << parallax4 << endl;
             if(parallax4>minParallax)
             {
                 vP3D = vP3D4;
@@ -551,6 +560,11 @@ namespace Position
                 return true;
             }
         }
+        else
+        {
+            cout << "没有匹配" << endl;
+        }
+        
 
         return false;
     }
@@ -885,17 +899,18 @@ namespace Position
         // Compute ratio of scores
         float RH = SH/(SH+SF);
 
-        const float minParallax = 0.1;//最小的时差角度
+        const float minParallax = 0.01;//最小的时差角度
         const float minTriangle = 50; //最少需要多少个点 三角化
 
         bool bol = false;
         BolVector bTriangle;
         // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-        if(RH > 0.40)
+        if(RH > 0.45)
             bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
         else //if(pF_HF>0.6)
             bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
+        cout << "reconstruct : " << RH << endl;
         if(bol)
         {//剔除三角化失败的点
             MatchVector::iterator it = matches.begin();
