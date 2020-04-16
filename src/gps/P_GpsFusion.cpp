@@ -156,7 +156,7 @@ namespace  Position
 
         sim3opt.beginOpt();
 
-        cout << "gps fusion over." << endl;
+        cout << "gps fuse over." << endl;
 
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {

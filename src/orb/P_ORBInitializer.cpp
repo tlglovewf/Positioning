@@ -103,7 +103,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     const int mintri = 50;
     cout << "match siz : " << mvMatches12.size () << endl;
     cout << "RH " << RH << " " << SF <<  endl;
-    cout << "--" << SF / (mvMatches12.size()) << endl;
+    cout << "score" << SF / (mvMatches12.size()) << endl;
 
     bool bRet = false;
 

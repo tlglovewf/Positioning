@@ -59,8 +59,8 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 }
 
 
-
-void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
+//加载hd batch
+void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 {
     const string bathpath = "/media/tlg/work/tlgfiles/hdoutformat/vslam.batch";
     const string outpath  = "/media/tlg/work/tlgfiles/hdoutformat/out.txt"; 
@@ -142,7 +142,7 @@ int main(void)
 
     // MapDisplay(pCfg);
 
-    LoadList(pCfg);
+    LoadBatchList(pCfg);
     return 0;
 
 #if USECONTROLLER

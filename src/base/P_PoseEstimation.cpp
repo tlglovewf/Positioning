@@ -501,14 +501,9 @@ namespace Position
         // If there is not a clear winner or not enough triangulated points reject initialization
         if(maxGood < nMinGood || nsimilar>1)
         {
-            cout << "similar" << endl;
+            PROMTD_V("similar ", nsimilar,nGood1,nGood2, nGood3, nGood4);
             return false;
         }
-        else
-        {
-            cout << nGood1 << " " << nGood2 << " " << nGood3 << " " << nGood4 << " " << maxGood << endl;
-        }
-        
 
         // If best reconstruction has enough parallax initialize
         if(maxGood==nGood1)
@@ -525,7 +520,6 @@ namespace Position
         }
         else if(maxGood==nGood2)
         {
-             cout << parallax2 << endl;
             if(parallax2>minParallax)
             {
                 vP3D = vP3D2;
@@ -549,7 +543,6 @@ namespace Position
         }
         else if(maxGood==nGood4)
         {
-            cout << parallax4 << endl;
             if(parallax4>minParallax)
             {
                 vP3D = vP3D4;
@@ -562,9 +555,8 @@ namespace Position
         }
         else
         {
-            cout << "没有匹配" << endl;
-        }
-        
+            ;
+        }  
 
         return false;
     }
