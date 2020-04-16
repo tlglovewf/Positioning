@@ -19,6 +19,8 @@
 
 #include "P_SemanticGraph.h"
 
+#include "P_GpsFusion.h"
+
 #include <thread>
 
 using namespace std;
@@ -76,7 +78,8 @@ void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,pCfg,pData));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
-
+    // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
+    
     int index = 0;
     for(; it != ed; ++it)
     {
@@ -101,6 +104,8 @@ void LoadList(const std::shared_ptr<Position::IConfig> &pCfg)
         cout << "frame data size : " << framedatas.size() << endl;
         if(pTraj->process(framedatas))
         {
+            //gps 融合
+            // gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
             cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
             Position::IMap::SortFrames(frames);
