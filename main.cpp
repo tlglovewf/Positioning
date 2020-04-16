@@ -59,6 +59,44 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 }
 
 
+
+void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std::shared_ptr<Position::IConfig> &pcfg)
+{
+    if(prj)
+    {
+        std::shared_ptr<Position::IViewer> pviewer(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg));
+        
+        std::shared_ptr<Position::IMap> pmap(new Position::PMap);
+        Position::PrjBatchVector &batchvector = prj->getPrjList();
+        Position::PrjBatchVIter  iter = batchvector.begin();
+        Position::PrjBatchVIter ed    = batchvector.end(); 
+
+        //每个batch 间隔的空隙
+        Mat spaceLen = Mat::zeros(4,4,MATCVTYPE);
+        
+        int index = 0;
+        
+        for(;iter != ed; ++iter)
+        {
+            spaceLen.at<MATTYPE>(0,3) = 10 * index++;
+            if(iter->_poses.empty())
+                break;
+            PROMTD_V("display batch ", iter->_btname.c_str());
+            cout << iter->_poses[0] << endl;
+            for(int i = 0;i < iter->_n; ++i)
+            {
+                Position::FrameData data;
+                data._name = iter->_names[i];
+                Position::IMap::CreateKeyFrame(pmap,data,spaceLen + iter->_poses[i]);
+            }
+        }
+        pviewer->setMap(pmap);
+        pviewer->renderLoop();
+    }
+}
+
+
+
 //加载hd batch
 void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 {
@@ -83,7 +121,8 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     int index = 0;
     for(; it != ed; ++it)
     {
-        if(index++ > 1)
+        //for test 
+        if(index++ > 5)
             break;
         cout << "Load Batch:" << it->_btname.c_str() << endl;
 
@@ -118,8 +157,15 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         }
         pTraj->reset();
     }
+    BatchTraceDisplay(prjlist,pCfg);
     prjlist->saveMap(outpath);
 }
+
+
+
+
+
+
 
 int main(void)
 {  

@@ -56,7 +56,8 @@ namespace Position
         if(scurrent != pcurrent)
         {
             Mat img = pcurrent->getData()._img;
-
+            if(img.empty())
+                return;
             drawKeypoints(img, pcurrent->getKeys(),oimg,CV_RGB(0,0,255));
 
             drawPts(pcurrent,oimg);
