@@ -197,7 +197,7 @@ namespace Position
     //knn匹配
     void knn_match(const Mat &descriptor1,const Mat &descriptor2, const  cv::Ptr<DescriptorMatcher> &match,MatchVector &matches)
     {
-        const float minRatio = 0.45; //
+        const float minRatio = 0.5; //
         const int k = 2;
         
         std::vector<std::vector<DMatch> > knnMatches;

@@ -90,7 +90,7 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
             //如果检测到的fast特征为空,则降低阈值再进行检测
             if(vKeysCell.empty())
             {
-                cout << "缩小特征提取条件 " << iniX << " " << maxX << " " << iniY << " " << maxY << endl;
+                // cout << "缩小特征提取条件 " << iniX << " " << maxX << " " << iniY << " " << maxY << endl;
             }
             
             //计算特征点实际位置
@@ -111,11 +111,16 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     // keypoints.reserve(nfeatures);
 
     // float factor = 1.0 / 1.4;
-    // int n =  30;// nfeatures*(1 - factor)/(1 - (float)pow((double)factor, (double)0));
+    int n =  10;// nfeatures*(1 - factor)/(1 - (float)pow((double)factor, (double)0));
 
     // //将特征点进行八叉树划分
     // keypoints = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
     //                               minBorderY, maxBorderY,n);
+
+    KeyPtVector kkppts = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
+                                  minBorderY, maxBorderY,n);
+
+    cout << "kkppts: " << kkppts.size() << endl;
 
     KeyPtVector &keypoints = vToDistributeKeys;
 
@@ -127,7 +132,6 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     {
         keypoints[i].pt.x+=minBorderX;
         keypoints[i].pt.y+=minBorderY;
-        // keypoints[i].size = scaledPatchSize;
     }
     vToDistributeKeys.swap(keypts);
     static int index = 0;
@@ -214,14 +218,15 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
 {
     // Compute how many initial nodes   
     const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
+    
     //获取节点间的间隔
     const float hX = static_cast<float>(maxX-minX)/nIni;
-
+    cout << "inivalue " << nIni << " " << hX << endl;
     list<ENode> lNodes;
 
     vector<ENode*> vpIniNodes;
     vpIniNodes.resize(nIni);
-    //创建节点
+    //创建跟节点
     for(int i=0; i<nIni; i++)
     {
         ENode ni;
@@ -252,7 +257,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
             lit->bNoMore=true;
             lit++;
         }
-        else if(lit->vKeys.empty())
+        else if(lit->vKeys.empty())//没有特征点则删除
             lit = lNodes.erase(lit);
         else
             lit++;
@@ -290,6 +295,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
             {
                 // If more than one point, subdivide
                 ENode n1,n2,n3,n4;
+                cout << "divide four nodes"  << endl;
                 //四叉树分裂
                 lit->DivideNode(n1,n2,n3,n4);
 
@@ -419,6 +425,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
     // 保留每个节点最好的特征点
     KeyPtVector vResultKeys;
     vResultKeys.reserve(nfeatures);
+    cout << "lnodes : " << lNodes.size() << endl;
     for(list<ENode>::iterator lit=lNodes.begin(); lit!=lNodes.end(); lit++)
     {
         KeyPtVector &vNodeKeys = lit->vKeys;
@@ -444,9 +451,7 @@ bool FeatureQuadTree::detect(const FrameData &frame,KeyPtVector &keys, Mat &desc
 {
     // mFeature->detectAndCompute(frame._img,Mat(),keys,descript);
     detect(frame._img,keys);
-    cout << "detector over."  << endl;
     compute(frame._img,keys,descript);
-    cout << "compute ." << endl;
     return true;
 }
 

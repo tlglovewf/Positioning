@@ -425,13 +425,13 @@ int main(void)
             preKeyFrame->addMapPoint(mppt,item.queryIdx);
             curKeyFrame->addMapPoint(mppt,item.trainIdx);
         }
-        cout << "before op " << good_matches.size() <<  endl;
-        cout << curKeyFrame->getPose() << endl;
+        // cout << "before op " << good_matches.size() <<  endl;
+        // cout << curKeyFrame->getPose() << endl;
         pOptimizer->frameOptimization(curKeyFrame,pFeature->getSigma2());
-        cout << "after op " << endl;
-        cout << curKeyFrame->getPose() << endl;
+        // cout << "after op " << endl;
+        // cout << curKeyFrame->getPose() << endl;
 
-            cout << "estimate end" << endl;
+        cout << "estimate end" << endl;
 
         //save images
         Mat img_goodmatch;

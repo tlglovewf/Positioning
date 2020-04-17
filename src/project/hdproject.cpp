@@ -227,29 +227,33 @@ void HdPosePrj::saveMap(const std::string &path)
             mfile << it->_btname.c_str() << " " << it->_n << std::endl;
             for(int i = 0;i < it->_n; ++i)
             {
+                Mat pose =  it->_poses[i];
+                int vaild = !pose.empty();
                 //pose
                 mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
                       << std::setw(9)  << it->_names[i].c_str()
-                      << std::setw(7)  << (!it->_poses.empty());
-                const Mat &pose =  it->_poses[i];
+                      << std::setw(7)  << vaild;
+                if(!vaild)
+                    pose = Mat::zeros(4,4,MATCVTYPE);
                 //尺度信息
                 double scale = 1.0;
                 mfile << std::setiosflags(std::ios::fixed) << std::setprecision(9) << std::setiosflags(std::ios::right)
-                      << std::setw(15) << pose.at<double>(0,0)
-                      << std::setw(15) << pose.at<double>(0,1)
-                      << std::setw(15) << pose.at<double>(0,2)
-                      << std::setw(15) << pose.at<double>(1,0)
-                      << std::setw(15) << pose.at<double>(1,1)
-                      << std::setw(15) << pose.at<double>(1,2)
-                      << std::setw(15) << pose.at<double>(2,0)
-                      << std::setw(15) << pose.at<double>(2,1)
-                      << std::setw(15) << pose.at<double>(2,2)
-                      << std::setw(15) << pose.at<double>(0,3) * scale
-                      << std::setw(15) << pose.at<double>(1,3) * scale
-                      << std::setw(15) << pose.at<double>(2,3) * scale
+                      << std::setw(15) << pose.at<MATTYPE>(0,0)
+                      << std::setw(15) << pose.at<MATTYPE>(0,1)
+                      << std::setw(15) << pose.at<MATTYPE>(0,2)
+                      << std::setw(15) << pose.at<MATTYPE>(1,0)
+                      << std::setw(15) << pose.at<MATTYPE>(1,1)
+                      << std::setw(15) << pose.at<MATTYPE>(1,2)
+                      << std::setw(15) << pose.at<MATTYPE>(2,0)
+                      << std::setw(15) << pose.at<MATTYPE>(2,1)
+                      << std::setw(15) << pose.at<MATTYPE>(2,2)
+                      << std::setw(15) << pose.at<MATTYPE>(0,3) * scale
+                      << std::setw(15) << pose.at<MATTYPE>(1,3) * scale
+                      << std::setw(15) << pose.at<MATTYPE>(2,3) * scale
                       << std::endl;
             }
         }
     }
+    PROMTD_S("save successfully!!!");
     ENDFILEREGION()
 }

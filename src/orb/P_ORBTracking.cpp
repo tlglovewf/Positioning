@@ -582,7 +582,7 @@ bool ORBTracking::TrackWithMotionModel()
                 nmatchesMap++;
         }
     }   
-    PROMTD_V("track with motion ",nmatchesMap);
+    // PROMTD_V("track with motion ",nmatchesMap);
     return nmatchesMap>=10;
 }
 
@@ -704,7 +704,7 @@ void ORBTracking::CreateNewKeyFrame()
     if(!mpLocalMapper->SetNotStop(true))
         return;
 
-     PROMTD_V("Creat New Frame ",mCurrentFrame.getData()._name);
+    PROMTD_V("Creat New Frame ",mCurrentFrame.getData()._name);
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
     pKF->updatePrev(mpReferenceKF);

@@ -82,20 +82,21 @@ void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std
             if(iter->_poses.empty())
                 break;
             PROMTD_V("display batch ", iter->_btname.c_str());
-            cout << iter->_poses[0] << endl;
+            cout << iter->_n << " " << iter->_poses.size() << endl;
             for(int i = 0;i < iter->_n; ++i)
             {
+                if(iter->_poses[i].empty())
+                    continue;
                 Position::FrameData data;
                 data._name = iter->_names[i];
                 Position::IMap::CreateKeyFrame(pmap,data,spaceLen + iter->_poses[i]);
             }
+            PROMTD_V("display end ", iter->_btname.c_str());
         }
         pviewer->setMap(pmap);
         pviewer->renderLoop();
     }
 }
-
-
 
 //加载hd batch
 void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
@@ -122,8 +123,8 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     for(; it != ed; ++it)
     {
         //for test 
-        if(index++ > 5)
-            break;
+        // if(index++ > 10)
+        //     break;
         cout << "Load Batch:" << it->_btname.c_str() << endl;
 
         Position::FrameDataVector framedatas;
@@ -147,12 +148,25 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
             // gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
             cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
-            Position::IMap::SortFrames(frames);
 
-            for(size_t i = 0; i < frames.size(); ++i)
+            for(size_t i = 0; i < it->_names.size(); ++i)
             {
-                assert(frames[i]->getData()._name == it->_names[i]);
-                it->_poses.emplace_back(frames[i]->getPose());
+                const std::string &nm = it->_names[i];
+
+                Position::KeyFrameVter kit = std::find_if(frames.begin(),frames.end(),[nm](const Position::IKeyFrame *pframe)->bool
+                {
+                    return pframe->getData()._name == nm;
+                });
+
+                if(kit == frames.end())
+                {
+                    it->_poses.emplace_back(Mat());
+                }
+                else
+                {
+                    it->_poses.emplace_back((*kit)->getPose());
+                }
+                
             }
         }
         pTraj->reset();

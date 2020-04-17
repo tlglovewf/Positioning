@@ -95,7 +95,6 @@ namespace Position {
         KeyPtVector DistributeOctTree(const KeyPtVector& vToDistributeKeys, const int &minX,
                                                const int &maxX, const int &minY, const int &maxY, const int &nFeatures, const int &level);
 
-        void ComputeKeyPointsOld(std::vector<KeyPtVector>& allKeypoints);
         std::vector<cv::Point> pattern;
 
         int nfeatures;

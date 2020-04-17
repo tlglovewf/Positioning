@@ -115,11 +115,13 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
     if(!bRet)
     {
-        cout << "reconstruct error!" << endl;
+
+        cout << "reconstruct error! " << CurrentFrame.getData()._name.c_str() << endl;
+#if 1
         Position::MatchVector matches;
 
         for(int i = 0; i < 8; ++i)
-        {
+        {           
             DMatch item;
             item.queryIdx = mvMatches12[mvSets[s_max][i]].first;
             item.trainIdx = mvMatches12[mvSets[s_max][i]].second;
@@ -129,13 +131,14 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
         Mat mm;
         cv::drawMatches(refImg,mvKeys1,CurrentFrame.getData()._img,mvKeys2,matches,mm,CV_RGB(255,0,0));
+        std::string resultstr = CurrentFrame.getData()._name + "\n";
+        resultstr.append(std::string("RH:") + std::to_string(RH) + "\n");
+        resultstr += "Score:" + std::to_string(SF / (mvMatches12.size()));
+        putText(mm, resultstr , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
 
-        resize(mm,mm, Size(mm.cols >> 1, mm.rows >> 1));
-
-        imshow("test", mm);
-
-        waitKey(0);
-        exit(0);
+        static int iidx = 0;
+        imwrite("/media/tlg/work/tlgfiles/HDData/result/initfailed_" + std::to_string(iidx++) + ".jpg",mm);
+#endif
     }
 
     return bRet;

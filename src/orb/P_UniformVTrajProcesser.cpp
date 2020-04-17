@@ -62,7 +62,6 @@ namespace Position
             mpTracker->Reset();
             mbReset = false;
         }
-        PROMTD_V("Load",data._name);
         return mpTracker->track(data);
     }
 

@@ -501,14 +501,14 @@ namespace Position
         // If there is not a clear winner or not enough triangulated points reject initialization
         if(maxGood < nMinGood || nsimilar>1)
         {
-            PROMTD_V("similar ", nsimilar,nGood1,nGood2, nGood3, nGood4);
+            PROMTD_V("similar", nsimilar,nGood1,nGood2, nGood3, nGood4,fsigma * maxGood);
             return false;
         }
 
         // If best reconstruction has enough parallax initialize
         if(maxGood==nGood1)
         {
-            if(parallax1>minParallax)
+            if(parallax1>=minParallax)
             {
                 vP3D = vP3D1;
                 vbTriangulated = vbTriangulated1;
@@ -520,7 +520,7 @@ namespace Position
         }
         else if(maxGood==nGood2)
         {
-            if(parallax2>minParallax)
+            if(parallax2>=minParallax)
             {
                 vP3D = vP3D2;
                 vbTriangulated = vbTriangulated2;
@@ -531,7 +531,7 @@ namespace Position
             }
         }else if(maxGood==nGood3)
         {
-            if(parallax3>minParallax)
+            if(parallax3>=minParallax)
             {
                 vP3D = vP3D3;
                 vbTriangulated = vbTriangulated3;
@@ -543,7 +543,8 @@ namespace Position
         }
         else if(maxGood==nGood4)
         {
-            if(parallax4>minParallax)
+            cout << parallax4 << endl;
+            if(parallax4>=minParallax)
             {
                 vP3D = vP3D4;
                 vbTriangulated = vbTriangulated4;
@@ -891,18 +892,18 @@ namespace Position
         // Compute ratio of scores
         float RH = SH/(SH+SF);
 
-        const float minParallax = 0.01;//最小的时差角度
-        const float minTriangle = 50; //最少需要多少个点 三角化
+        const float minParallax = 0.00;//最小的时差角度
+        const float minTriangle = 30; //最少需要多少个点 三角化
 
         bool bol = false;
         BolVector bTriangle;
         // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-        if(RH > 0.45)
+        if(RH > 0.5)
             bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
         else //if(pF_HF>0.6)
             bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
-        cout << "reconstruct : " << RH << endl;
+        cout << "reconstruct : " << RH << " " << bol << endl;
         if(bol)
         {//剔除三角化失败的点
             MatchVector::iterator it = matches.begin();
