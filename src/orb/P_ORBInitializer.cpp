@@ -99,8 +99,8 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     // Compute ratio of scores
     float RH = SH/(SH+SF);
 
-    const float minpallax = 0.1;
-    const int mintri = 50;
+    const float minpallax = 0.00;
+    const int mintri = 30;
     cout << "match siz : " << mvMatches12.size () << endl;
     cout << "RH " << RH << " " << SF <<  endl;
     cout << "score" << SF / (mvMatches12.size()) << endl;
@@ -137,7 +137,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
         putText(mm, resultstr , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
 
         static int iidx = 0;
-        imwrite("/media/tlg/work/tlgfiles/HDData/result/initfailed_" + std::to_string(iidx++) + ".jpg",mm);
+        imwrite("/media/tlg/work/tlgfiles/HDData/result/init_" + CurrentFrame.getData()._name + ".jpg",mm);
 #endif
     }
 

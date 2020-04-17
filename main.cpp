@@ -119,7 +119,13 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     
+    // std::shared_ptr<Position::IViewer> mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    // pTraj->setViewer(mpViewer);
+    // std::unique_ptr<std::thread>  mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop,mpViewer));
+
     int index = 0;
+    Position::Time_Interval timer;
+    timer.start();
     for(; it != ed; ++it)
     {
         //for test 
@@ -171,13 +177,77 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         }
         pTraj->reset();
     }
-    BatchTraceDisplay(prjlist,pCfg);
+    // BatchTraceDisplay(prjlist,pCfg);
+    timer.prompt("process traj",true);
     prjlist->saveMap(outpath);
+    timer.prompt("save traj");
 }
 
 
+//display batch result
+void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position::IConfig> &pcfg)
+{   
+    std::ifstream sfile;
+    sfile.open(path);
+    std::unique_ptr<Position::IViewer> pviewer(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg));
+    std::shared_ptr<Position::IMap> pmap(new Position::PMap);
 
+    if(sfile.is_open())
+    {
+        std::string line;
+        getline(sfile,line);//get header
+         //每个batch 间隔的空隙
+        Mat spaceLen = Mat::zeros(4,4,MATCVTYPE);
+        
+        int index = 0;
+   
+        while(!sfile.eof())
+        {
+            getline(sfile,line);
+            if(line.empty())
+                continue;
+            //read batch name
+            char nm[255] = {0};
+            size_t len = 0;
+            sscanf(line.c_str(),"%s %d",nm,&len);
 
+            spaceLen.at<MATTYPE>(0,3) = 10 * index++;
+            for(size_t i = 0; i < len; ++i)
+            {
+                getline(sfile,line);
+                memset(nm,0,255);
+                int v;
+                MATTYPE R00,R01,R02,R10,R11,R12,R20,R21,R22;
+                MATTYPE T0,T1,T2;
+                sscanf(line.c_str(),"%s %d %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf", 
+                                     nm,&v,&R00,&R01,&R02,
+                                           &R10,&R11,&R12,
+                                           &R20,&R21,&R22,
+                                           &T0 ,&T1 ,&T2);
+                Mat pose = Mat::eye(4,4,MATCVTYPE);
+                pose.at<MATTYPE>(0,0) = R00;
+                pose.at<MATTYPE>(0,1) = R01;
+                pose.at<MATTYPE>(0,2) = R02;
+                pose.at<MATTYPE>(1,0) = R10;
+                pose.at<MATTYPE>(1,1) = R11;
+                pose.at<MATTYPE>(1,2) = R12;
+                pose.at<MATTYPE>(2,0) = R20;
+                pose.at<MATTYPE>(2,1) = R21;
+                pose.at<MATTYPE>(2,2) = R22;
+                pose.at<MATTYPE>(0,3) = T0;
+                pose.at<MATTYPE>(1,3) = T1;
+                pose.at<MATTYPE>(2,3) = T2;
+                Position::FrameData fdata;
+                fdata._name = nm;
+                cout << Position::IMap::CreateKeyFrame(pmap,fdata,spaceLen + pose)->index() << endl;
+            }
+        }
+        sfile.close();
+    }
+
+    pviewer->setMap(pmap);
+    pviewer->renderLoop();
+}
 
 
 
@@ -202,7 +272,11 @@ int main(void)
 
     // MapDisplay(pCfg);
 
-    LoadBatchList(pCfg);
+
+    // LoadBatchList(pCfg);
+
+    DisplayBatchResult("/media/tlg/work/tlgfiles/hdoutformat/out.txt",pCfg);
+
     return 0;
 
 #if USECONTROLLER

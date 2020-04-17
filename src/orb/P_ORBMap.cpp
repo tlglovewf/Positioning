@@ -103,6 +103,7 @@ namespace Position
 
     void ORBMap::clear()
     {
+        // unique_lock<mutex> lock(mMutexMapUpdate);
         for(MapPtSet::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
             delete *sit;
 

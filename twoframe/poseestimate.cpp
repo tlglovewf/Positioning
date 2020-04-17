@@ -315,7 +315,7 @@ int main(void)
 
     Position::CameraParam cam = pData->getCamera();
 
-    const std::string seimgpath = "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/";
+const std::string seimgpath = "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/";
 
     const std::string pngfx  = "png";
 

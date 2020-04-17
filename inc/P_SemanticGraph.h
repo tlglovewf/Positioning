@@ -67,8 +67,9 @@ public:
                         string result = str.substr(s+1,(v - s)-1);
                         trimString(result);
                         int r,g,b;
-                        sscanf( result.c_str(), "%d, %d, %d",&b,&g,&r);
-                        cv::Vec3b vv(r,g,b);
+                        sscanf( result.c_str(), "%d, %d, %d",&r,&g,&b);
+                        //opencv default bgr
+                        cv::Vec3b vv(b,g,r);
                         mObjs.insert(std::make_pair(name,vv));
                     }
                 }
@@ -97,6 +98,7 @@ public:
         }
         else if(mCurSem.second.empty())
         {
+            // PROMT_S("CUR SEM IMAGE EMPTY");
             return false;
         }
         else
