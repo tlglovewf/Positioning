@@ -279,8 +279,8 @@ public:
                       const MatchVector &matches,
                       const U8Vector &status = U8Vector());
 
-    //绘制相交线
-    static void DrawCrossLine(Mat &img ,int width, int height)
+    //绘制网格线段
+    static void DrawGridLine(Mat &img ,int width, int height)
     {
         assert(!img.empty());
         assert(img.cols > width);
@@ -372,6 +372,14 @@ public:
         a = epline[0][0];
         b = epline[0][1];
         c = epline[0][2];
+    }
+    //绘制关键点
+    static Mat DrawKeyPoints(const Mat &img, const KeyPtVector &keys)
+    {
+        Mat keypoint_img;
+        drawKeypoints(img,keys,keypoint_img,CV_RGB(0,0,255),DrawMatchesFlags::DEFAULT);
+        putText(keypoint_img,"key size:" + std::to_string(keys.size()),cv::Point2f(50,50),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
+        return keypoint_img;
     }
 
     //像素坐标系->图像坐标系

@@ -197,21 +197,7 @@ namespace Position
     //knn匹配
     void knn_match(const Mat &descriptor1,const Mat &descriptor2, const  cv::Ptr<DescriptorMatcher> &match,MatchVector &matches)
     {
-        const float minRatio = 0.5; //
-        const int k = 2;
-        
-        std::vector<std::vector<DMatch> > knnMatches;
-        match->knnMatch(descriptor1, descriptor2, knnMatches, k);
-        
-        for (size_t i = 0; i < knnMatches.size(); i++) {
-            const DMatch& bestMatch = knnMatches[i][0];
-            const DMatch& betterMatch = knnMatches[i][1];
-            
-            float  distanceRatio = bestMatch.distance / betterMatch.distance;
-            if (distanceRatio < minRatio)
-                matches.push_back(bestMatch);
-                
-        }   
+       
     }
 
 
@@ -234,7 +220,38 @@ namespace Position
 
         MatchVector goods;
 
-        knn_match(descriptorLeft, descriptorRight, mMatcher, goods);
+        const float minRatio = 0.5; //
+        const int k = 2;
+        
+        std::vector<std::vector<DMatch> > knnMatches;
+        mMatcher->knnMatch(descriptorLeft, descriptorRight, knnMatches, k);
+        MatchVector matches;
+        PtVector pts1;
+        PtVector pts2;
+        for (size_t i = 0; i < knnMatches.size(); i++) {
+            const DMatch& bestMatch = knnMatches[i][0];
+            const DMatch& betterMatch = knnMatches[i][1];
+            
+            float  distanceRatio = bestMatch.distance / betterMatch.distance;
+            if (distanceRatio < minRatio)
+            {
+                matches.push_back(bestMatch);
+                pts1.push_back(preframe->getKeys()[bestMatch.queryIdx].pt);
+                pts2.push_back(curframe->getKeys()[bestMatch.trainIdx].pt);
+            }               
+        }   
+        //根据基础矩阵筛选
+        vector<u8> stats;
+        Mat F = cv::findFundamentalMat(pts1,pts2,stats,FM_RANSAC,windowsize);
+        goods.reserve(matches.size());
+        for(size_t i = 0; i < matches.size(); ++i)
+        {
+            if(stats[i])
+            {
+                goods.emplace_back(matches[i]);
+            }
+        }
+
 
         return goods;
     }

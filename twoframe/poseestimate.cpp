@@ -16,6 +16,7 @@
 
 #include "FeatureQuadTree.h"
 
+
 using namespace std;
 using namespace cv;
 using namespace cv::xfeatures2d;
@@ -45,13 +46,7 @@ void detect(const Ptr<Feature2D> &feature,Mat &out, KeyPtVector &keypts)
     waitKey(0);
 }
 
-Mat drawKeys(const Mat &img, const KeyPtVector &keys)
-{
-    Mat keypoint_img;
-    drawKeypoints(img,keys,keypoint_img,CV_RGB(0,0,255),DrawMatchesFlags::DEFAULT);
-    putText(keypoint_img,"key size:" + std::to_string(keys.size()),cv::Point2f(50,50),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
-    return keypoint_img;
-}
+
 
 
 #define FEATUREMATCH(X)         void feature##X##Match(const Mat &des1, const Mat &des2, vector<DMatch> &matches,vector<DMatch> &good_matches)
@@ -199,6 +194,64 @@ protected:
     Ptr<SIFT> mSift;
 };
 
+//ax + by + c = 0
+float CalcEpiline(const Mat &F21,const Point2f &prept,MATTYPE &a,MATTYPE &b,MATTYPE &c)
+{
+        const MATTYPE f11 = F21.at<MATTYPE>(0,0);
+        const MATTYPE f12 = F21.at<MATTYPE>(0,1);
+        const MATTYPE f13 = F21.at<MATTYPE>(0,2);
+        const MATTYPE f21 = F21.at<MATTYPE>(1,0);
+        const MATTYPE f22 = F21.at<MATTYPE>(1,1);
+        const MATTYPE f23 = F21.at<MATTYPE>(1,2);
+        const MATTYPE f31 = F21.at<MATTYPE>(2,0);
+        const MATTYPE f32 = F21.at<MATTYPE>(2,1);
+        const MATTYPE f33 = F21.at<MATTYPE>(2,2);
+
+
+        a = f11 * prept.x + f12 * prept.y + f13;
+        b = f21 * prept.x + f22 * prept.y + f23;
+        c = f31 * prept.x + f32 * prept.y + f33;
+}
+
+// 设直线方程为ax+by+c=0,点坐标为(m,n)
+// 则垂足为((b*b*m-a*b*n-a*c)/(a*a+b*b),(a*a*n-a*b*m-b*c)/(a*a+b*b)) 
+
+Point2f GetFootPoint(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt)
+{
+    MATTYPE x = (b * b * pt.x - a * b * pt.y - a * c) / (a * a + b * b);
+    MATTYPE y = (a * a * pt.y - a * b * pt.x - b * c) / (a * a + b * b);
+
+    return Point2f(x,y);
+}
+
+
+//ax + by + c = 0
+void DrawEpiLine(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt, Mat &img)
+{
+    if(!img.empty())
+    {
+        Point2f bg;
+        bg.x = 0;
+        bg.y = - c/b ;
+
+        
+        Point2f ed;
+        ed.x = img.cols;
+        ed.y = -(c + a * ed.x) / b;
+
+        line(img,bg,ed,CV_RGB(0,255,0));
+        const int thickness = 2;
+        circle(img,pt,thickness,CV_RGB(255,0,0),thickness);
+        if(pt.x > 0)
+        {
+            Point2f foot = GetFootPoint(a,b,c,pt);
+            line(img,pt,foot,CV_RGB(255,255,0));
+            circle(img,foot,thickness,CV_RGB(255,255,0),thickness);
+        }    
+    }
+}
+
+
 
 
 float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVector &pt2s,
@@ -220,6 +273,9 @@ float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVe
         vbMatchesInliers.resize(N);
 
         float score = 0;
+
+        float maxdist = 0;
+        float mindist = 0;
 
         const float th = 3.841;
         
@@ -252,6 +308,9 @@ float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVe
 
             const MATTYPE chiSquare1 = squareDist1*invSigmaSquare;
 
+
+            MATTYPE d = sqrt(squareDist1);
+
             if(chiSquare1>th)
                 bIn = false;
             else
@@ -270,6 +329,21 @@ float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVe
 
             const MATTYPE chiSquare2 = squareDist2*invSigmaSquare;
 
+            d += sqrt(squareDist2);
+
+            d = d / 2.0;
+ 
+            if(d > maxdist)
+                maxdist = d;
+
+            if(i == 0)
+                mindist = d;
+            else if(mindist > d)
+            {
+                mindist = d;
+            }
+            
+
             if(chiSquare2>th)
                 bIn = false;
             else
@@ -279,14 +353,46 @@ float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVe
                 vbMatchesInliers[i]=true;
             else
                 vbMatchesInliers[i]=false;
-        }
+        }   
 
+        cout << "max distance is : " << maxdist << endl;
+        cout << "min distance is : " << mindist << endl;
+        cout << "inlier percent : " << std::count_if(vbMatchesInliers.begin(),vbMatchesInliers.end(),[](bool bol)->bool{
+            return bol;
+        }) / (float)N << endl;
         return score / N;
     }
 
 
+bool CheckUnique(const Position::KeyPtVector &pts, const cv::KeyPoint &keypt)
+{
+    int index = 0;
+    for(size_t i = 0; i < pts.size() ; ++i)
+    {
+        
+        if( pts[i].pt == keypt.pt)
+        {
+            if(index++ == 0)
+                continue;
+            cout << keypt.hash() << endl;
+            cout << keypt.octave << endl;
+            cout << keypt.class_id << endl;
+            cout << keypt.response << endl;
+            cout << keypt.size << endl;
+            cout << "-----" << endl;
 
+            cout << pts[i].hash() << endl;
+            cout << pts[i].octave << endl;
+            cout << pts[i].class_id << endl;
+            cout << pts[i].response << endl;
+            cout << pts[i].size << endl;
 
+            cout << "||" << KeyPoint::overlap(keypt,pts[i]) << endl;
+
+            return false;
+        }
+    }
+}
 
 
 int main(void)
@@ -301,6 +407,16 @@ int main(void)
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
     std::shared_ptr<Position::IPoseEstimation>  poseest(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));//  ePoseEstCV));
+    
+
+    std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
+    if(!sempath.empty())
+    {
+        SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
+        SemanticGraph::Instance()->setSemanticPath(sempath);
+    }
+
+
     pv->setMap(pmap);
     pData->loadDatas();
     pOptimizer->setCamera(pData->getCamera());
@@ -314,42 +430,37 @@ int main(void)
     std::string picname2 = curdata._name;  //"0_14167";//"0_11371.jpg";
 
     Position::CameraParam cam = pData->getCamera();
-
-const std::string seimgpath = "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/";
+  
 
     const std::string pngfx  = "png";
 
     Mat aimg1 = imread(imgpath + picname1);
     Mat aimg2 = imread(imgpath + picname2);
 
-    Position::PUtils::ReplaceFileSuffix(picname1,"jpg","png");
-    Position::PUtils::ReplaceFileSuffix(picname2,"jpg","png");
-    Mat seimg1 = imread(seimgpath + picname1);
-    Mat seimg2 = imread(seimgpath + picname2);
 
-    if(seimg1.empty())
-        cout << picname1.c_str() << " semantic image is empty!!!" << endl;
+    // predata._img = aimg1;
+    // curdata._img = aimg2;
 
     cv::undistort(aimg1,predata._img,cam.K,cam.D);
     cv::undistort(aimg2,curdata._img,cam.K,cam.D);
+
     Position::Time_Interval timer;
     timer.start();
     Position::IFrame *preframe = new Position::PFrame(predata,pFeature, pmap->frameCount());
     Position::IFrame *curframe = new Position::PFrame(curdata,pFeature, pmap->frameCount());
     timer.prompt("feature detect cost",true);
-    Position::MatchVector matches;
-  
-    Position::MatchVector good_matches =  pmatcher->match(preframe,curframe,5);
+    
+    Position::MatchVector good_matches =  pmatcher->match(preframe,curframe,3);
     timer.prompt("feature match cost ",true);
     vector<DMatch>::iterator it = good_matches.begin();
     vector<DMatch>::iterator ed = good_matches.end();
-    
-    matches.clear();
+
+    Position::MatchVector matches;
     matches.reserve(good_matches.size());
     for(; it != ed; ++it)
     {
-        // Point2f pt = preframe->getKeys()[it->queryIdx].pt;
-        // if(!SemanticGraph::Instance()->isDynamicObj(pt,seimg1))
+        Point2f pt = preframe->getKeys()[it->queryIdx].pt;
+        if(!SemanticGraph::Instance()->isDyobj(pt,preframe->getData()._name))
         {
             matches.emplace_back(*it);
         }
@@ -383,6 +494,23 @@ const std::string seimgpath = "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/";
     //     return !bol ;
     // } ) << endl;
 
+        
+    Mat out = Position::PUtils::DrawKeyPoints(curdata._img,curframe->getKeys());
+
+    MATTYPE a,b,c;
+    for(size_t i = 0; i < good_matches.size(); ++i)
+    {
+        const Point2f prept = preframe->getKeys()[good_matches[i].queryIdx].pt;
+        const Point2f curpt = curframe->getKeys()[good_matches[i].trainIdx].pt;
+
+        CalcEpiline(F,prept,a,b,c);
+        
+        DrawEpiLine(a,b,c,curpt, out);
+    }
+
+
+    imwrite("/media/tlg/work/tlgfiles/HDData/result/epline.jpg",out);
+
     pt1s.clear();
     pt2s.clear();
     for(int i = 0; i < good_matches.size(); ++i)
@@ -394,6 +522,17 @@ const std::string seimgpath = "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/";
             pt2s.push_back( curframe->getKeys()[good_matches[i].trainIdx].pt);
         }
     }
+    
+     //save images
+    Mat img_goodmatch = Position::PUtils::DrawFeatureMatch(preframe->getData()._img,
+                                                       curframe->getData()._img,
+                                                       preframe->getKeys(),
+                                                       curframe->getKeys(),
+                                                       good_matches,stats);
+
+    imwrite("/media/tlg/work/tlgfiles/HDData/result/match.jpg",img_goodmatch);
+    cout << "write successfully.." << endl;
+    system("xdg-open /media/tlg/work/tlgfiles/HDData/result/match.jpg");
 
     poseest->setFrames(preframe,curframe);
 
@@ -432,19 +571,6 @@ const std::string seimgpath = "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/";
         // cout << curKeyFrame->getPose() << endl;
 
         cout << "estimate end" << endl;
-
-        //save images
-        Mat img_goodmatch;
-    
-        img_goodmatch = Position::PUtils::DrawFeatureMatch(preframe->getData()._img,
-                                                           curframe->getData()._img,
-                                                           preframe->getKeys(),
-                                                           curframe->getKeys(),
-                                                           good_matches,stats);
-
-        imwrite("/media/tlg/work/tlgfiles/HDData/result/match.jpg",img_goodmatch);
-        cout << "write successfully.." << endl;
-        system("xdg-open /media/tlg/work/tlgfiles/HDData/result/match.jpg");
 
         pv->renderLoop();
 
