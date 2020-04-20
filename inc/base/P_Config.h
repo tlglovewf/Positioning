@@ -132,7 +132,9 @@ namespace Position
         //define config params
         IntConfigParam      StNo;           //开始序号
         IntConfigParam      EdNo;           //结束序号
-
+        //初始化模式
+        IntConfigParam      InitializationMode;
+        IntConfigParam      InitImgLength;
          //相机参数     
         IntConfigParam      ImgWd;          //图像宽度
         IntConfigParam      ImgHg;          //图像长度

@@ -27,7 +27,9 @@ namespace Position
                       ViewptY(0),
                       ViewptZ(0),
                       ViewptF(0),
-                      MapSave(0)
+                      MapSave(0),
+                      InitializationMode(0),
+                      InitImgLength(0)
     {
         PUSH_MAP(StNo);
         PUSH_MAP(EdNo);
@@ -53,6 +55,8 @@ namespace Position
         PUSH_MAP(ViewptZ);
         PUSH_MAP(ViewptF);
         PUSH_MAP(MapSave);
+        PUSH_MAP(InitializationMode);
+        PUSH_MAP(InitImgLength);
     }
 
     //析构
@@ -103,6 +107,8 @@ namespace Position
             READ_VALUE(ViewptZ);
             READ_VALUE(ViewptF);
             READ_VALUE(MapSave);
+            READ_VALUE(InitializationMode);
+            READ_VALUE(InitImgLength);
             //其他信息加载
             loadmore();
         }

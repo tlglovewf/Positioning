@@ -44,6 +44,8 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     float   fScaleFactor    = GETCFGVALUE(pcfg,ScaleFactor,float);
     int     nLevels         = GETCFGVALUE(pcfg,PyramidLevel,int);
     mnSearchRadius          = GETCFGVALUE(pcfg,SearchRadius,int);
+    initMode                = GETCFGVALUE(pcfg,InitializationMode,int);
+    initStep                = GETCFGVALUE(pcfg,InitImgLength,int);
     int     fIniThFAST      = 20;
     int     fMinThFAST      = 7;
 
@@ -62,6 +64,49 @@ void ORBTracking::SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalM
 void ORBTracking::SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClosing)
 {
     mpLoopClosing=pLoopClosing;
+}
+
+//增加初始化策略1-2、1-3、1-4……，若失败继续2-3、2-4……，一直循环下去
+cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnum)
+{
+    cv::Mat initMat;
+    if(mState != eTrackOk)
+    {
+        if(initMode == 0)
+        {
+            initMat = track(framedatas[imgnum]);    
+        }
+        else if(initMode == 1)
+        {
+            cout<<"name-1:"<<framedatas[imgnum]._name<<endl;
+            initMat = track(framedatas[imgnum]);
+            if(mpInitializer)
+            {
+                for(size_t j = imgnum+1; j<imgnum+1+initStep; j++)
+                {
+                    cout<<"name-2:"<<framedatas[j]._name<<endl;
+                    initMat = track(framedatas[j]);
+                    if(mState == eTrackOk)
+                    {
+                        break;
+                    }
+                }
+                if(mState != eTrackOk && mpInitializer)
+                {
+                    delete mpInitializer;
+                    mpInitializer = static_cast<Initializer*>(NULL);
+                }
+                    
+            }
+        }
+        else//其他初始化
+        {
+            //to do...
+        }    
+    }
+    if(mState == eTrackOk)
+        initMat = track(framedatas[imgnum]);
+    return initMat;
 }
 
 cv::Mat ORBTracking::track(const FrameData &data)
@@ -85,6 +130,7 @@ cv::Mat ORBTracking::track(const FrameData &data)
 
     FrameData tempdata = data;
     tempdata._img = mImGray;
+    
     if(mState == eTrackNoReady || mState == eTrackNoImage)
         mCurrentFrame = ORBFrame(tempdata,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
     else
@@ -271,6 +317,8 @@ void ORBTracking::MonocularInitialization()
         // Find correspondences
         ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
+        cout<<"mInitialFrame.mnId:"<<mInitialFrame.mnId<<endl;
+        cout<<"mCurrentFrame.mnId:"<<mCurrentFrame.mnId<<endl;
         cout << "init over." << endl;
         // Check if there are enough correspondences
         if(nmatches < 80)

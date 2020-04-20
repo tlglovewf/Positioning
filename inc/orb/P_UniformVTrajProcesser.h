@@ -26,6 +26,9 @@ namespace Position
         ~PUniformVTrajProcesser();
          //跟踪
         virtual cv::Mat track(const FrameData &data);
+        virtual cv::Mat track(const FrameDataVector &framedatas, const int initnum);
+        //处理
+        virtual bool process(const FrameDataVector &framedatas);
 
         //重置
         virtual void reset();
@@ -36,6 +39,7 @@ namespace Position
         //等待
         virtual void wait();
     private:
+
        std::unique_ptr<std::thread>         mptLocalMapping;
        std::unique_ptr<std::thread>         mptLoopClosing;
 
