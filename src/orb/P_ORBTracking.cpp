@@ -77,12 +77,19 @@ cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnu
             initMat = track(framedatas[imgnum]);    
         }
         else if(initMode == 1)
-        {
+        {  
+            if(imgnum == framedatas.size()-1)//最后一帧还未初始化成功处理
+            {     
+                delete mpInitializer;
+                mpInitializer = static_cast<Initializer*>(NULL);
+                return initMat;  
+            }
             cout<<"name-1:"<<framedatas[imgnum]._name<<endl;
             initMat = track(framedatas[imgnum]);
             if(mpInitializer)
             {
-                for(size_t j = imgnum+1; j<imgnum+1+initStep; j++)
+                int searchLen = imgnum+1+initStep<framedatas.size()? imgnum+1+initStep: framedatas.size();
+                for(size_t j = imgnum+1; j<searchLen; j++)
                 {
                     cout<<"name-2:"<<framedatas[j]._name<<endl;
                     initMat = track(framedatas[j]);
@@ -317,8 +324,6 @@ void ORBTracking::MonocularInitialization()
         // Find correspondences
         ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
-        cout<<"mInitialFrame.mnId:"<<mInitialFrame.mnId<<endl;
-        cout<<"mCurrentFrame.mnId:"<<mCurrentFrame.mnId<<endl;
         cout << "init over." << endl;
         // Check if there are enough correspondences
         if(nmatches < 80)
