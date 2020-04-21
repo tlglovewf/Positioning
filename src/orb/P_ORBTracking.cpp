@@ -66,7 +66,6 @@ void ORBTracking::SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClo
     mpLoopClosing=pLoopClosing;
 }
 
-//增加初始化策略1-2、1-3、1-4……，若失败继续2-3、2-4……，一直循环下去
 cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnum)
 {
     cv::Mat initMat;
@@ -76,7 +75,7 @@ cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnu
         {
             initMat = track(framedatas[imgnum]);    
         }
-        else if(initMode == 1)
+        else if(initMode == 1)//增加初始化策略1-2、1-3、1-4……，若失败继续2-3、2-4……，一直循环下去
         {  
             if(imgnum == framedatas.size()-1)//最后一帧还未初始化成功处理
             {     
