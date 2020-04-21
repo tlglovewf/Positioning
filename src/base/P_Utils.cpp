@@ -74,17 +74,18 @@ namespace Position
             Point2f ptf1 =  pt1s[matches[i].queryIdx].pt;
             Point2f ptf2 =  pt2s[matches[i].trainIdx].pt + Point2f(w,0);
             const int thickness = 3;
+            const int radius    = 2;
             if(status.empty() || status[i])
             {//right match
-                circle(matchimg,ptf1,thickness,CV_RGB(0,255,0), thickness);
-                circle(matchimg,ptf2,thickness,CV_RGB(0,255,0), thickness);
+                circle(matchimg,ptf1,radius,CV_RGB(0,255,0), thickness);
+                circle(matchimg,ptf2,radius,CV_RGB(0,255,0), thickness);
                 line(matchimg,ptf1,ptf2,CV_RGB(0,255,0),thickness - 1);
                 ++count;
             }
             else
             {
-                circle(matchimg,ptf1,thickness,CV_RGB(255,0,0), thickness);
-                circle(matchimg,ptf2,thickness,CV_RGB(255,0,0), thickness);
+                circle(matchimg,ptf1,radius,CV_RGB(255,0,0), thickness);
+                circle(matchimg,ptf2,radius,CV_RGB(255,0,0), thickness);
                 line(matchimg,ptf1,ptf2,CV_RGB(255,0,0),thickness - 1);
             }
         }

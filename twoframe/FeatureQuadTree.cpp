@@ -1,13 +1,13 @@
 #include "FeatureQuadTree.h"
-
+#include "P_Utils.h"
 #define EDGE_THRESHOLD 16
 
-const int nfeatures = 200;
+const int maxfeatures  = 240;
 
 const int PATCH_SIZE = 31;
 
 
-FeatureQuadTree::FeatureQuadTree():mFeature(cv::xfeatures2d::SIFT::create(nfeatures,4,0.05,15,1.4))
+FeatureQuadTree::FeatureQuadTree()
 {
     Position::FloatVector  mvScaleFactor(4,0);
     Position::FloatVector  mvLevelSigma2(4,0);
@@ -22,20 +22,14 @@ FeatureQuadTree::FeatureQuadTree():mFeature(cv::xfeatures2d::SIFT::create(nfeatu
     }
 }
 
-void drawKeyPts(const Mat &img,const KeyPtVector &keypts,Mat &mat)
-{
-    drawKeypoints(img,keypts,mat);
-    const string text = "key size :" + std::to_string(keypts.size());
-    putText(mat, text , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
-}
-
 void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
 {
 #if 0
+    if(!mFeature)
+        mFeature = cv::xfeatures2d::SIFT::create(maxfeatures,4,0.05,15,1.4);
     mFeature->detect(img,keypts);
     static int index = 0;
-    Mat outimg;
-    drawKeyPts(img,keypts,outimg);
+    Mat outimg = Position::PUtils::DrawKeyPoints(img,keypts);
     imwrite("/media/tlg/work/tlgfiles/HDData/result/normal_" + std::to_string(index++) + ".jpg",outimg);
 #else
     //     allKeypoints.resize(nlevels);
@@ -49,7 +43,7 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     const int maxBorderY = img.rows-EDGE_THRESHOLD+3;
     //用于分配关键点
     KeyPtVector vToDistributeKeys;
-    vToDistributeKeys.reserve(nfeatures * 1.5);
+    vToDistributeKeys.reserve(maxfeatures * 1.5);
 
     const float width = (maxBorderX-minBorderX);
     const float height = (maxBorderY-minBorderY);
@@ -60,8 +54,8 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     const int hCell = ceil(height/nRows);
     Mat outimg = img.clone();
 
-
-    mFeature = cv::xfeatures2d::SIFT::create(nfeatures / ((nRows-1) * (nCols-1)),4,0.05,15,1.4);
+    if(!mFeature)
+        mFeature = cv::xfeatures2d::SIFT::create(maxfeatures / ((nRows-1) * (nCols-1)),4,0.05,15,1.4);
 
     //在每个格子内进行fast特征检测
     for(int i=0; i<nRows; i++)
@@ -107,24 +101,11 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
         }
     }
 
-    // KeyPtVector & keypoints = keypts;
-    // keypoints.reserve(nfeatures);
+    cout << "key before filter:" << vToDistributeKeys.size() << endl;
+    KeyPtVector keypoints = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
+                                  minBorderY, maxBorderY,maxfeatures);
 
-    // float factor = 1.0 / 1.4;
-    int n =  10;// nfeatures*(1 - factor)/(1 - (float)pow((double)factor, (double)0));
-
-    // //将特征点进行八叉树划分
-    // keypoints = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
-    //                               minBorderY, maxBorderY,n);
-
-    KeyPtVector kkppts = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
-                                  minBorderY, maxBorderY,n);
-
-    cout << "kkppts: " << kkppts.size() << endl;
-
-    KeyPtVector &keypoints = vToDistributeKeys;
-
-    // const int scaledPatchSize = PATCH_SIZE ;
+    cout << "key after filter:" << keypoints.size() << endl;
 
     // Add border to coordinates and scale information
     const int nkps = keypoints.size();
@@ -133,9 +114,10 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
         keypoints[i].pt.x+=minBorderX;
         keypoints[i].pt.y+=minBorderY;
     }
-    vToDistributeKeys.swap(keypts);
+    // vToDistributeKeys.swap(keypts);
+    keypts.swap(keypoints);
     static int index = 0;
-    drawKeyPts(img,keypts,outimg);
+    outimg = Position::PUtils::DrawKeyPoints(img, keypts);
     imwrite("/media/tlg/work/tlgfiles/HDData/result/quad_" + std::to_string(index++) + ".jpg",outimg);
 #endif
    
@@ -218,10 +200,10 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
 {
     // Compute how many initial nodes   
     const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
-    
+    cout << "----" << endl;
     //获取节点间的间隔
     const float hX = static_cast<float>(maxX-minX)/nIni;
-    cout << "inivalue " << nIni << " " << hX << endl;
+
     list<ENode> lNodes;
 
     vector<ENode*> vpIniNodes;
@@ -282,7 +264,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
         int nToExpand = 0;
 
         vSizeAndPointerToNode.clear();
-
+        //遍历nodes 遍历拆分
         while(lit!=lNodes.end())
         {
             if(lit->bNoMore)
@@ -295,7 +277,6 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
             {
                 // If more than one point, subdivide
                 ENode n1,n2,n3,n4;
-                cout << "divide four nodes"  << endl;
                 //四叉树分裂
                 lit->DivideNode(n1,n2,n3,n4);
 
@@ -348,14 +329,15 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
 
         // Finish if there are more nodes than required features
         // or all nodes contain just one point
-        if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
+        // if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
+        if((int)lNodes.size()==prevSize)
         {
-            cout << "finish ." << endl;
+            cout << "finish . " << vToDistributeKeys.size() <<  endl;
+            cout << lNodes.size() << " " << prevSize << endl;
             bFinish = true;
         }
         else if(((int)lNodes.size()+nToExpand*3)>N)
-        {//节点展开次数x3 大于需要包含的节点数量
-
+        {//节点展开次数x3 与节点数量 之和 大于需要包含的节点数量
             while(!bFinish)
             {
 
@@ -363,7 +345,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
 
                 vector<pair<int,ENode*> > vPrevSizeAndPointerToNode = vSizeAndPointerToNode;
                 vSizeAndPointerToNode.clear();
-
+                //根据包含关键点的数量升序
                 sort(vPrevSizeAndPointerToNode.begin(),vPrevSizeAndPointerToNode.end());
                 for(int j=vPrevSizeAndPointerToNode.size()-1;j>=0;j--)
                 {
@@ -410,11 +392,12 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
 
                     lNodes.erase(vPrevSizeAndPointerToNode[j].second->lit);
 
-                    if((int)lNodes.size()>=N)
-                        break;
+                    // if((int)lNodes.size()>=N)
+                    //     break;
                 }
 
-                if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
+                // if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
+                if((int)lNodes.size()==prevSize)
                     bFinish = true;
 
             }
@@ -424,8 +407,8 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
     // Retain the best point in each node
     // 保留每个节点最好的特征点
     KeyPtVector vResultKeys;
-    vResultKeys.reserve(nfeatures);
-    cout << "lnodes : " << lNodes.size() << endl;
+    vResultKeys.reserve(maxfeatures);
+
     for(list<ENode>::iterator lit=lNodes.begin(); lit!=lNodes.end(); lit++)
     {
         KeyPtVector &vNodeKeys = lit->vKeys;
@@ -438,18 +421,15 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
             {
                 pKP = &vNodeKeys[k];
                 maxResponse = vNodeKeys[k].response;
-            }
+            }  
         }
-
         vResultKeys.push_back(*pKP);
     }
-
     return vResultKeys;
 }
 
 bool FeatureQuadTree::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
 {
-    // mFeature->detectAndCompute(frame._img,Mat(),keys,descript);
     detect(frame._img,keys);
     compute(frame._img,keys,descript);
     return true;

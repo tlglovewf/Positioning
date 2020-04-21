@@ -589,6 +589,7 @@ KeyPtVector ORBextractor::DistributeOctTree(const KeyPtVector& vToDistributeKeys
                 lit->DivideNode(n1,n2,n3,n4);
 
                 // Add childs if they contain points
+                // 遍历子节点 有关键点的加入到扩散列表,关联到父节点
                 if(n1.vKeys.size()>0)
                 {
                     lNodes.push_front(n1);                    
