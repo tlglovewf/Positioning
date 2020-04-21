@@ -360,19 +360,48 @@ public:
         cv::Mat E = ComputeEssentialMat(R,t);
         return ComputeFundamentalMat(E,K,K);
     }
-    //根据基础矩阵 创建 ax + by + c = 0 极线
-    static void CreateEpiline(const cv::Mat &F, cv::Point2f pt, double &a, double &b, double &c)
+
+    // 设直线方程为ax+by+c=0,点坐标为(m,n)
+    // 则垂足为((b*b*m-a*b*n-a*c)/(a*a+b*b),(a*a*n-a*b*m-b*c)/(a*a+b*b)) 
+    static inline Point2f GetFootPoint(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt)
     {
-        std::vector<cv::Point2f> selPoints1;
-        selPoints1.push_back(pt);
-        std::vector<cv::Vec3f> epline;
+        MATTYPE x = (b * b * pt.x - a * b * pt.y - a * c) / (a * a + b * b);
+        MATTYPE y = (a * a * pt.y - a * b * pt.x - b * c) / (a * a + b * b);
 
-        cv::computeCorrespondEpilines(cv::Mat(selPoints1), 1, F, epline);
-
-        a = epline[0][0];
-        b = epline[0][1];
-        c = epline[0][2];
+        return Point2f(x,y);
     }
+
+    //根据基础矩阵 推算直线 ax + by + c = 0
+    static inline void CalcEpiline(const Mat &F21,const Point2f &prept,MATTYPE &a,MATTYPE &b,MATTYPE &c)
+    {
+            const MATTYPE f11 = F21.at<MATTYPE>(0,0);
+            const MATTYPE f12 = F21.at<MATTYPE>(0,1);
+            const MATTYPE f13 = F21.at<MATTYPE>(0,2);
+            const MATTYPE f21 = F21.at<MATTYPE>(1,0);
+            const MATTYPE f22 = F21.at<MATTYPE>(1,1);
+            const MATTYPE f23 = F21.at<MATTYPE>(1,2);
+            const MATTYPE f31 = F21.at<MATTYPE>(2,0);
+            const MATTYPE f32 = F21.at<MATTYPE>(2,1);
+            const MATTYPE f33 = F21.at<MATTYPE>(2,2);
+
+            a = f11 * prept.x + f12 * prept.y + f13;
+            b = f21 * prept.x + f22 * prept.y + f23;
+            c = f31 * prept.x + f32 * prept.y + f33;
+    }
+
+    //根据基础矩阵 创建 ax + by + c = 0 极线
+    // static void CreateEpiline(const cv::Mat &F, cv::Point2f pt, double &a, double &b, double &c)
+    // {
+    //     std::vector<cv::Point2f> selPoints1;
+    //     selPoints1.push_back(pt);
+    //     std::vector<cv::Vec3f> epline;
+
+    //     cv::computeCorrespondEpilines(cv::Mat(selPoints1), 1, F, epline);
+
+    //     a = epline[0][0];
+    //     b = epline[0][1];
+    //     c = epline[0][2];
+    // }
     //绘制关键点
     static Mat DrawKeyPoints(const Mat &img, const KeyPtVector &keys)
     {
@@ -381,6 +410,10 @@ public:
         putText(keypoint_img,"key size:" + std::to_string(keys.size()),cv::Point2f(50,50),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
         return keypoint_img;
     }
+
+    //绘制极线 ax + by + c = 0    
+    //pt 另一帧像素坐标    img 当前帧图像
+    static void DrawEpiLine(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt, Mat &img);
 
     //像素坐标系->图像坐标系
     static inline cv::Point2d Pixel2Cam(const cv::Point2d &p, const cv::Mat &K)

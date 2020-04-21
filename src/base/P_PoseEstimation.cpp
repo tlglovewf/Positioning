@@ -501,7 +501,8 @@ namespace Position
         // If there is not a clear winner or not enough triangulated points reject initialization
         if(maxGood < nMinGood || nsimilar>1)
         {
-            PROMTD_V("similar", nsimilar,nGood1,nGood2, nGood3, nGood4,fsigma * maxGood);
+            PROMTD_V("similar", nsimilar,nGood1,nGood2, nGood3, nGood4);
+            PROMTD_V("minGood",nMinGood);
             return false;
         }
 

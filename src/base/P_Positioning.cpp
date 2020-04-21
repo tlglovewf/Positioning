@@ -16,7 +16,8 @@ namespace Position
         cv::Mat F = PUtils::ComputeFFromRT(R,t,mCamera.K);
 
         double a,b,c;
-        PUtils::CreateEpiline(F,pt,a,b,c);
+        // PUtils::CreateEpiline(F,pt,a,b,c);
+        PUtils::CalcEpiline(F,pt,a,b,c);
 
         PROMT_V("ep line",a, b, c);
         return EpLine(a,b,c);

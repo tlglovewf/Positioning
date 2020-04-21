@@ -194,65 +194,6 @@ protected:
     Ptr<SIFT> mSift;
 };
 
-//ax + by + c = 0
-float CalcEpiline(const Mat &F21,const Point2f &prept,MATTYPE &a,MATTYPE &b,MATTYPE &c)
-{
-        const MATTYPE f11 = F21.at<MATTYPE>(0,0);
-        const MATTYPE f12 = F21.at<MATTYPE>(0,1);
-        const MATTYPE f13 = F21.at<MATTYPE>(0,2);
-        const MATTYPE f21 = F21.at<MATTYPE>(1,0);
-        const MATTYPE f22 = F21.at<MATTYPE>(1,1);
-        const MATTYPE f23 = F21.at<MATTYPE>(1,2);
-        const MATTYPE f31 = F21.at<MATTYPE>(2,0);
-        const MATTYPE f32 = F21.at<MATTYPE>(2,1);
-        const MATTYPE f33 = F21.at<MATTYPE>(2,2);
-
-
-        a = f11 * prept.x + f12 * prept.y + f13;
-        b = f21 * prept.x + f22 * prept.y + f23;
-        c = f31 * prept.x + f32 * prept.y + f33;
-}
-
-// 设直线方程为ax+by+c=0,点坐标为(m,n)
-// 则垂足为((b*b*m-a*b*n-a*c)/(a*a+b*b),(a*a*n-a*b*m-b*c)/(a*a+b*b)) 
-
-Point2f GetFootPoint(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt)
-{
-    MATTYPE x = (b * b * pt.x - a * b * pt.y - a * c) / (a * a + b * b);
-    MATTYPE y = (a * a * pt.y - a * b * pt.x - b * c) / (a * a + b * b);
-
-    return Point2f(x,y);
-}
-
-
-//ax + by + c = 0
-void DrawEpiLine(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt, Mat &img)
-{
-    if(!img.empty())
-    {
-        Point2f bg;
-        bg.x = 0;
-        bg.y = - c/b ;
-
-        
-        Point2f ed;
-        ed.x = img.cols;
-        ed.y = -(c + a * ed.x) / b;
-
-        line(img,bg,ed,CV_RGB(0,255,0));
-        const int thickness = 2;
-        circle(img,pt,thickness,CV_RGB(255,0,0),thickness);
-        if(pt.x > 0)
-        {
-            Point2f foot = GetFootPoint(a,b,c,pt);
-            line(img,pt,foot,CV_RGB(255,255,0));
-            circle(img,foot,thickness,CV_RGB(255,255,0),thickness);
-        }    
-    }
-}
-
-
-
 
 float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVector &pt2s,
                        const Position::MatchVector &mvMatches12, 
@@ -364,6 +305,7 @@ float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVe
     }
 
 
+
 bool CheckUnique(const Position::KeyPtVector &pts, const cv::KeyPoint &keypt)
 {
     int index = 0;
@@ -437,10 +379,6 @@ int main(void)
     Mat aimg1 = imread(imgpath + picname1);
     Mat aimg2 = imread(imgpath + picname2);
 
-
-    // predata._img = aimg1;
-    // curdata._img = aimg2;
-
     cv::undistort(aimg1,predata._img,cam.K,cam.D);
     cv::undistort(aimg2,curdata._img,cam.K,cam.D);
 
@@ -494,7 +432,6 @@ int main(void)
     //     return !bol ;
     // } ) << endl;
 
-        
     Mat out = Position::PUtils::DrawKeyPoints(curdata._img,curframe->getKeys());
 
     MATTYPE a,b,c;
@@ -503,9 +440,9 @@ int main(void)
         const Point2f prept = preframe->getKeys()[good_matches[i].queryIdx].pt;
         const Point2f curpt = curframe->getKeys()[good_matches[i].trainIdx].pt;
 
-        CalcEpiline(F,prept,a,b,c);
+        Position::PUtils::CalcEpiline(F,prept,a,b,c);
         
-        DrawEpiLine(a,b,c,curpt, out);
+        Position::PUtils::DrawEpiLine(a,b,c,curpt, out);
     }
 
 

@@ -97,6 +97,31 @@ namespace Position
         return result;
     }
 
+    //ax + by + c = 0
+    void PUtils::DrawEpiLine(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt, Mat &img)
+    {
+        if(!img.empty())
+        {
+            Point2f bg;
+            bg.x = 0;
+            bg.y = - c/b ;
+
+
+            Point2f ed;
+            ed.x = img.cols;
+            ed.y = -(c + a * ed.x) / b;
+
+            line(img,bg,ed,CV_RGB(0,255,0));
+            const int thickness = 2;
+            circle(img,pt,thickness,CV_RGB(255,0,0),thickness);
+            if(pt.x > 0)
+            {
+                Point2f foot = GetFootPoint(a,b,c,pt);
+                line(img,pt,foot,CV_RGB(255,255,0));
+                circle(img,foot,thickness,CV_RGB(255,255,0),thickness);
+            }    
+        }
+    }
 
     //直方图均衡
     void PUtils::ImageHistEqualized(const Mat &img, Mat &outimg)
