@@ -225,16 +225,36 @@ void HdPosePrj::saveMap(const std::string &path)
         {
             //batch info
             mfile << it->_btname.c_str() << " " << it->_n << std::endl;
+            Mat pose = Mat::eye(4,4,MATCVTYPE);
             for(int i = 0;i < it->_n; ++i)
             {
-                Mat pose =  it->_poses[i];
-                int vaild = !pose.empty();
+                Mat T =  it->_poses[i];
+                int vaild = !T.empty();
                 //pose
                 mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
                       << std::setw(9)  << it->_names[i].c_str()
                       << std::setw(7)  << vaild;
-                if(!vaild)
+                if(vaild)
+                {
+                    if(i==0)
+                        pose = Mat::eye(4,4,MATCVTYPE);
+                    else
+                    {
+                        if(!it->_poses[i-1].empty())
+                        {
+                            Mat Rfuse = T.rowRange(0,3).colRange(0,3).t();
+                            Mat tfuse = -Rfuse*T.rowRange(0,3).col(3);
+                            Rfuse.copyTo(pose.rowRange(0,3).colRange(0,3));
+                            tfuse.copyTo(pose.rowRange(0,3).col(3));
+                        }       
+                        else
+                            pose = Mat::eye(4,4,MATCVTYPE);   
+                    }
+                }
+                else
                     pose = Mat::zeros(4,4,MATCVTYPE);
+                    
+                
                 //尺度信息
                 double scale = 1.0;
                 mfile << std::setiosflags(std::ios::fixed) << std::setprecision(9) << std::setiosflags(std::ios::right)

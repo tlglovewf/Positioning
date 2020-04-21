@@ -55,6 +55,13 @@ ScaleFactor:  1.2   #图片金字塔缩小比
 SearchRadius: 20    #视觉匹配搜索范围
 MatchRatio:   0.8   #匹配比例(比例越大,匹配要求越低,匹配点越多)
 
+#0-Normal
+#1-Imgbyimg
+#2-Inverse to do
+InitializationMode: 1
+
+#if only used when InitializationMode set by Imgbyimg mode
+InitImgLength: 5
 
 #Visualization
 ViewEnable: 1
