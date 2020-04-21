@@ -117,7 +117,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,pCfg,pData));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
-    // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
+    std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     
     // std::shared_ptr<Position::IViewer> mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
     // pTraj->setViewer(mpViewer);
@@ -151,7 +151,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         if(pTraj->process(framedatas))
         {
             //gps 融合
-            // gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
+            gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
             cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
 
@@ -170,7 +170,10 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
                 }
                 else
                 {
-                    it->_poses.emplace_back((*kit)->getPose());
+                    Mat posefuse = Mat::eye(4,4,MATCVTYPE);
+                    (*kit)->getRotation().copyTo(posefuse.rowRange(0,3).colRange(0,3));
+                    (*kit)->getTranslation().copyTo(posefuse.rowRange(0,3).col(3));
+                    it->_poses.emplace_back(posefuse);
                 }
                 
             }
@@ -273,9 +276,9 @@ int main(void)
     // MapDisplay(pCfg);
 
 
-    // LoadBatchList(pCfg);
+    LoadBatchList(pCfg);
 
-    DisplayBatchResult("/media/tlg/work/tlgfiles/hdoutformat/out.txt",pCfg);
+    DisplayBatchResult("/media/ubuntu/本地磁盘/out.txt", pCfg);
 
     return 0;
 

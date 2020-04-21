@@ -54,6 +54,42 @@ namespace Position
        over();
     }
 
+    //处理
+    bool PUniformVTrajProcesser::process(const FrameDataVector &framedatas) 
+        {
+            if(framedatas.size() < 2)
+            {
+                return false;
+            }
+            else
+            {
+                size_t currnum;
+                for(size_t i = 0; i < framedatas.size(); ++i)
+                {
+                    track(framedatas, i);
+                    
+                    //track(framedatas[i]);
+
+                    if(mpViewer)
+                    {
+                        waitKey(1);
+                    }
+                }
+                wait();
+                return true;
+            }
+        }
+
+    cv::Mat PUniformVTrajProcesser::track(const FrameDataVector &framedatas, const int initnum)
+    {
+        if(mbReset)
+        {
+            mpTracker->Reset();
+            mbReset = false;
+        }
+        return mpTracker->InitMode(framedatas, initnum);
+    }
+
      //跟踪
     cv::Mat PUniformVTrajProcesser::track(const FrameData &data)
     {
