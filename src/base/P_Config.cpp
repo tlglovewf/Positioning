@@ -29,7 +29,12 @@ namespace Position
                       ViewptF(0),
                       MapSave(0),
                       InitializationMode(0),
-                      InitImgLength(0)
+                      InitImgLength(0),
+                      MaskEnable(0),
+                      Lx(-1),
+                      Ly(-1),
+                      Wd(0),
+                      Ht(0)
     {
         PUSH_MAP(StNo);
         PUSH_MAP(EdNo);
@@ -57,6 +62,11 @@ namespace Position
         PUSH_MAP(MapSave);
         PUSH_MAP(InitializationMode);
         PUSH_MAP(InitImgLength);
+        PUSH_MAP(MaskEnable);
+        PUSH_MAP(Lx);
+        PUSH_MAP(Ly);
+        PUSH_MAP(Wd);
+        PUSH_MAP(Ht);
     }
 
     //析构
@@ -109,6 +119,11 @@ namespace Position
             READ_VALUE(MapSave);
             READ_VALUE(InitializationMode);
             READ_VALUE(InitImgLength);
+            READ_VALUE(MaskEnable);
+            READ_VALUE(Lx);
+            READ_VALUE(Ly);
+            READ_VALUE(Wd);
+            READ_VALUE(Ht);
             //其他信息加载
             loadmore();
         }

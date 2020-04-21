@@ -63,6 +63,14 @@ InitializationMode: 1
 #if only used when InitializationMode set by Imgbyimg mode
 InitImgLength: 5
 
+#set Mask
+MaskEnable: 0
+#set Roi only use when MaskEnable = 1
+Lx: 50
+Ly: 50
+Wd: 100
+Ht: 100
+
 #Visualization
 ViewEnable: 1
 ViewerW:    1080
