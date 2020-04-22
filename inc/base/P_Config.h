@@ -135,6 +135,12 @@ namespace Position
         //初始化模式
         IntConfigParam      InitializationMode;
         IntConfigParam      InitImgLength;
+        //Mask参数
+        IntConfigParam      MaskEnable;
+        IntConfigParam      Lx;
+        IntConfigParam      Ly;
+        IntConfigParam      Wd;
+        IntConfigParam      Ht;
          //相机参数     
         IntConfigParam      ImgWd;          //图像宽度
         IntConfigParam      ImgHg;          //图像长度

@@ -336,6 +336,28 @@ bool CheckUnique(const Position::KeyPtVector &pts, const cv::KeyPoint &keypt)
     }
 }
 
+cv::Mat GernerateMask(const std::string &sempath, const std::string &segim, SemanticGraph *sg, Rect rect)
+{
+    string str = segim;
+    Position::PUtils::ReplaceFileSuffix(str,"jpg",sg->defaultsuffix);
+    cv::Mat seg = imread(sempath + str);
+    if(seg.empty())
+    {
+        cout<<"Mask Gernerate err!"<<endl;
+        return cv::Mat();
+    }
+    Mat maskim = cv::Mat::ones(seg.rows, seg.cols,CV_8UC1);
+    for(size_t i = 0; i<seg.rows; i++)
+        for(size_t j = 0; j<seg.cols; j++)
+        {
+            Point pt = Point(j,i);
+            if(sg->isDynamicObj(pt,seg)||rect.contains(pt))
+            {
+                maskim.at<uchar>(pt) = 0;
+            }           
+        }    
+    return maskim;
+}
 
 int main(void)
 {
@@ -373,7 +395,20 @@ int main(void)
 
     Position::CameraParam cam = pData->getCamera();
   
-
+    //加mask
+    int maskUse = GETCFGVALUE(pCfg,MaskEnable,int);
+    if(maskUse == 1)
+    {
+        int roiLx=GETCFGVALUE(pCfg,Lx,int);
+        int roiLy=GETCFGVALUE(pCfg,Ly,int);
+        int roiW=GETCFGVALUE(pCfg,Wd,int);
+        int roiH=GETCFGVALUE(pCfg,Ht,int);
+        Rect rect(roiLx, roiLy, roiW, roiH);
+        cv::Mat tmp = GernerateMask(sempath, picname1, SemanticGraph::Instance(), rect);
+        imshow("1",tmp);
+        cv::waitKey(0);
+    }
+    //加mask
     const std::string pngfx  = "png";
 
     Mat aimg1 = imread(imgpath + picname1);
