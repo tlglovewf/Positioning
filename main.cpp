@@ -23,12 +23,15 @@
 
 #include <thread>
 
+#include "Thirdparty/GeographicLib/include/LocalCartesian.hpp"
+#include "P_CoorTrans.h"
+
+
 using namespace std;
 using namespace cv;
 
 #define WEIYA           0  //是否为weiya数据
-#define USECONTROLLER   1  //是否启用定位框架
-
+#define USECONTROLLER   0  //是否启用定位框架
 
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 {
@@ -57,8 +60,6 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 
 #endif
 }
-
-
 
 void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std::shared_ptr<Position::IConfig> &pcfg)
 {
@@ -186,7 +187,6 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     timer.prompt("save traj");
 }
 
-
 //display batch result
 void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position::IConfig> &pcfg)
 {   
@@ -252,8 +252,6 @@ void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position:
     pviewer->renderLoop();
 }
 
-
-
 int main(void)
 {  
 #if WEIYA
@@ -276,11 +274,9 @@ int main(void)
     // MapDisplay(pCfg);
 
 
-    LoadBatchList(pCfg);
+    // LoadBatchList(pCfg);
 
-    DisplayBatchResult("/media/ubuntu/本地磁盘/out.txt", pCfg);
-
-    return 0;
+    // DisplayBatchResult("", pCfg);
 
 #if USECONTROLLER
     std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
@@ -302,9 +298,8 @@ int main(void)
     Position::FrameDataVIter ed   = pData->end();
      //可视化帧数据
     std::shared_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
-    std::thread mainthread(&Position::IViewer::renderLoop,pv.get());
-    //  pv->setMap(map);
-     pTraj->setViewer(pv);
+
+    pTraj->setViewer(pv);
     //插入帧数据
     for(;iter != ed ; ++iter)
     {
@@ -317,8 +312,7 @@ int main(void)
     //处理帧数据
     pTraj->process(datas);
 
-   
-    mainthread.join();
+    pv->renderLoop();
 #endif
     return 0;
 }

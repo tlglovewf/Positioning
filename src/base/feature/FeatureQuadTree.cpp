@@ -28,9 +28,9 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     if(!mFeature)
         mFeature = cv::xfeatures2d::SIFT::create(maxfeatures,4,0.05,15,1.4);
     mFeature->detect(img,keypts);
-    static int index = 0;
-    Mat outimg = Position::PUtils::DrawKeyPoints(img,keypts);
-    imwrite("/media/tlg/work/tlgfiles/HDData/result/normal_" + std::to_string(index++) + ".jpg",outimg);
+    // static int index = 0;
+    // Mat outimg = Position::PUtils::DrawKeyPoints(img,keypts);
+    // imwrite("/media/tlg/work/tlgfiles/HDData/result/normal_" + std::to_string(index++) + ".jpg",outimg);
 #else
     //     allKeypoints.resize(nlevels);
 
@@ -52,7 +52,7 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     const int nRows = height/W;
     const int wCell = ceil(width/nCols);
     const int hCell = ceil(height/nRows);
-    Mat outimg = img.clone();
+   
 
     if(!mFeature)
         mFeature = cv::xfeatures2d::SIFT::create(maxfeatures / ((nRows-1) * (nCols-1)),4,0.05,15,1.4);
@@ -102,23 +102,24 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     }
 
     cout << "key before filter:" << vToDistributeKeys.size() << endl;
-    KeyPtVector keypoints = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
+    keypts = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
                                   minBorderY, maxBorderY,maxfeatures);
+    // keypts = vToDistributeKeys;
 
-    cout << "key after filter:" << keypoints.size() << endl;
+    cout << "key after filter:" << keypts.size() << endl;
 
     // Add border to coordinates and scale information
-    const int nkps = keypoints.size();
-    for(int i=0; i<nkps ; i++)
+    const int nkps = keypts.size();
+    for(int i=0; i < nkps ; i++)
     {
-        keypoints[i].pt.x+=minBorderX;
-        keypoints[i].pt.y+=minBorderY;
+        keypts[i].pt.x+=minBorderX;
+        keypts[i].pt.y+=minBorderY;
     }
-    // vToDistributeKeys.swap(keypts);
-    keypts.swap(keypoints);
-    static int index = 0;
-    outimg = Position::PUtils::DrawKeyPoints(img, keypts);
-    imwrite("/media/tlg/work/tlgfiles/HDData/result/quad_" + std::to_string(index++) + ".jpg",outimg);
+    //  Mat outimg = img.clone();
+    // keypts.swap(keypoints);
+    // static int index = 0;
+    // outimg = Position::PUtils::DrawKeyPoints(img, keypts);
+    // imwrite("/media/tlg/work/tlgfiles/HDData/result/quad_" + std::to_string(index++) + ".jpg",outimg);
 #endif
    
 }

@@ -73,6 +73,7 @@ include_directories(
 ${PROJECT_SOURCE_DIR}
 ${PROJECT_SOURCE_DIR}/inc
 ${PROJECT_SOURCE_DIR}/inc/base
+${PROJECT_SOURCE_DIR}/inc/base/feature
 ${PROJECT_SOURCE_DIR}/inc/orb
 ${PROJECT_SOURCE_DIR}/inc/viewer
 ${PROJECT_SOURCE_DIR}/inc/gps
@@ -101,13 +102,14 @@ src/base/P_Converter.cpp
 src/base/P_Optimizer.cpp
 src/base/P_PoseEstimation.cpp
 src/base/P_Positioning.cpp
-src/base/P_Feature.cpp
 src/base/P_BlockMatcher.cpp
-src/base/P_FeatureMatcher.cpp
+src/base/feature/P_Feature.cpp
+src/base/feature/P_FeatureMatcher.cpp
+src/base/feature/P_ORBFeature.cpp
+src/base/feature/FeatureQuadTree.cpp
 src/base/P_MultiVisionTrajProcesser.cpp
 src/viewer/P_PangolinViewer.cpp
 src/viewer/P_FrameViewer.cpp
-src/orb/P_ORBFeature.cpp
 src/orb/P_UniformVTrajProcesser.cpp
 src/orb/P_ORBTracking.cpp
 src/orb/P_ORBLocalMapping.cpp
@@ -176,6 +178,6 @@ target_link_libraries(SimpleTest ${Positioning})
 add_executable(PoseEstimate
 twoframe/poseestimate.cpp 
 twoframe/ASiftDetector.cpp
-twoframe/FeatureQuadTree.cpp)
+)
 target_link_libraries(PoseEstimate ${Positioning})
 

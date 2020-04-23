@@ -67,9 +67,12 @@ namespace Position
 
                     e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(0)));
                     e->setMeasurement(obs);
-
-                    const float invSigma2 = sigma2[kp.octave];
-
+                    float invSigma2 = 1.0;
+                    if(kp.octave < sigma2.size())
+                    {
+                        invSigma2 = sigma2[kp.octave];
+                    }
+                    
                     e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);
 
                     g2o::RobustKernelHuber *rk = new g2o::RobustKernelHuber;
@@ -99,7 +102,7 @@ namespace Position
         // We perform 4 optimizations, after each optimization we classify observation as inlier/outlier
         // At the next optimization, outliers are not included, but at the end they can be classified as inliers again.
         const float chi2Mono[4]={CHITH,CHITH,CHITH,CHITH};
-        const int nit = 15;
+        const int nit = 10;
         const int its[4]={nit,nit,nit,nit};    
 
         int nBad=0;
@@ -231,7 +234,12 @@ namespace Position
                 e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));
                 e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->index())));
                 e->setMeasurement(obs);
-                const float &invSigma2 = sigma2[kp.octave];
+                float invSigma2 = 1.0;
+                if(kp.octave < sigma2.size())
+                {
+                    invSigma2 = sigma2[kp.octave];
+                }
+
                 e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);
 
                 if(bRobust)

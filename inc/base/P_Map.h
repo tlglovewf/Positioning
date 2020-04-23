@@ -28,6 +28,7 @@ namespace Position
         //创建关键帧
         IKeyFrame* createKeyFrame(IFrame *frame)
         {
+            std::unique_lock<mutex> lock(mMutexMapUpdate);
             IKeyFrame *pF = new PKeyFrame(frame,mpCurrent,this);
             addKeyFrame(pF);
             return pF;
@@ -35,12 +36,14 @@ namespace Position
         //创建地图点
         IMapPoint* createMapPoint(const cv::Mat &pose)
         {
+            std::unique_lock<mutex> lock(mMutexMapUpdate);
             IMapPoint *pPt = new PMapPoint(pose,this,mnMapPtCnt++);
             addMapPoint(pPt);
             return pPt;
         }
         IMapPoint* createMapPoint(const cv::Point3f &pose)
         {
+            std::unique_lock<mutex> lock(mMutexMapUpdate);
             IMapPoint *pPt = new PMapPoint(pose,this,mnMapPtCnt++);
             addMapPoint(pPt);
             return pPt;
@@ -50,6 +53,7 @@ namespace Position
         void addKeyFrame(IKeyFrame *pKF)
         {
             assert(NULL != pKF);
+            
             if(NULL != mpCurrent)mpCurrent->updateNext(pKF);
             mpCurrent = pKF;
             mMapFms.insert(pKF);
@@ -60,6 +64,7 @@ namespace Position
         {
             if(NULL != pKF)
             { //重新建立链接
+                std::unique_lock<mutex> lock(mMutexMapUpdate);
                 IKeyFrame *pre = pKF->getPrev();
                 IKeyFrame *nxt = pKF->getNext();
                 if(pre)pre->updateNext(nxt);
@@ -78,6 +83,7 @@ namespace Position
         {
             if(NULL != pMp)
             {
+                std::unique_lock<mutex> lock(mMutexMapUpdate);
                 mMapPts.erase(pMp);
                 pMp->release();
             }
@@ -88,12 +94,14 @@ namespace Position
         //获取所有地图点
         MapPtVector getAllMapPts()
         {
+            // std::unique_lock<mutex> lock(mMutexMapUpdate);
             return MapPtVector(mMapPts.begin(),mMapPts.end());
         }
 
         //获取所有帧
         KeyFrameVector getAllFrames()
         {
+            // std::unique_lock<mutex> lock(mMutexMapUpdate);
             return KeyFrameVector(mMapFms.begin(),mMapFms.end());
         }
 
@@ -134,12 +142,13 @@ namespace Position
          //用于多线程 地图更新锁
         virtual std::mutex& mapUpdateMutex()
         {
-            assert(NULL);
+            return mMutexMapUpdate;
         }
 
         //当前帧
         virtual IKeyFrame* currentKeyFrame() 
         {
+            // std::unique_lock<mutex> lock(mMutexMapUpdate);
             return mpCurrent;
         }
     protected:
@@ -150,6 +159,7 @@ namespace Position
 
         u64         mnFrameCnt;
         u64         mnMapPtCnt;
+        std::mutex mMutexMapUpdate;
     private:
         DISABLEDCP(PMap)
     };

@@ -112,6 +112,8 @@ namespace Position
          {
              case eFMDefault:
                 return new PFeatureMatcher(ratio,bcheckori);
+             case eFMKnnMatch:
+                return new PKnnMatcher();
             default:
                 {
                     assert(NULL);

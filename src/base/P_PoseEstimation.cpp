@@ -934,10 +934,11 @@ namespace Position
         initParams(matches);
         if(mPrePts.empty() || (mPrePts.size() != mCurPts.size()))
             return false;
+
         //三角化的点要与第一帧的特征数一致
         vPts.resize(mPre->getKeySize());
         Mat mask;
-        Mat E = findEssentialMat(mPrePts, mCurPts, mCam.K, RANSAC,
+        Mat E = findEssentialMat(mPrePts, mCurPts, mCam.K, CV_FM_8POINT,
                              0.999, 1.0, mask);
         recoverPose(E, mPrePts, mCurPts, mCam.K, R, t, mask);
 
@@ -963,13 +964,15 @@ namespace Position
         assert(mvMatches12.size() == mPrePts.size());
         BolVector bols;
         bols.resize(vPts.size());
+        cout << "-" << out.cols << "+" << mPrePts.size() << endl;
+
         for(size_t i = 0; i < mPrePts.size(); ++i)
         {
             Mat x = out.col(i);
             x = x/x.at<MATTYPE>(3,0);
             if(x.at<MATTYPE>(2) < 0)
             {//剔除负点
-                bols[mvMatches12[i].first] = true;
+                bols[ mvMatches12[i].first ] = true;
                 continue;
             }
             vPts[ mvMatches12[i].first ] = (Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
@@ -996,6 +999,9 @@ namespace Position
     {
         if(matches.empty())
             return;
+        mPrePts.clear();
+        mCurPts.clear();
+        mvMatches12.clear();
         for(auto item : matches)
         {
             mPrePts.push_back(mPre->getKeys()[item.queryIdx].pt);

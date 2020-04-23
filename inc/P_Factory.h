@@ -33,7 +33,8 @@ namespace Position
 
     DEFINEENUM(FeatureMatcher)
     {
-        eFMDefault
+        eFMDefault,
+        eFMKnnMatch
     };
 
     /*

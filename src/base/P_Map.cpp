@@ -20,6 +20,7 @@ namespace Position
 
     void PMap::clear()
     {
+        std::unique_lock<mutex> lock(mMutexMapUpdate);
         for(KeyFmSetIter it = mMapFms.begin(); it != mMapFms.end(); ++it)
         {
             delete *it;

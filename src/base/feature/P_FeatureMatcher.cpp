@@ -194,13 +194,6 @@ namespace Position
         return matches;
     }
 
-    //knn匹配
-    void knn_match(const Mat &descriptor1,const Mat &descriptor2, const  cv::Ptr<DescriptorMatcher> &match,MatchVector &matches)
-    {
-       
-    }
-
-
     PKnnMatcher::PKnnMatcher():mMatcher(new cv::FlannBasedMatcher())
     {
 

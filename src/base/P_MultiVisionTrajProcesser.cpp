@@ -3,6 +3,9 @@
 #include "P_Writer.h"
 #include "P_Frame.h"
 
+#include "FeatureQuadTree.h"
+#include <thread>
+
 #define SAVEMATCHIMG    0  //是否存储同名点匹配文件
 
 namespace Position
@@ -11,8 +14,13 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const std::shared_ptr<IData> &pdata)
                    {
+#if 1
+                        mpFeature        = std::shared_ptr<IFeature>(new FeatureQuadTree());
+                        mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
+#else
                         mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pcfg,MatchRatio,float)));
+#endif
                         mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
                         // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
                         mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
@@ -159,6 +167,7 @@ namespace Position
                 t.copyTo(pose.rowRange(0,3).col(3));
                 Mat wdpose = pose * mpLastKeyFm->getPose() ;
                 mpCurrentKeyFm->setPose(wdpose);
+
                 for(auto item : matches)
                 {//遍历匹配信息,建立地图点与关键的关联关系
                     Position::IMapPoint *mppt = NULL;
@@ -183,9 +192,9 @@ namespace Position
                 {
                     return item != NULL;
                 }));
-                // PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Begin Pose Op");
+                PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Begin Pose Op");
                 mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
-                // PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Pose Op Finished");
+                PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Pose Op Finished");
 
                 for(size_t i = 0; i < temps.size(); ++i)
                 {
