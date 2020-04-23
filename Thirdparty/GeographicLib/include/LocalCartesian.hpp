@@ -16,7 +16,7 @@
 namespace GeographicLib {
 
   /**
-   * \brief Local cartesian coordinates
+   * \brief Local cartesian coordinates(站心坐标)
    *
    * Convert between geodetic coordinates latitude = \e lat, longitude = \e
    * lon, height = \e h (measured vertically from the surface of the ellipsoid)
