@@ -116,13 +116,13 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::IData> pData(new HdData(pCfg));
 
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eUniformSpeed,pCfg,pData));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
-    std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
+    // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     
-    // std::shared_ptr<Position::IViewer> mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
-    // pTraj->setViewer(mpViewer);
-    // std::unique_ptr<std::thread>  mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop,mpViewer));
+    //std::shared_ptr<Position::IViewer> mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    //pTraj->setViewer(mpViewer);
+    //std::unique_ptr<std::thread>  mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop,mpViewer));
 
     int index = 0;
     Position::Time_Interval timer;
@@ -130,8 +130,8 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     for(; it != ed; ++it)
     {
         //for test 
-        // if(index++ > 10)
-        //     break;
+        if(index++ >= 10)
+            break;
         cout << "Load Batch:" << it->_btname.c_str() << endl;
 
         Position::FrameDataVector framedatas;
@@ -152,7 +152,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         if(pTraj->process(framedatas))
         {
             //gps 融合
-            gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
+            // gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
             cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
 
@@ -181,7 +181,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         }
         pTraj->reset();
     }
-    // BatchTraceDisplay(prjlist,pCfg);
+    BatchTraceDisplay(prjlist,pCfg);
     timer.prompt("process traj",true);
     prjlist->saveMap(outpath);
     timer.prompt("save traj");
@@ -274,7 +274,8 @@ int main(void)
     // MapDisplay(pCfg);
 
 
-    // LoadBatchList(pCfg);
+    LoadBatchList(pCfg);
+    return 0;
 
     // DisplayBatchResult("", pCfg);
 
@@ -291,7 +292,7 @@ int main(void)
     pData->loadDatas();
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eMultiVision,pCfg,pData));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     Position::FrameDataVector datas;
     Position::FrameDataVIter iter = pData->begin();

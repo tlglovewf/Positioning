@@ -192,10 +192,9 @@ namespace Position
                 {
                     return item != NULL;
                 }));
-                PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Begin Pose Op");
-                mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
-                PROMTD_V(mpCurrentKeyFm->getData()._name.c_str(),"Pose Op Finished");
 
+                mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
+             
                 for(size_t i = 0; i < temps.size(); ++i)
                 {
                     if(temps[i])

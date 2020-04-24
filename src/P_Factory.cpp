@@ -147,9 +147,9 @@ namespace Position
     {
         switch(type)
         {
-            case eUniformSpeed:
+            case eTjUniformSpeed:
                 return new PUniformVTrajProcesser(pcfg,pdata);
-            case eMultiVision:
+            case eTjMultiVision:
                 return new PMultiVisionTrajProcesser(pcfg,pdata);
             default:
                 return new PTrajProcesser();

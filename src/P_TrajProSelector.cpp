@@ -5,7 +5,7 @@ namespace Position
 {
    TrajProSelector::TrajProSelector(const std::shared_ptr<IConfig> &pCfg, const std::shared_ptr<IData> &pdata)
    {
-       mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eUniformSpeed,pCfg,pdata));
+       mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed,pCfg,pdata));
        mpCurrentTrajPro = mpUniformVTrajPro;
    }
 

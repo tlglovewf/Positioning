@@ -4,21 +4,6 @@
 #hd data preprocess config file
 #---------------------------------
 
-  
-
-# HdCamFx: 1204.100702372
-# HdCamFy: 1210.073064003
-# HdCamCx: 731.315716622
-# HdCamCy: 548.808242006
-# HdCamk1: -0.091441807
-# HdCamk2: 0.088316997
-# HdCamk3: 0.0
-# HdCamp1: 0.000245020
-# HdCamp2: -0.000004751
-
-# ImgPath: "/Users/TLG/Downloads/data/hd/image"
-#PosPath: "/Users/TLG/Downloads/data/hd/camera.txt"
-
 HdCamFx: 1201.093480021
 HdCamFy: 1201.700469966
 HdCamCx: 732.166707527
@@ -40,9 +25,9 @@ ImgHg:  1080
 ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
-StNo: 2100  #796   #11000
+StNo: 56  #796   #11000
 
-EdNo: 2300  #820   #100
+EdNo: 105  #820   #100
 
 
 #vocabulary path 
