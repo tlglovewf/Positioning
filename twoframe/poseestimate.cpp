@@ -373,7 +373,7 @@ int main(void)
 
     std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IData>    pData(new HdData(pCfg));
-    std::shared_ptr<Position::IFeature> pFeature(new FeatureQuadTree(GETCFGVALUE(pCfg,nFeatures,int)));// new SiftFeature);
+    std::shared_ptr<Position::IFeature> pFeature(new FeatureQuadTree(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
     std::shared_ptr<Position::IFeatureMatcher>  pmatcher(new Position::PKnnMatcher);
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));

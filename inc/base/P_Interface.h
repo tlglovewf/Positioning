@@ -35,7 +35,7 @@ namespace Position
     };
 #define CFGVALUE(v,type) (*reinterpret_cast<type*>(v->data()))
 #define GETCFGVALUE(v,str,type) CFGVALUE((*v)[#str],type)
-#define SETCFGVALUE(v,d)    (GETVALUE(v,decltype(d))) = d
+#define SETCFGVALUE(v,str,d)    (GETCFGVALUE(v,str,decltype(d))) = d
     // config interface
     class IConfig : public IBase
     {

@@ -132,6 +132,7 @@ src/P_TrajProSelector.cpp
 src/P_Controller.cpp
 src/project/hdproject.cpp
 src/project/weiyaproject.cpp
+src/project/imgautoproject.cpp
 )
 
 #link libs
