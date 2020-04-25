@@ -15,7 +15,7 @@ namespace Position
                                                          const std::shared_ptr<IData> &pdata)
                    {
 #if 1
-                        mpFeature        = std::shared_ptr<IFeature>(new FeatureQuadTree());
+                        mpFeature        = std::shared_ptr<IFeature>(new FeatureQuadTree(GETCFGVALUE(pcfg,nFeatures,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
                         mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));

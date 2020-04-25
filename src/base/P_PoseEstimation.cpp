@@ -8,7 +8,7 @@ namespace Position
     public:
         static void Init()
         {
-            srand(0); 
+            srand(time(NULL)); 
         }
 
         static int RandomInt(int min, int max)
@@ -876,51 +876,75 @@ namespace Position
     //估计
     bool ORBPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
     {
-        assert(mPre && mCur);
-        initParams(matches);
-        // Launch threads to compute in parallel a fundamental matrix and a homography
-        BolVector vbMatchesInliersH, vbMatchesInliersF;
-        float SH, SF;
-        cv::Mat H, F;
-
-        thread threadH(&ORBPoseEstimation::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
-        thread threadF(&ORBPoseEstimation::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
-
-        // Wait until both threads have finished
-        threadH.join();
-        threadF.join();
-
-        // Compute ratio of scores
-        float RH = SH/(SH+SF);
-
-        const float minParallax = 0.00;//最小的时差角度
-        const float minTriangle = 30; //最少需要多少个点 三角化
-
+          assert(mPre && mCur);
         bool bol = false;
-        BolVector bTriangle;
-        // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-        if(RH > 0.5)
-            bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
-        else //if(pF_HF>0.6)
-            bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
+        const int maxInterator = 10;//最大迭代次数
+        int interator = 0;
+        while(!bol)
+        {
+            if(interator++ > maxInterator)
+                break;
+            initParams(matches);
+            // Launch threads to compute in parallel a fundamental matrix and a homography
+            BolVector vbMatchesInliersH, vbMatchesInliersF;
+            float SH, SF;
+            cv::Mat H, F;
 
-        cout << "reconstruct : " << RH << " " << bol << endl;
-        if(bol)
-        {//剔除三角化失败的点
-            MatchVector::iterator it = matches.begin();
-            for(;it !=  matches.end();)
-            {
-                if(!bTriangle[it->queryIdx] )
+            thread threadH(&ORBPoseEstimation::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
+            thread threadF(&ORBPoseEstimation::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
+
+            // Wait until both threads have finished
+            threadH.join();
+            threadF.join();
+
+            // Compute ratio of scores
+            float RH = SH/(SH+SF);
+
+            const float minParallax = 0.00;//最小的时差角度
+            const float minTriangle = 20; //最少需要多少个点 三角化
+
+
+            BolVector bTriangle;
+            // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
+            if(RH > 0.5)
+                bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
+            else //if(pF_HF>0.6)
+                bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
+
+            cout << "reconstruct : " << RH << " " << bol << endl;
+            if(bol)
+            {//剔除三角化失败的点
+                MatchVector::iterator it = matches.begin();
+                for(;it !=  matches.end();)
                 {
-                    it = matches.erase(it);
+                    if(!bTriangle[it->queryIdx] )
+                    {
+                        it = matches.erase(it);
+                    }
+                    else
+                    {
+                        ++it;
+                    }
                 }
-                else
+
+                Mat out = Position::PUtils::DrawKeyPoints( mCur->getData()._img,mCur->getKeys());
+                MATTYPE a,b,c;
+                for(size_t i = 0; i < matches.size(); ++i)
                 {
-                    ++it;
+                    const Point2f prept = mPre->getKeys()[matches[i].queryIdx].pt;
+                    const Point2f curpt = mCur->getKeys()[matches[i].trainIdx].pt;
+              
+                    Position::PUtils::CalcEpiline(F,prept,a,b,c);
+                    
+                    Position::PUtils::DrawEpiLine(a,b,c,curpt, out);
                 }
+              
+                //save epline 
+                // imwrite( "/media/tlg/work/tlgfiles/HDData/result/orbepline.jpg",out);
+                // cout << "F" << endl;
+                // cout <<  F << endl;
             }
         }
-
         return bol;
     }
 

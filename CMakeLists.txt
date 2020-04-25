@@ -181,3 +181,6 @@ twoframe/ASiftDetector.cpp
 )
 target_link_libraries(PoseEstimate ${Positioning})
 
+add_executable(TargetPosition  
+tools/TargetPosition.cpp)
+target_link_libraries(TargetPosition ${Positioning})

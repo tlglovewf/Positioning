@@ -25,9 +25,9 @@ ImgHg:  1080
 ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
-StNo: 56  #796   #11000
+StNo: 165  #796   #11000
 
-EdNo: 105  #820   #100
+EdNo: 200  #820   #100
 
 
 #vocabulary path 

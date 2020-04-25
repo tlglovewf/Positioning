@@ -12,7 +12,7 @@ class FeatureQuadTree : public Position::IFeature
 
 public:
     
-    FeatureQuadTree();
+    FeatureQuadTree(int nFeatures);
     ~FeatureQuadTree(){}
     //计算特征点
     virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
@@ -35,6 +35,7 @@ protected:
 protected:
     cv::Ptr<cv::Feature2D>  mFeature;
     Position::FloatVector   mSigmaVector;
+    int                     mMaxFeatures;
 };
 
 

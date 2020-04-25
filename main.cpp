@@ -130,8 +130,8 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     for(; it != ed; ++it)
     {
         //for test 
-        if(index++ >= 10)
-            break;
+        // if(index++ >= 10)
+        //     break;
         cout << "Load Batch:" << it->_btname.c_str() << endl;
 
         Position::FrameDataVector framedatas;
@@ -274,8 +274,8 @@ int main(void)
     // MapDisplay(pCfg);
 
 
-    LoadBatchList(pCfg);
-    return 0;
+    // LoadBatchList(pCfg);
+    // return 0;
 
     // DisplayBatchResult("", pCfg);
 

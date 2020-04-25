@@ -336,10 +336,11 @@ bool CheckUnique(const Position::KeyPtVector &pts, const cv::KeyPoint &keypt)
     }
 }
 
-cv::Mat GernerateMask(const std::string &sempath, const std::string &segim, SemanticGraph *sg, Rect rect)
+//Mask 生成
+cv::Mat GernerateMask(const std::string &sempath, const std::string &segim, Rect rect)
 {
     string str = segim;
-    Position::PUtils::ReplaceFileSuffix(str,"jpg",sg->defaultsuffix);
+    Position::PUtils::ReplaceFileSuffix(str,"jpg", SemanticGraph::Instance()->defaultsuffix);
     cv::Mat seg = imread(sempath + str);
     if(seg.empty())
     {
@@ -351,7 +352,7 @@ cv::Mat GernerateMask(const std::string &sempath, const std::string &segim, Sema
         for(size_t j = 0; j<seg.cols; j++)
         {
             Point pt = Point(j,i);
-            if(sg->isDynamicObj(pt,seg)||rect.contains(pt))
+            if(SemanticGraph::Instance()->isDynamicObj(pt,seg)||rect.contains(pt))
             {
                 maskim.at<uchar>(pt) = 0;
             }           
@@ -359,13 +360,20 @@ cv::Mat GernerateMask(const std::string &sempath, const std::string &segim, Sema
     return maskim;
 }
 
+void SelectFrameData(const std::shared_ptr<Position::IData> &pdata, FrameData &predata, FrameData &curdata)
+{
+   predata = *pdata->begin();
+   curdata = *(pdata->begin() + 2);
+}
+
+
 int main(void)
 {
     SemanticGraph::Instance()->loadObjInfos("segraph.config");
 
     std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IData>    pData(new HdData(pCfg));
-    std::shared_ptr<Position::IFeature> pFeature(new FeatureQuadTree());// new SiftFeature);
+    std::shared_ptr<Position::IFeature> pFeature(new FeatureQuadTree(GETCFGVALUE(pCfg,nFeatures,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
     std::shared_ptr<Position::IFeatureMatcher>  pmatcher(new Position::PKnnMatcher);
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
@@ -387,26 +395,28 @@ int main(void)
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
 
-    Position::FrameData &predata = *pData->begin();
-    Position::FrameData &curdata = *(pData->begin() + 1);
+    Position::FrameData predata;
+    Position::FrameData curdata;
+
+    SelectFrameData(pData,predata,curdata);
 
     std::string picname1 = predata._name;  //"0_14166";//"0_11370.jpg";
     std::string picname2 = curdata._name;  //"0_14167";//"0_11371.jpg";
 
     Position::CameraParam cam = pData->getCamera();
   
-    //加mask
+     //加mask
     int maskUse = GETCFGVALUE(pCfg,MaskEnable,int);
+    Mat mask;
     if(maskUse == 1)
     {
-        int roiLx=GETCFGVALUE(pCfg,Lx,int);
-        int roiLy=GETCFGVALUE(pCfg,Ly,int);
-        int roiW=GETCFGVALUE(pCfg,Wd,int);
-        int roiH=GETCFGVALUE(pCfg,Ht,int);
+        int roiLx   =   GETCFGVALUE(pCfg,Lx,int);
+        int roiLy   =   GETCFGVALUE(pCfg,Ly,int);
+        int roiW    =   GETCFGVALUE(pCfg,Wd,int);
+        int roiH    =   GETCFGVALUE(pCfg,Ht,int);
         Rect rect(roiLx, roiLy, roiW, roiH);
-        cv::Mat tmp = GernerateMask(sempath, picname1, SemanticGraph::Instance(), rect);
-        imshow("1",tmp);
-        cv::waitKey(0);
+        //生成mask 
+        mask = GernerateMask(sempath, picname1,  rect);
     }
     //加mask
     const std::string pngfx  = "png";
@@ -421,10 +431,10 @@ int main(void)
     timer.start();
     Position::IFrame *preframe = new Position::PFrame(predata,pFeature, pmap->frameCount());
     Position::IFrame *curframe = new Position::PFrame(curdata,pFeature, pmap->frameCount());
-    timer.prompt("feature detect cost",true);
+    timer.prompt("feature detect ",true);
     
     Position::MatchVector good_matches =  pmatcher->match(preframe,curframe,3);
-    timer.prompt("feature match cost ",true);
+    timer.prompt("feature match  ",true);
     vector<DMatch>::iterator it = good_matches.begin();
     vector<DMatch>::iterator ed = good_matches.end();
 
@@ -433,10 +443,11 @@ int main(void)
     for(; it != ed; ++it)
     {
         Point2f pt = preframe->getKeys()[it->queryIdx].pt;
-        if(!SemanticGraph::Instance()->isDyobj(pt,preframe->getData()._name))
+        //当mask未设置,或者设置量 有值的时候(权重问题 后续再考虑)
+        if(mask.empty() || mask.at<uchar>(pt.x,pt.y))
         {
             matches.emplace_back(*it);
-        }
+        } 
     }
     good_matches.swap(matches);
     
@@ -457,7 +468,7 @@ int main(void)
 
     Position::U8Vector  stats;
     Position::BolVector bols;
-    Mat F = cv::findFundamentalMat(pt1s,pt2s,stats,FM_RANSAC,4.0);
+    Mat F = cv::findFundamentalMat(pt1s,pt2s,stats,FM_RANSAC,1.0);
 
     cout << "score : " << CheckFundamental(preframe->getKeys(),
                             curframe->getKeys(),

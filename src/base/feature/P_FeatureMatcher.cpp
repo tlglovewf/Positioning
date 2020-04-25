@@ -1,5 +1,6 @@
 #include "P_FeatureMatcher.h"
 #include "P_Frame.h"
+#include "P_SemanticGraph.h"
 namespace Position
 {
 #define HISTO_LENGTH    30
@@ -239,7 +240,7 @@ namespace Position
         goods.reserve(matches.size());
         for(size_t i = 0; i < matches.size(); ++i)
         {
-            if(stats[i])
+            if(stats[i]&& !SemanticGraph::Instance()->isDyobj(pts1[i],preframe->getData()._name))
             {
                 goods.emplace_back(matches[i]);
             }

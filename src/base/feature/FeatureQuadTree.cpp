@@ -1,13 +1,11 @@
 #include "FeatureQuadTree.h"
 #include "P_Utils.h"
 #define EDGE_THRESHOLD 16
-
-const int maxfeatures  = 240;
-
-const int PATCH_SIZE = 31;
+#define COLGRIDNUMBER 3
+#define ROWGRIDNUMBER 3
 
 
-FeatureQuadTree::FeatureQuadTree()
+FeatureQuadTree::FeatureQuadTree(int nFeatures):mMaxFeatures(nFeatures)
 {
     Position::FloatVector  mvScaleFactor(4,0);
     Position::FloatVector  mvLevelSigma2(4,0);
@@ -26,16 +24,16 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
 {
 #if 0
     if(!mFeature)
-        mFeature = cv::xfeatures2d::SIFT::create(maxfeatures,4,0.05,15,1.4);
+        mFeature = cv::xfeatures2d::SIFT::create(mMaxFeatures,4,0.05,15,1.4);
     mFeature->detect(img,keypts);
     // static int index = 0;
     // Mat outimg = Position::PUtils::DrawKeyPoints(img,keypts);
     // imwrite("/media/tlg/work/tlgfiles/HDData/result/normal_" + std::to_string(index++) + ".jpg",outimg);
 #else
-    //     allKeypoints.resize(nlevels);
 
-    //grid 大小
-    const float W = 300;
+    const int nCols = COLGRIDNUMBER;
+    const int nRows = ROWGRIDNUMBER;
+
     //得到每一层图像进行特征检测区域上下两个坐标
     const int minBorderX = EDGE_THRESHOLD-3;
     const int minBorderY = minBorderX;
@@ -43,19 +41,18 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
     const int maxBorderY = img.rows-EDGE_THRESHOLD+3;
     //用于分配关键点
     KeyPtVector vToDistributeKeys;
-    vToDistributeKeys.reserve(maxfeatures * 1.5);
+    vToDistributeKeys.reserve(mMaxFeatures * 1.5);
 
     const float width = (maxBorderX-minBorderX);
     const float height = (maxBorderY-minBorderY);
 
-    const int nCols = width/W;
-    const int nRows = height/W;
+    
     const int wCell = ceil(width/nCols);
     const int hCell = ceil(height/nRows);
    
 
     if(!mFeature)
-        mFeature = cv::xfeatures2d::SIFT::create(maxfeatures / ((nRows-1) * (nCols-1)),4,0.05,15,1.4);
+        mFeature = cv::xfeatures2d::SIFT::create(mMaxFeatures / ((nRows - 1) * nCols) ,4,0.05,15,1.4);
 
     //在每个格子内进行fast特征检测
     for(int i=0; i<nRows; i++)
@@ -103,8 +100,7 @@ void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
 
     cout << "key before filter:" << vToDistributeKeys.size() << endl;
     keypts = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
-                                  minBorderY, maxBorderY,maxfeatures);
-    // keypts = vToDistributeKeys;
+                                  minBorderY, maxBorderY,mMaxFeatures);
 
     cout << "key after filter:" << keypts.size() << endl;
 
@@ -201,7 +197,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
 {
     // Compute how many initial nodes   
     const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
-    cout << "----" << endl;
+ 
     //获取节点间的间隔
     const float hX = static_cast<float>(maxX-minX)/nIni;
 
@@ -408,7 +404,7 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
     // Retain the best point in each node
     // 保留每个节点最好的特征点
     KeyPtVector vResultKeys;
-    vResultKeys.reserve(maxfeatures);
+    vResultKeys.reserve(mMaxFeatures);
 
     for(list<ENode>::iterator lit=lNodes.begin(); lit!=lNodes.end(); lit++)
     {
