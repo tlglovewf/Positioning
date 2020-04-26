@@ -37,7 +37,7 @@ int main(void)
         }
         resize(image,image,Size(image.cols >> 2,image.rows >> 2));
         imshow("image", image);
-        waitKey(1);
+        waitKey(5);
     }
 
 
