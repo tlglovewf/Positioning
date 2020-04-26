@@ -1,6 +1,7 @@
 
 #include "project/imgautoproject.h"
 #include "P_Writer.h"
+#include "P_Utils.h"
 
 #include  "Thirdparty/rapidjson/document.h"
 
@@ -168,6 +169,51 @@ namespace Position
         return false;
     }
 
+//     bool ReadTracktrkTxt(const string &trkfile, const string &name, vector<LOCATIONINFO> &trs)
+// {
+// 	vector<string> strs;
+// 	if (!ReadTxT(yu, strs))
+// 	{
+// 		cout << "Read Trk txt fail!" << endl;
+// 		return 0;
+// 	}
+// 	for (auto s : strs)
+// 	{
+// 		LOCATIONINFO mtr;
+// 		vector<string> ss = split(s, ';');
+
+// 		auto pos1 = name.find_first_of('_');
+// 		auto pos2 = name.find_last_of('_');
+// 		int seq = atoi(name.substr(pos1 + 1, pos2).c_str());
+// 		mtr.name = name;
+// 		mtr.seqnum = seq;
+// 		mtr.xmin = atoi(ss[0].c_str());
+// 		mtr.ymin = atoi(ss[1].c_str());
+// 		mtr.xmax = atoi(ss[2].c_str());
+// 		mtr.ymax = atoi(ss[3].c_str());
+// 		trs.push_back(mtr);
+// 	}
+// 	return 1;
+// }
+
+    //读取trk文档
+    static void ReadTrkTxt(const string &txtfile, StringVector &lines)
+    {
+    	ifstream txt_file;
+    	txt_file.open(txtfile.c_str());
+    	assert(txt_file.is_open());
+    	string str;
+    	while (!txt_file.eof())
+    	{
+            getline(txt_file, str);
+            if(str.empty())
+                continue;
+    		lines.emplace_back(str);
+    	}
+    	txt_file.close();
+    }
+
+
     //预处理数据
     bool ImgAutoData::loadDatas()
     {
@@ -183,7 +229,12 @@ namespace Position
         const std::string trkjson       = raw_data  + "/track.json";
         const std::string imgpath       = raw_data  + "/image/";
         const std::string trackerpath   = expath    + "tracker";
+        const std::string trackrestpath = trackerpath + "/tracker_result/";
         const std::string campath       = expath    + "config/extrinsics.xml";
+        const std::string splitchar     = ";";      //分割字符
+
+        //设置图片路径
+        SETCFGVALUE(mpCfg,ImgPath,string(imgpath));
 
         //load camera paramers
         loadCameraParams(campath);
@@ -197,7 +248,7 @@ namespace Position
                 return false;
             }
             //区文件名
-            FrameDataVector  framedatas;
+            mFrameDatas.clear();  
             while(!seqfile.eof())
             {
                 std::string seqline;
@@ -207,23 +258,61 @@ namespace Position
                 FrameData fdata;
                 size_t npos = seqline.find_last_of("/");
                 fdata._name = seqline.substr(++npos);
-                framedatas.push_back(fdata);
+                mFrameDatas.emplace_back(fdata);
             }
             seqfile.close();
 
-            if(!loadTrackJson(trkjson,framedatas))
+            //加载track json 数据获取图片gps信号数据
+            if(!loadTrackJson(trkjson,mFrameDatas))
                 return false;
 
-             const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
+#if 0
+            const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
             std::ofstream fori;
             fori.open(strori);
             for(int i = 0; i < framedatas.size(); ++i )
             {
                 PStaticWriter::WriteRealTrace(fori, framedatas[i]._pos.pos ,framedatas[i]._name);
             }
-            
-
             fori.close();
+#endif
+         
+            //根据每帧加载对应图像识别信息
+            //trk 文件每行对应一张图像
+            for(size_t i = 0; i < mFrameDatas.size(); ++i)
+            {
+                std::string trkfile = mFrameDatas[i]._name;
+                PUtils::ReplaceFileSuffix(trkfile,"jpg","trk");
+                trkfile = trackrestpath  + trkfile;
+                StringVector lines;
+                ReadTrkTxt(trkfile,lines);
+                if(!lines.empty())
+                {//数据不为空,则表示当前帧没有识别的目标
+                    for(const string &item : lines)
+                    {//遍历目标
+                       //根据拆分字符 拆分字符串
+                       StringVector values = PUtils::SplitString(item,splitchar);
+                       
+                       //获取包围盒-像素坐标
+                       int xmin = atoi(values[0].c_str());   
+                       int ymin = atoi(values[1].c_str());
+                       int xmax = atoi(values[2].c_str());
+                       int ymax = atoi(values[3].c_str());
+                       int id   = atoi(values[10].c_str()); //获取id
+
+                       TargetData target;
+                       target._box  = Rect2f( xmin,ymin,(xmax - xmin),(ymax - ymin) );
+                       target._type = id;
+                       //插入目标信息
+                       mFrameDatas[i]._targets.emplace_back(target);
+                    }
+                }
+                else
+                {
+                    PROMTD_V(mFrameDatas[i]._name.c_str(),"no target!!!");
+                }
+            }
+
 
         }catch(exception e)
         {
