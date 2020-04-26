@@ -203,7 +203,7 @@ namespace Position
     //匹配  返回匹配对
     MatchVector PKnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
-    assert(preframe);
+        assert(preframe);
         assert(curframe);
         
         const Mat &descriptorLeft = preframe->getDescript();
@@ -219,6 +219,8 @@ namespace Position
         
         std::vector<std::vector<DMatch> > knnMatches;
         mMatcher->knnMatch(descriptorLeft, descriptorRight, knnMatches, k);
+        if(knnMatches.size() < 10)
+            return MatchVector();
         MatchVector matches;
         PtVector pts1;
         PtVector pts2;

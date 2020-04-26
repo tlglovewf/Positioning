@@ -3,6 +3,7 @@
 
 #include "P_Config.h"
 #include "P_Data.h"
+#include "P_ProjList.h"
 
 class HdConfig : public Position::PConfig
 {
@@ -36,37 +37,15 @@ public:
 };
 
 // serialization interface
-class HdPosePrj : public Position::IProjList
+class HdPosePrj : public Position::ProjList
 {
 public:
     //加载项目列表
     virtual void loadPrjList(const std::string &path);
-    //设置地图
-    virtual void setMap(const std::shared_ptr<Position::IMap> &pmap)
-    {
-        mpMap = pmap;
-    }
     //加载地图
     virtual void loadMap(const std::string &path);
     //保存地图
     virtual void saveMap(const std::string &path);
-    //获取项目列表
-    virtual Position::PrjBatchVector& getPrjList() 
-    {
-        return mBatches;
-    }
-protected:
-     //打开文件
-     bool open(const std::string &path,std::ios::openmode type)
-     {
-         mfile.open(path, type);
-         return mfile.is_open();
-     }
-
-protected:
-    std::fstream                        mfile;
-    Position::PrjBatchVector            mBatches;
-    std::shared_ptr<Position::IMap>     mpMap;
 };
 
 

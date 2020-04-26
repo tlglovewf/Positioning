@@ -263,17 +263,7 @@ namespace Position
         //绘制状态
         virtual bool isRender()const = 0;
     };
-
-    //检测对象
-    class IDetector : public IBase
-    {
-    public:
-        //初始化
-        virtual bool init() = 0;
-        //识别
-        virtual TargetVector detect(const Mat &img) = 0;
-    };
-
+    
     //检查
     class IChecker : public IBase
     {

@@ -1,6 +1,5 @@
-#include "P_Controller.h"
+#include "P_MapDisplay.h"
 #include "P_Factory.h"
-#include "P_Detector.h"
 #include "P_Writer.h"
 
 #include "P_MultiVisionTrajProcesser.h"
@@ -31,7 +30,7 @@ using namespace std;
 using namespace cv;
 
 #define WEIYA           0  //是否为weiya数据
-#define USECONTROLLER   0  //是否启用定位框架
+#define USECONTROLLER   1  //是否启用定位框架
 
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 {
@@ -88,8 +87,7 @@ void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std
             {
                 if(iter->_poses[i].empty())
                     continue;
-                Position::FrameData data;
-                data._name = iter->_names[i];
+                Position::FrameData &data = iter->_fmsdata[i]; 
                 Position::IMap::CreateKeyFrame(pmap,data,spaceLen + iter->_poses[i]);
             }
             PROMTD_V("display end ", iter->_btname.c_str());
@@ -138,9 +136,8 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         framedatas.reserve(it->_n);
         for(int i = 0; i < it->_n; ++i)
         {
-            Position::FrameData fdata;
-            fdata._name = it->_names[i];
-            fdata._img  = imread(imgpath + "/" + it->_names[i] + ".jpg");
+            Position::FrameData &fdata = it->_fmsdata[i];
+            fdata._img  = imread(imgpath + "/" + fdata._name + ".jpg");
             if(fdata._img.channels() > 1)
             {
                 cvtColor(fdata._img,fdata._img,CV_RGB2GRAY);
@@ -156,9 +153,9 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
             cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
 
-            for(size_t i = 0; i < it->_names.size(); ++i)
+            for(size_t i = 0; i < it->_fmsdata.size(); ++i)
             {
-                const std::string &nm = it->_names[i];
+                const std::string &nm = it->_fmsdata[i]._name;
 
                 Position::KeyFrameVter kit = std::find_if(frames.begin(),frames.end(),[nm](const Position::IKeyFrame *pframe)->bool
                 {
@@ -269,18 +266,16 @@ int main(void)
         SemanticGraph::Instance()->setSemanticPath(sempath);
     }
 
-    std::shared_ptr<Position::IDetector> pdetecter = std::make_shared<Position::SSDDetector >();
-
     // MapDisplay(pCfg);
 
 
-    // LoadBatchList(pCfg);
-    // return 0;
+    LoadBatchList(pCfg);
+    return 0;
 
     // DisplayBatchResult("", pCfg);
 
 #if USECONTROLLER
-    std::unique_ptr<PositionController> system(new PositionController(pdetecter,pData,pCfg));
+    std::unique_ptr<PMapDisplay> system(new PMapDisplay(pData,pCfg));
 
     Position::Time_Interval t;
     t.start();

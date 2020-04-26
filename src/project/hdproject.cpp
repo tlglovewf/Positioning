@@ -181,7 +181,9 @@ void HdPosePrj::loadPrjList(const std::string &path)
         for(int i = 0;i < n; ++i)
         {
             getline(mfile,line);
-            pv._names.emplace_back(line);
+            Position::FrameData fms;
+            fms._name = line;
+            pv._fmsdata.emplace_back(fms);
         }
         mBatches.emplace_back(pv);
     }
@@ -232,7 +234,7 @@ void HdPosePrj::saveMap(const std::string &path)
                 int vaild = !T.empty();
                 //pose
                 mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
-                      << std::setw(9)  << it->_names[i].c_str()
+                      << std::setw(9)  << it->_fmsdata[i]._name.c_str()
                       << std::setw(7)  << vaild;
                 if(vaild)
                 {

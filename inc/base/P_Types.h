@@ -197,15 +197,15 @@ struct BatchItem
 {
     std::string _btname;
     int _n;
-    std::vector<string> _names;
-    std::vector<Mat>    _poses;
+    std::vector<FrameData>   _fmsdata;
+    std::vector<Mat>         _poses;
     inline bool isvaild()const
     {
-        return _names.size() == _poses.size();
+        return _fmsdata.size() == _poses.size();
     }
     BatchItem(const std::string &btn,int n):_btname(btn),_n(n)
     {
-        _names.reserve(n);
+        _fmsdata.reserve(n);
         _poses.reserve(n);
     }
 };
@@ -224,6 +224,9 @@ typedef RstVector::iterator                 RstVIter;
 
 typedef std::vector<FrameData>              FrameDataVector;
 typedef FrameDataVector::iterator           FrameDataVIter;
+
+typedef std::vector<FrameDataVector>        FrameVtContainer;
+typedef FrameVtContainer::iterator          FrameVtCIter;
 
 class   IFrame;           
 typedef std::vector<IFrame*>                FrameVector;

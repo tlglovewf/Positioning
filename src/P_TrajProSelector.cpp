@@ -9,8 +9,17 @@ namespace Position
        mpCurrentTrajPro = mpUniformVTrajPro;
    }
 
+   bool TrajProSelector::handle(const FrameData &fdata)
+   {
+       if(mpCurrentTrajPro)
+            mpCurrentTrajPro = mpUniformVTrajPro;
+    
+        mpCurrentTrajPro->track(fdata);
+   }
+
+
      //处理帧数据
-   bool TrajProSelector::handle(const FrameDataVector &datas)
+   bool TrajProSelector::process(const FrameDataVector &datas)
    {
        size_t sz = datas.size();
     //    if(sz < 4)

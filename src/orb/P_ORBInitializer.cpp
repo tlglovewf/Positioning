@@ -117,7 +117,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     {
 
         cout << "reconstruct error! " << CurrentFrame.getData()._name.c_str() << endl;
-#if 1
+#if 0
         Position::MatchVector matches;
 
         for(int i = 0; i < 8; ++i)

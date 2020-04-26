@@ -68,7 +68,7 @@ namespace Position
             drawFrameText(oimg,mStatus,outi);
             
             imshow("Frame",outi);
-
+            cv::waitKey(1);
             scurrent = pcurrent;
         }
     }

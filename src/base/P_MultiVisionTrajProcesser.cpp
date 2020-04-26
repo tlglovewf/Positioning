@@ -77,7 +77,7 @@ namespace Position
         
         Mat grayimg ;
 
-        if( !mCam.D.empty() || fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
+        if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
         {//有畸变参数存在
             cv::undistort(data._img,grayimg,mCam.K,mCam.D);
         }

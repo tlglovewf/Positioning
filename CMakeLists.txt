@@ -93,7 +93,6 @@ src/base/P_Config.cpp
 src/base/P_Frame.cpp
 src/base/P_Utils.cpp
 src/base/P_Writer.cpp
-src/base/P_Detector.cpp
 src/base/P_Checker.cpp
 src/base/P_CoorTrans.cpp
 src/base/P_Map.cpp
@@ -129,7 +128,7 @@ src/gps/GpsSim3Optimizer.cpp
 src/gps/P_GpsFusion.cpp
 src/P_Factory.cpp
 src/P_TrajProSelector.cpp
-src/P_Controller.cpp
+src/P_MapDisplay.cpp
 src/project/hdproject.cpp
 src/project/weiyaproject.cpp
 src/project/imgautoproject.cpp
@@ -172,9 +171,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 add_executable(Positioning
 main.cpp)
 target_link_libraries(Positioning ${Positioning})
-add_executable(SimpleTest
-simpletest.cpp)
-target_link_libraries(SimpleTest ${Positioning})
+
+# add_executable(SimpleTest
+# simpletest.cpp)
+# target_link_libraries(SimpleTest ${Positioning})
 
 add_executable(PoseEstimate
 twoframe/poseestimate.cpp 
@@ -183,5 +183,6 @@ twoframe/ASiftDetector.cpp
 target_link_libraries(PoseEstimate ${Positioning})
 
 add_executable(TargetPosition  
-tools/TargetPosition.cpp)
+tools/TargetPosition.cpp
+tools/PosBatchGenerator.cpp)
 target_link_libraries(TargetPosition ${Positioning})

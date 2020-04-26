@@ -66,9 +66,9 @@ namespace Position
                 size_t currnum;
                 for(size_t i = 0; i < framedatas.size(); ++i)
                 {
-                    track(framedatas, i);
+                    //track(framedatas, i);
                     
-                    //track(framedatas[i]);
+                    track(framedatas[i]);
 
                     if(mpViewer)
                     {

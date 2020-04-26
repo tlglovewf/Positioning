@@ -27,7 +27,7 @@ CamMatrixPath: "/media/tlg/work/tlgfiles/WEIYA/9900000120042200/config/extrinsic
 BsPath:        "/media/tlg/work/tlgfiles/WEIYA/9900000120042200/config/BS_0001_20191105.bs"
 
 #vocabulary path 
-#VocPath: "/Users/TLG/Documents/Positioning/Vocabulary/ORBvoc.txt"
+VocPath: "/home/tlg/Documents/Sources/Positioning/Vocabulary/ORBvoc.txt"
 
 #feature params
 FeatureCnt:   2000  #特征点提取数量

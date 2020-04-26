@@ -7,6 +7,9 @@
 
 namespace Position
 {
+
+#define SPLITSTR ";"   //分割字符  
+
     ImgAutoConfig::ImgAutoConfig(const std::string &path):
           PrjPath(""),
           CamMatrixPath("")
@@ -169,33 +172,6 @@ namespace Position
         return false;
     }
 
-//     bool ReadTracktrkTxt(const string &trkfile, const string &name, vector<LOCATIONINFO> &trs)
-// {
-// 	vector<string> strs;
-// 	if (!ReadTxT(yu, strs))
-// 	{
-// 		cout << "Read Trk txt fail!" << endl;
-// 		return 0;
-// 	}
-// 	for (auto s : strs)
-// 	{
-// 		LOCATIONINFO mtr;
-// 		vector<string> ss = split(s, ';');
-
-// 		auto pos1 = name.find_first_of('_');
-// 		auto pos2 = name.find_last_of('_');
-// 		int seq = atoi(name.substr(pos1 + 1, pos2).c_str());
-// 		mtr.name = name;
-// 		mtr.seqnum = seq;
-// 		mtr.xmin = atoi(ss[0].c_str());
-// 		mtr.ymin = atoi(ss[1].c_str());
-// 		mtr.xmax = atoi(ss[2].c_str());
-// 		mtr.ymax = atoi(ss[3].c_str());
-// 		trs.push_back(mtr);
-// 	}
-// 	return 1;
-// }
-
     //读取trk文档
     static void ReadTrkTxt(const string &txtfile, StringVector &lines)
     {
@@ -231,7 +207,6 @@ namespace Position
         const std::string trackerpath   = expath    + "tracker";
         const std::string trackrestpath = trackerpath + "/tracker_result/";
         const std::string campath       = expath    + "config/extrinsics.xml";
-        const std::string splitchar     = ";";      //分割字符
 
         //设置图片路径
         SETCFGVALUE(mpCfg,ImgPath,string(imgpath));
@@ -291,7 +266,7 @@ namespace Position
                     for(const string &item : lines)
                     {//遍历目标
                        //根据拆分字符 拆分字符串
-                       StringVector values = PUtils::SplitString(item,splitchar);
+                       StringVector values = PUtils::SplitString(item,SPLITSTR);
                        
                        //获取包围盒-像素坐标
                        int xmin = atoi(values[0].c_str());   
@@ -324,5 +299,86 @@ namespace Position
 
 
         return true;
+    }
+
+
+    static inline ImgAutoPrjList::InfoIndex parseIndex(const std::string &str)
+    {
+         static std::regex re(string("\\(\\d*,\\d*\\)"));
+         bool ret = std::regex_match(str,re);
+         if(ret)
+         {
+             int a,b;
+             sscanf(str.c_str(),"(%d,%d)",&a,&b);
+             return std::make_pair(a,b);
+         }
+         else
+         {
+             return std::make_pair(-1,-1);
+         }
+    }
+
+    void ImgAutoPrjList::parseTracker(const std::string &line)
+    {
+        assert(!line.empty());
+        StringVector values = PUtils::SplitString(line,SPLITSTR);
+        if(!values.empty())
+        {
+            TrackerItem item;
+            item.id         = atoi(values[10].c_str()); //目标id
+            item.maxsize    = atoi(values[11].c_str()); // 在多少张图像中出现
+
+            string startseq = values[12];               //(图片索引，探测框索引) 目标第一次出现图的索引
+            string endseq   = values[values.size() - 1];//取最后一个 表示最后一帧的索引
+
+            item.stno = parseIndex(startseq);
+            item.edno = parseIndex(endseq);
+            //add more information
+
+            mTrackerInfos.emplace_back(item);
+        }
+    }
+
+
+    //加载项目列表
+    void ImgAutoPrjList::loadPrjList(const std::string &path)
+    {
+        if(!path.empty() && open(path,ios::in))
+        {
+            while(!mfile.eof())
+            {
+                std::string line;
+                getline(mfile,line);
+                if(line.empty())
+                    continue;
+                parseTracker(line);
+                mTrkLines.emplace_back(line);
+            }
+            mfile.close();
+        }
+        
+    }
+    //加载地图
+    void ImgAutoPrjList::loadMap(const std::string &path)
+    {
+       //add more
+    }
+    //保存地图
+    void ImgAutoPrjList::saveMap(const std::string &path)
+    {
+        if(!path.empty() && open(path,ios::out))
+        {
+            assert(mTrkLines.size() == mTrackerInfos.size());
+            for(string &item : mTrkLines)
+            {
+                char gpsstr[50] = {0};
+                double lon = 116.1234567;
+                double lat = 39.7654321;
+                sprintf(gpsstr,"%s(%.7f,%.7f)",SPLITSTR,lat,lon);
+                item.append(string(gpsstr));
+                mfile << item.c_str() << endl; 
+            }
+            mfile.close();
+        }
     }
 }

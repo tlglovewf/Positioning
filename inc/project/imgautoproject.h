@@ -9,7 +9,7 @@
 
 #include "P_Config.h"
 #include "P_Data.h"
-
+#include "P_ProjList.h"
 
 namespace Position
 {
@@ -38,8 +38,42 @@ namespace Position
         //加载相机参数
         void loadCameraParams(const std::string &path);
         //加载track json
-        bool loadTrackJson(const std::string &path,FrameDataVector &framedatas);
-};
+        bool loadTrackJson(const std::string &path,FrameDataVector &framedatas);    
+    };
+
+    //自动化 batch 列表类
+    class ImgAutoPrjList : public ProjList
+    {
+    public:
+        //信息索引 图片索引，目标索引
+        typedef std::pair<int,int> InfoIndex;
+        struct TrackerItem
+        {
+            int       id;           //目标id
+            InfoIndex stno;         //第一帧出现的索引
+            InfoIndex edno;         //最后一帧出现的索引
+            int       maxsize;      //出现的帧数
+        };
+
+        typedef std::vector<TrackerItem>        TrackerItemVector;
+        typedef TrackerItemVector::iterator     TrackerItemVIter;
+
+         //加载项目列表
+        virtual void loadPrjList(const std::string &path);
+        //加载地图
+        virtual void loadMap(const std::string &path);
+        //保存地图
+        virtual void saveMap(const std::string &path);
+
+    protected:
+        //接写tracker 行
+         void parseTracker(const std::string &line);
+
+    protected:
+        StringVector      mTrkLines;
+        TrackerItemVector mTrackerInfos;
+    };
+    
 }
 
 #endif
