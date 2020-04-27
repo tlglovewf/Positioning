@@ -5,13 +5,14 @@ namespace Position
 {
    TrajProSelector::TrajProSelector(const std::shared_ptr<IConfig> &pCfg, const std::shared_ptr<IData> &pdata)
    {
-       mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed,pCfg,pdata));
-       mpCurrentTrajPro = mpUniformVTrajPro;
+    //    mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed,pCfg,pdata));
+       mpSimpleTrajPro   = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjMultiVision,pCfg,pdata));
+       mpCurrentTrajPro = mpSimpleTrajPro; //mpUniformVTrajPro;
    }
 
    bool TrajProSelector::handle(const FrameData &fdata)
    {
-       if(mpCurrentTrajPro)
+       if(!mpCurrentTrajPro)
             mpCurrentTrajPro = mpUniformVTrajPro;
     
         mpCurrentTrajPro->track(fdata);
@@ -19,16 +20,15 @@ namespace Position
 
 
      //处理帧数据
-   bool TrajProSelector::process(const FrameDataVector &datas)
+   bool TrajProSelector::process( FrameDataVector &datas,const std::string &imgpath /*=""*/)
    {
-       size_t sz = datas.size();
-    //    if(sz < 4)
-    //    {//小于5帧 使用简单定位场景
-    //         mpCurrentTrajPro = mpSimpleTrajPro;
-    //    }
-    //    else
-       {//其他情况 使用匀速运动模型推算位姿
-            mpCurrentTrajPro = mpUniformVTrajPro;
+       
+       if(!imgpath.empty())
+       {//地址不为空 需要加载图片
+            for(FrameData &data : datas)
+            {
+                data._img = imread(imgpath + "/" + data._name,IMREAD_UNCHANGED);
+            }
        }
 
        return mpCurrentTrajPro->process(datas);

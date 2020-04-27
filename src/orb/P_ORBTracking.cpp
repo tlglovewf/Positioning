@@ -457,10 +457,10 @@ void ORBTracking::CreateInitialMapMonocular()
     //取点中位深度
     // float invMedianDepth = 1.0f/medianDepth;
 
-    if(medianDepth < 0 || pKFcur->TrackedMapPoints(1) < 80)
+    if(medianDepth < 0 || pKFcur->TrackedMapPoints(1) < 50)
     {
         PROMT_V("Tracked Map Points size",pKFcur->TrackedMapPoints(1));
-        PROMT_S("Traced points not enough . resetting...");
+        PROMT_S("Point size not enough . reset..");
         Reset();
         return;
     }

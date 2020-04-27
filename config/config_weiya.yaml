@@ -31,7 +31,7 @@ VocPath: "/Users/TLG/Documents/Positioning/Vocabulary/ORBvoc.txt"
 FeatureCnt:   2000  #特征点提取数量
 PyramidLevel: 8     #图片金字塔层数
 ScaleFactor:  1.3   #图片金字塔缩小比
-SearchRadius:  20   #视觉匹配搜索范围
+SearchRadius:  100   #视觉匹配搜索范围
 MatchRatio:   0.8   #匹配比例(比例越大,匹配要求越低,匹配点越多)
 
 

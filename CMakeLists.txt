@@ -10,10 +10,6 @@ ENDIF()
 #print build type
 MESSAGE("Build  type: " ${CMAKE_BUILD_TYPE})
 
-#set debug compile setting
-#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O0 -g  -march=native ")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall  -O0 -g -march=native")
-
 #release compile setting
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
@@ -27,6 +23,8 @@ if(CMAKE_HOST_APPLE)
    cmake_policy(SET CMP0042 NEW)
 endif()
 
+#view 
+OPTION(USE_VIEW "Build with pangolin" ON)
 
 
 #Check C++11 or C++0x support
@@ -61,12 +59,23 @@ else()
 endif()
 
 find_package(Eigen3  REQUIRED)
+
+if(USE_VIEW)
 find_package(Pangolin REQUIRED)
-if(NOT Pangolin_FOUND)
-   message(FATAL_ERROR "Pangolin not found.")
-else()
-   message("pangolin path : " ${Pangolin_INCLUDE_DIRS})
+   if(NOT Pangolin_FOUND)
+      message(FATAL_ERROR "Pangolin not found.")
+      OPTION(USE_VIEW "Build with pangolin" OFF)
+   else()
+      message("pangolin path : " ${Pangolin_INCLUDE_DIRS})
+   endif()
 endif()
+
+#add source macro
+if(USE_VIEW)
+   add_definitions("-DUSE_VIEW")
+endif()
+
+FILE(GLOB_RECURSE SRC_LIST_CPP ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 #set include file search path
 include_directories(
@@ -88,58 +97,18 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 set(Positioning "position")
 
-add_library(${Positioning} SHARED
-src/base/P_Config.cpp
-src/base/P_Frame.cpp
-src/base/P_Utils.cpp
-src/base/P_Writer.cpp
-src/base/P_Checker.cpp
-src/base/P_CoorTrans.cpp
-src/base/P_Map.cpp
-src/base/P_MapPoint.cpp
-src/base/P_Converter.cpp
-src/base/P_Optimizer.cpp
-src/base/P_PoseEstimation.cpp
-src/base/P_Positioning.cpp
-src/base/P_BlockMatcher.cpp
-src/base/feature/P_Feature.cpp
-src/base/feature/P_FeatureMatcher.cpp
-src/base/feature/P_ORBFeature.cpp
-src/base/feature/FeatureQuadTree.cpp
-src/base/P_MultiVisionTrajProcesser.cpp
-src/viewer/P_PangolinViewer.cpp
-src/viewer/P_FrameViewer.cpp
-src/orb/P_UniformVTrajProcesser.cpp
-src/orb/P_ORBTracking.cpp
-src/orb/P_ORBLocalMapping.cpp
-src/orb/P_ORBLoopClosing.cpp
-src/orb/P_ORBmatcher.cpp
-src/orb/P_ORBMapPoint.cpp
-src/orb/P_ORBKeyFrame.cpp
-src/orb/P_ORBMap.cpp
-src/orb/P_ORBOptimizer.cpp
-src/orb/P_ORBPnPsolver.cpp
-src/orb/P_ORBFrame.cpp
-src/orb/P_ORBKeyFrameDatabase.cpp
-src/orb/P_ORBSim3Solver.cpp
-src/orb/P_ORBInitializer.cpp
-src/gps/GpsGlobalMap.cpp
-src/gps/GpsSim3Optimizer.cpp
-src/gps/P_GpsFusion.cpp
-src/P_Factory.cpp
-src/P_TrajProSelector.cpp
-src/P_MapDisplay.cpp
-src/project/hdproject.cpp
-src/project/weiyaproject.cpp
-src/project/imgautoproject.cpp
-)
+add_library(${Positioning} SHARED ${SRC_LIST_CPP})
 
 #link libs
 target_link_libraries(${Positioning}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
+)
+if(USE_VIEW)
+target_link_libraries(${Positioning}
 ${Pangolin_LIBRARIES}
 )
+endif()
 
 if(CMAKE_HOST_APPLE)
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
@@ -184,5 +153,5 @@ target_link_libraries(PoseEstimate ${Positioning})
 
 add_executable(TargetPosition  
 tools/TargetPosition.cpp
-tools/PosBatchGenerator.cpp)
+tools/PosBatchHandler.cpp)
 target_link_libraries(TargetPosition ${Positioning})

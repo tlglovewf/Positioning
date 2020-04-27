@@ -139,7 +139,6 @@ bool   FrameHelper::mInit = false;
         mIndex = index;
         mPose = Mat::eye(4,4,MATCVTYPE);
         mOw = Mat::zeros(4,1,MATCVTYPE);
-
     }
     PFrame::~PFrame()
     {

@@ -14,7 +14,7 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const std::shared_ptr<IData> &pdata)
                    {
-#if 1
+#if 0
                         mpFeature        = std::shared_ptr<IFeature>(new FeatureQuadTree(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
@@ -73,13 +73,17 @@ namespace Position
     //跟踪
     cv::Mat PMultiVisionTrajProcesser::track(const FrameData &data)
     {
-        assert(!data._img.empty());
+        
         
         Mat grayimg ;
 
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
         {//有畸变参数存在
             cv::undistort(data._img,grayimg,mCam.K,mCam.D);
+        }
+        else
+        {
+            grayimg = data._img;
         }
         if(grayimg.channels() > 1)
         {//先只考虑rbg模式的
@@ -157,10 +161,10 @@ namespace Position
             mpEst->setFrames(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm));
             Mat R,t;
             Position::Pt3Vector pts;
-            PROMTD_V(data._name.c_str(),"origin matches number ",matches.size());
+            // PROMTD_V(data._name.c_str(),"origin matches number ",matches.size());
             if(mpEst->estimate(R,t, matches,pts))
             {//推算位姿
-                PROMTD_V(data._name.c_str(),"estimate matches number ",matches.size());
+                // PROMTD_V(data._name.c_str(),"estimate matches number ",matches.size());
         
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 R.copyTo(pose.rowRange(0,3).colRange(0,3));

@@ -284,7 +284,7 @@ namespace Position
                 }
                 else
                 {
-                    PROMTD_V(mFrameDatas[i]._name.c_str(),"no target!!!");
+                    //PROMTD_V(mFrameDatas[i]._name.c_str(),"no target!!!");
                 }
             }
 
@@ -301,10 +301,24 @@ namespace Position
         return true;
     }
 
-
-    static inline ImgAutoPrjList::InfoIndex parseIndex(const std::string &str)
+    void SimpleBatchGenerator::generateBatches(const std::shared_ptr<IData> &pdata, const TrackerItemVector &trkItems,PrjBatchVector &batches)
     {
-         static std::regex re(string("\\(\\d*,\\d*\\)"));
+        batches.reserve(trkItems.size());
+        for(size_t i = 0; i < trkItems.size(); ++i)
+        {
+           const InfoIndex bg = trkItems[i].stno;
+           const InfoIndex ed = trkItems[i].edno;
+           
+           BatchItem batch(std::to_string(trkItems[i].id),ed.first - bg.first + 1);
+           batch._fmsdata.assign(pdata->begin() + bg.first,pdata->begin() + ed.first + 1);
+
+           batches.emplace_back(batch);
+        }
+    }
+
+    static inline InfoIndex parseIndex(const std::string &str)
+    {
+         static std::regex re(string("\\(\\d*, \\d*\\)"));
          bool ret = std::regex_match(str,re);
          if(ret)
          {
@@ -356,7 +370,11 @@ namespace Position
             }
             mfile.close();
         }
-        
+
+        assert(mpData);
+        assert(mBatchGenerator);
+        //genearte position batch 
+        mBatchGenerator->generateBatches(mpData,mTrackerInfos,mBatches);
     }
     //加载地图
     void ImgAutoPrjList::loadMap(const std::string &path)
@@ -367,16 +385,20 @@ namespace Position
     void ImgAutoPrjList::saveMap(const std::string &path)
     {
         if(!path.empty() && open(path,ios::out))
-        {
+        {   
             assert(mTrkLines.size() == mTrackerInfos.size());
-            for(string &item : mTrkLines)
+            assert(mTrackerInfos.size() == mBatches.size());
+            for(size_t i = 0; i < mTrackerInfos.size(); ++i)
             {
                 char gpsstr[50] = {0};
-                double lon = 116.1234567;
-                double lat = 39.7654321;
-                sprintf(gpsstr,"%s(%.7f,%.7f)",SPLITSTR,lat,lon);
-                item.append(string(gpsstr));
-                mfile << item.c_str() << endl; 
+                const BLHCoordinate blh = mTrackerInfos[i].blh;
+                if(BLHCoordinate::isValid(blh))
+                {
+                    sprintf(gpsstr,"%s(%.7f,%.7f)",SPLITSTR,blh.lat,blh.lon);
+                }
+                
+                mTrkLines[i].append(string(gpsstr));
+                mfile << mTrkLines[i].c_str() << endl;
             }
             mfile.close();
         }

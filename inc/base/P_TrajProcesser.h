@@ -72,7 +72,7 @@ namespace Position
         //结束
         virtual void over() 
         {
-            assert(NULL);
+            // add more...
         }
 
          //处理
@@ -107,7 +107,7 @@ namespace Position
         //等待
         virtual void wait()
         {
-            assert(NULL);
+            //add more
         }
     protected:
 

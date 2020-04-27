@@ -17,4 +17,14 @@ namespace Position
                return true;
            }
     }
+    bool PChecker::check(const std::string &str)
+    {
+        return true;
+    }
+
+    bool PathChecker::check(const std::string &str)
+    {
+        //add more 
+        return true;
+    }
 }

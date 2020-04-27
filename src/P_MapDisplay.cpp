@@ -44,6 +44,7 @@ void PMapDisplay::run()
     const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
     bool hasTarget =  false;
 
+    int index = 0;
     //帧循环 构建局部场景
     for(;it != ed ;++it)
     {//遍历帧
@@ -51,18 +52,13 @@ void PMapDisplay::run()
         const std::string picpath = imgpath + it->_name;
         it->_img = imread(picpath,IMREAD_UNCHANGED);
         mpTrajProSelector->handle(*it);
+        (*it)._img.release();
     }
 
     //等待线程处理
     mpTrajProSelector->waitingForHandle();
 
     mpGpsFunsion->fuse(mpTrajProSelector->getMap(),mpData->getCamera());
-    
-    //完成一段轨迹推算  记录结果
-    saveResult();
-    mpTrajProSelector->reset();//重置状态
-
-    mpTrajProSelector->release();
 
     if(mpViewer)
     {//如果有可视接口 显示该段
@@ -72,6 +68,11 @@ void PMapDisplay::run()
         //     mptViewer->join();
         // }
     }
+    //完成一段轨迹推算  记录结果
+    saveResult();
+    mpTrajProSelector->reset();//重置状态
+
+    mpTrajProSelector->release();
 }
 
 

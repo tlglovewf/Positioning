@@ -216,6 +216,9 @@ namespace Position
         //最后一个元素
         virtual FrameDataVIter end() = 0;
 
+        //数据总量
+        virtual size_t size()const = 0;
+
         // 获取相机参数 default(0)  left    1 right 
         virtual const CameraParam& getCamera(int index = 0)const = 0;
 
@@ -270,6 +273,7 @@ namespace Position
     public:
         //检查
         virtual bool check(const FrameData &frame) = 0;
+        virtual bool check(const std::string &str) = 0;
     };
 
     //特征接口
@@ -382,7 +386,7 @@ namespace Position
         //定位关键帧中目标
         virtual void position(IKeyFrame *frame) = 0;
         //定位关键点
-        virtual void position(IKeyFrame *frame, const Point2f &prept) = 0;
+        virtual Mat position(const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2) = 0;
         //获取极线
         virtual EpLine computeEpLine(const cv::Mat &R, const cv::Mat &t,const cv::Point2f &pt) = 0;
         //极线匹配(基于目标包围盒)

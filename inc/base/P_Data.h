@@ -37,7 +37,11 @@ namespace Position
         {
             return mFrameDatas.end();
         }
-
+        //数据总量
+        virtual size_t size()const 
+        {
+            return mFrameDatas.size();
+        }
         // 获取相机参数 default(0)  left    1 right 
         virtual const CameraParam& getCamera(int index = 0)const
         {

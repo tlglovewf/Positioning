@@ -18,7 +18,7 @@ namespace Position
         TrajProSelector(const std::shared_ptr<IConfig> &pCfg, const std::shared_ptr<IData> &pdata);
 
         //处理帧数据
-        bool process(const FrameDataVector &datas);
+        bool process( FrameDataVector &datas,const std::string &imgpath = "");
 
         //处理单帧
         bool handle(const FrameData &data);

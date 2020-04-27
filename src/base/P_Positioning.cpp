@@ -172,6 +172,24 @@ namespace Position
         //ADD MORE...
     }
 
+
+    Mat MultiImgPositioning::position(const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2)
+    {
+        if(R.empty() || t.empty())
+            return Mat();
+        cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
+        mCamera.K.copyTo(P1.rowRange(0,3).colRange(0,3));
+
+        // Camera 2 Projection Matrix K[R|t]
+        cv::Mat P2(3,4,MATCVTYPE);
+        R.copyTo(P2.rowRange(0,3).colRange(0,3));
+        t.copyTo(P2.rowRange(0,3).col(3));
+        P2 = mCamera.K * P2;
+        Mat rst;
+        PUtils::Triangulate(pt1,pt2,P1,P2,rst);
+        return rst;
+    }
+
     //定位
     void MultiImgPositioning::position(IKeyFrame *frame)
     {

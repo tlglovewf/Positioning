@@ -4,7 +4,7 @@
 #include "P_Utils.h"
 #include "project/imgautoproject.h"
 #include "P_MapDisplay.h"
-
+#include "PosBatchHandler.h"
 
 int main(void)
 {
@@ -27,7 +27,6 @@ int main(void)
         return -1;
     }
 
-    std::shared_ptr<Position::IPositioning> pPosition(Position::PFactory::CreatePositioning(Position::ePMultiImage,pData->getCamera()));
 
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();
@@ -35,10 +34,6 @@ int main(void)
     const std::string imgpath = GETCFGVALUE(pCfg,ImgPath, string);
     if(imgpath.empty())
         return -1;  
-
-    Position::ImgAutoPrjList prjlist;
-    prjlist.loadPrjList("/media/tlg/work/tlgfiles/WEIYA/9900000120042200/tracker/tracker.txt");
-    prjlist.saveMap("/media/tlg/work/tlgfiles/WEIYA/9900000120042200/config/test.txt");
 
     // for(; iter != ed; ++iter)
     // {
@@ -56,6 +51,19 @@ int main(void)
     //     imshow("image", image);
     //     waitKey(5);
     // }
+
+    PosBatchHandler poshandler(pCfg,pData);
+
+    if(poshandler.loadTrackerInfos("/media/tlg/work/tlgfiles/WEIYA/9900000120042200/tracker/tracker.txt"))
+    {
+        //先计算位姿
+        poshandler.poseEstimate();
+        //目标定位 
+        poshandler.targetPositioning();
+        //结果输出
+        poshandler.saveResult("/media/tlg/work/tlgfiles/WEIYA/9900000120042200/config/test.txt");
+    }
+    
 #endif
 
     return 0;

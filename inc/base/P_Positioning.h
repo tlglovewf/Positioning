@@ -25,8 +25,8 @@ namespace Position
             assert(NULL);
         }
 
-        //定位关键点
-        virtual void position(IKeyFrame *frame,const Point2f &prept)
+         //定位关键点
+        virtual Mat position(const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2)
         {
             assert(NULL);
         }
@@ -78,6 +78,8 @@ namespace Position
         virtual void position(IKeyFrame *frame);
          //定位场景地图关键帧中目标
         virtual void position(const std::shared_ptr<IMap> &pMap);
+        //定位关键点
+        virtual Mat position(const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2);
     };
 
     //深度估计定位

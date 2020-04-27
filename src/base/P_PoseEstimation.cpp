@@ -988,7 +988,6 @@ namespace Position
         assert(mvMatches12.size() == mPrePts.size());
         BolVector bols;
         bols.resize(vPts.size());
-        cout << "-" << out.cols << "+" << mPrePts.size() << endl;
 
         for(size_t i = 0; i < mPrePts.size(); ++i)
         {

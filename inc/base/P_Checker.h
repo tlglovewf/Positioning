@@ -16,7 +16,16 @@ namespace Position
     public:
         //检查
         virtual bool check(const FrameData &frame) ;
+        virtual bool check(const std::string &str) ;
     };
+
+    class PathChecker
+    {
+    public:
+        static bool check(const std::string &path) ;
+    };
+    
+#define PATHCHECK(path) PathChecker::check(path)
 }
 
 #endif
