@@ -4,6 +4,7 @@
 #define COLGRIDNUMBER 3
 #define ROWGRIDNUMBER 3
 
+#ifdef USE_CVXFEATURE
 
 FeatureQuadTree::FeatureQuadTree(int nFeatures):mMaxFeatures(nFeatures)
 {
@@ -444,3 +445,4 @@ void FeatureQuadTree::createQuadTree(KeyPtVector &keypts)
 }
 
 
+#endif

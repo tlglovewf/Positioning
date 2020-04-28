@@ -1,6 +1,8 @@
 #ifndef  _FEATUREQUADTREE_H_H
 #define  _FEATUREQUADTREE_H_H
 
+#ifdef USE_CVXFEATURE
+
 #include "P_Interface.h"
 #include <opencv2/xfeatures2d.hpp>
 
@@ -38,7 +40,7 @@ protected:
     int                     mMaxFeatures;
 };
 
-
+#endif
 
 
 #endif
