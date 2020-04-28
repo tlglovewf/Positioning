@@ -32,6 +32,9 @@ using namespace cv;
 #define WEIYA           0  //是否为weiya数据
 #define USECONTROLLER   1  //是否启用定位框架
 
+#ifdef USE_VIEW
+
+//self define format file
 void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 {
     string outpath = GETCFGVALUE(pCfg,OutPath,string) + "/";
@@ -60,6 +63,7 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 #endif
 }
 
+//hd batch trace dispaly
 void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std::shared_ptr<Position::IConfig> &pcfg)
 {
     if(prj)
@@ -96,6 +100,7 @@ void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std
         pviewer->renderLoop();
     }
 }
+#endif
 
 //加载hd batch
 void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)

@@ -377,7 +377,9 @@ int main(void)
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
     std::shared_ptr<Position::IFeatureMatcher>  pmatcher(new Position::PKnnMatcher);
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
+#ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+#endif
     std::shared_ptr<Position::IPoseEstimation>  poseest(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));//  ePoseEstCV));
     
 

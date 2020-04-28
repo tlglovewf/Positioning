@@ -1,6 +1,8 @@
 #include "P_PangolinViewer.h"
 #include "P_Writer.h"
 
+#ifdef USE_VIEW
+
 namespace Position
 {
     //构造函数
@@ -393,3 +395,5 @@ namespace Position
         glEnd();
     }
 } // namespace Position
+
+#endif

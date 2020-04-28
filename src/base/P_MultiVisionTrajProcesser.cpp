@@ -74,7 +74,7 @@ namespace Position
     cv::Mat PMultiVisionTrajProcesser::track(const FrameData &data)
     {
         
-        
+        PROMT_V("Load",data._name.c_str());
         Mat grayimg ;
 
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
@@ -127,18 +127,6 @@ namespace Position
 
         Position::MatchVector matches = mpFeatureMatcher->match(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm),mFtSearchRadius); 
 
-
-        // if(matches.size() < 80)
-        // {
-        //     matches = pMatcher->match(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm),searchradius * 2);
-        // }
-        // if(matches.size() < 80)
-        // {
-        //     mpLastKeyFm = mpCurrentKeyFm;
-        //     PROMT_V("Match point not enough.",matches.size());
-        //     return Mat();
-        // }
-
         if(matches.empty())
         {
             mStatus = eTrackLost;
@@ -161,10 +149,9 @@ namespace Position
             mpEst->setFrames(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm));
             Mat R,t;
             Position::Pt3Vector pts;
-            // PROMTD_V(data._name.c_str(),"origin matches number ",matches.size());
+            // PROMTD_V(data._name.c_str()," matches ",matches.size());
             if(mpEst->estimate(R,t, matches,pts))
             {//推算位姿
-                // PROMTD_V(data._name.c_str(),"estimate matches number ",matches.size());
         
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 R.copyTo(pose.rowRange(0,3).colRange(0,3));
@@ -192,10 +179,10 @@ namespace Position
                 }
 
                 auto temps = mpCurrentKeyFm->getWorldPoints();
-                PROMTD_V("frame mppts size" ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
-                {
-                    return item != NULL;
-                }));
+                // PROMTD_V("frame mppts size" ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
+                // {
+                //     return item != NULL;
+                // }));
 
                 mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
              

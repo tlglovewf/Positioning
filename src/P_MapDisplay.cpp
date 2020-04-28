@@ -26,12 +26,14 @@ PMapDisplay::PMapDisplay(const shared_ptr<Position::IData> &pdata,
 
     mpTrajProSelector = std::unique_ptr<Position::TrajProSelector>(new Position::TrajProSelector(pcfg,pdata));
 
+#ifdef USE_VIEW
     if(GETCFGVALUE(mpConfig,ViewEnable,int))
     {
         mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg));
         mpTrajProSelector->setViewer(mpViewer);
         //mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop,mpViewer));
     }
+#endif
 
     mpGpsFunsion  = std::unique_ptr<Position::IGpsFusion>(new Position::GpsFunsion());
 }
@@ -59,7 +61,7 @@ void PMapDisplay::run()
     mpTrajProSelector->waitingForHandle();
 
     mpGpsFunsion->fuse(mpTrajProSelector->getMap(),mpData->getCamera());
-
+#ifdef USE_VIEW
     if(mpViewer)
     {//如果有可视接口 显示该段
         mpViewer->renderLoop();
@@ -68,6 +70,7 @@ void PMapDisplay::run()
         //     mptViewer->join();
         // }
     }
+#endif
     //完成一段轨迹推算  记录结果
     saveResult();
     mpTrajProSelector->reset();//重置状态

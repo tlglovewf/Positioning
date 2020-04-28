@@ -28,8 +28,9 @@ protected:
 protected:
     std::shared_ptr<Position::IConfig>          mpConfig;
     std::shared_ptr<Position::IData>            mpData;
+#ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>          mpViewer;
-    
+#endif
     std::unique_ptr<Position::TrajProSelector>  mpTrajProSelector;
     std::unique_ptr<Position::IGpsFusion>       mpGpsFunsion;
 

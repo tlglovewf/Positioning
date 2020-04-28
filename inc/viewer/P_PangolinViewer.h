@@ -6,6 +6,9 @@
  */
 #ifndef __PANGOLINVIWER_H_H_
 #define __PANGOLINVIWER_H_H_
+
+#ifdef  USE_VIEW
+
 #include "P_Interface.h"
 #include "P_FrameViewer.h"
 #include <pangolin/pangolin.h>
@@ -64,5 +67,8 @@ namespace Position
         int                             mWinH;
     };
 }
+
+#endif
+
 
 #endif

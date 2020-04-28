@@ -115,11 +115,12 @@ namespace Position
          */
         static IPositioning* CreatePositioning(ePositioningType type, const CameraParam  &pcfg);
         
+#ifdef USE_VIEW
         /*
          * 创建可视化
          */
         static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg);
-
+#endif
         /*
          * 创建轨迹处理对象
          */

@@ -121,6 +121,7 @@ namespace Position
                 }
          }
      }
+#ifdef USE_VIEW
     /*
      * 创建可视化
      */
@@ -137,6 +138,7 @@ namespace Position
                 }
         }
     }
+#endif
 
     /*
      * 创建跟踪对象
@@ -206,6 +208,7 @@ namespace Position
     //显示地图
     void MapSerManager::displayMap(const std::shared_ptr<IConfig> &pCfg, const std::string &trac,const std::string &mpts)
     {
+#ifdef USE_VIEW
         //可视化帧数据
         std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
         std::shared_ptr<Position::IMap> pmap(new Position::PMap());
@@ -214,6 +217,7 @@ namespace Position
         mpPtSer->loadMap(mpts);
         pv->setMap(pmap);
         pv->renderLoop();
+#endif
     }
     //融合地图  secMap -> baseMap
     void MapSerManager::combineMap(std::shared_ptr<IMap> &baseMap, const std::shared_ptr<IMap> &secMap)

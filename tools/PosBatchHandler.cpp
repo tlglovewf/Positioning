@@ -55,7 +55,10 @@ bool PosBatchHandler::loadTrackerInfos(const std::string &path)
 
 void PosBatchHandler::saveResult(const std::string &path)
 {
+    PROMT_V("Saving result to ",path.c_str());
     mPrjList->saveMap(path);
+    PROMT_S("Over! Thank you!");
+
 }
 const int test_count = 1;
 //估算batch 位姿
@@ -71,6 +74,7 @@ void PosBatchHandler::poseEstimate()
     
     for(size_t i = 0; i < targets.size(); ++i)
     {
+        PROMT_V("handle batch",targets[i].id);
 //        if(i >= test_count)
 //            break;
         assert(std::to_string(targets[i].id) == batches[i]._btname);
@@ -91,7 +95,7 @@ void PosBatchHandler::poseEstimate()
                 }
             }
         }
-
+        PROMT_V("batch handle over.",batches[i]._n);
         mTrjSelector.reset();
     }
 
@@ -154,7 +158,7 @@ const BLHCoordinate& checkBlh(const BLHCoordinate &frame, const BLHCoordinate &r
     double dlon = gaus2.x - gaus1.x;
     double dlat = gaus2.y - gaus2.y;
     double dt = fabs(dlon) + fabs(dlat);
-    //暂定  横纵和 > 10m为计算无效
+    //暂定  横纵绝对值之和 > 10m为计算无效
     if( dt > 10.0 )
     {
         return frame;
@@ -178,6 +182,7 @@ void PosBatchHandler::targetPositioning()
     for(size_t i = 0; i < targets.size(); ++i)
     {
         TrackerItem &target = targets[i];
+        PROMT_V("get target",target.id,"position.");
         if(target.maxsize >= 2)
         {//只有在关联帧数大于2 才进入量测赋值,否则保持原有当前帧的值
             int idx1, idx2;
@@ -216,7 +221,7 @@ void PosBatchHandler::targetPositioning()
 
             resize(x3d,x3d,Size(1,4));
             x3d.at<MATTYPE>(3) = 1.0;
-            cout << "x3d " << x3d << endl;
+
             Mat wdpt = trans * x3d;
             //坐标转换
             BLHCoordinate rstblh  =  PCoorTrans::XYZ_to_BLH(XYZCoordinate(wdpt.at<MATTYPE>(0),
@@ -224,7 +229,8 @@ void PosBatchHandler::targetPositioning()
                                                                           wdpt.at<MATTYPE>(2)));
 
             target.blh = checkBlh(frame1._pos.pos,rstblh);
-            cout << "result " << target.blh.lon << " " << target.blh.lat << endl;
+
+            PROMT_V("target",target.id,target.blh.lon,target.blh.lat);
         }             
     }
 

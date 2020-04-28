@@ -1,5 +1,5 @@
 
-COMTYPE=Debug
+COMTYPE=Release
 
 #build thirdparty lib
 cd Thirdparty 

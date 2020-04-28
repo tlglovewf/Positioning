@@ -24,7 +24,7 @@ if(CMAKE_HOST_APPLE)
 endif()
 
 #view 
-OPTION(USE_VIEW "Build with pangolin" ON)
+OPTION(USE_VIEWER "Build with pangolin" OFF)
 
 
 #Check C++11 or C++0x support
@@ -60,18 +60,18 @@ endif()
 
 find_package(Eigen3  REQUIRED)
 
-if(USE_VIEW)
+if(USE_VIEWER)
 find_package(Pangolin REQUIRED)
    if(NOT Pangolin_FOUND)
       message(FATAL_ERROR "Pangolin not found.")
-      OPTION(USE_VIEW "Build with pangolin" OFF)
+      OPTION(USE_VIEWER "Build with pangolin" OFF)
    else()
       message("pangolin path : " ${Pangolin_INCLUDE_DIRS})
    endif()
 endif()
 
 #add source macro
-if(USE_VIEW)
+if (USE_VIEWER)
    add_definitions("-DUSE_VIEW")
 endif()
 
@@ -104,7 +104,7 @@ target_link_libraries(${Positioning}
 ${OpenCV_LIBS}
 ${EIGEN3_LIBS}
 )
-if(USE_VIEW)
+if(USE_VIEWER)
 target_link_libraries(${Positioning}
 ${Pangolin_LIBRARIES}
 )
@@ -137,19 +137,19 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/GeographicLib/lib/libGeographic.a)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
 #build exe 
-add_executable(Positioning
-main.cpp)
-target_link_libraries(Positioning ${Positioning})
+# add_executable(Positioning
+# main.cpp)
+# target_link_libraries(Positioning ${Positioning})
 
 # add_executable(SimpleTest
 # simpletest.cpp)
 # target_link_libraries(SimpleTest ${Positioning})
 
-add_executable(PoseEstimate
-twoframe/poseestimate.cpp 
-twoframe/ASiftDetector.cpp
-)
-target_link_libraries(PoseEstimate ${Positioning})
+# add_executable(PoseEstimate
+# twoframe/poseestimate.cpp 
+# twoframe/ASiftDetector.cpp
+# )
+# target_link_libraries(PoseEstimate ${Positioning})
 
 add_executable(TargetPosition  
 tools/TargetPosition.cpp
