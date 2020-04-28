@@ -92,7 +92,7 @@ public:
     void setOrbMap(gps::GpsGlobalMap& globalmap);
     void getGlobalGPS(double time,double& latitude, double& longitude, double& altitude);
     void getFrameXYZ(int index, double &x, double &y, double &z);
-
+    Eigen::Matrix4d getGlobalPos(double time);
     GeographicLib::LocalCartesian geoConverter;//gps坐标转换器
 private:
     void ComputeSim3();//计算sim3
