@@ -180,6 +180,25 @@ void GpsSim3Optimizer::getGlobalGPS(double time,double& latitude, double& longit
     }
 
 }
+//获取相对位姿，从当前帧到第一帧
+Eigen::Matrix4d GpsSim3Optimizer::getGlobalPos(double time)
+{
+    if(mGlobalMap.frames[0]->time_stamp - time < 0.001 && mGlobalMap.frames[0]->time_stamp - time > -0.001)//第一帧
+    {
+        return Eigen::Matrix4d::Identity();
+    }
+    for(int i = 0 ;i < mGlobalMap.frames.size(); i++)
+    {
+        
+        if(mGlobalMap.frames[i]->time_stamp - time < 0.001 && mGlobalMap.frames[i]->time_stamp - time > -0.001)
+        {
+            Eigen::Matrix4d Tivw = mGlobalMap.frames[i]->getPose().inverse() * mGlobalMap.frames[0]->getPose();
+            Eigen::Matrix4d Tvwi = Tivw.inverse();
+            return Tvwi;
+        }
+        
+    }
+}
 
 void GpsSim3Optimizer::ComputeSim3()
 {
