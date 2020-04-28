@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(CV_Project)
+project(Positioning)
 
 #set cmake build type
 IF(NOT CMAKE_BUILD_TYPE)
@@ -113,26 +113,26 @@ endif()
 if(CMAKE_HOST_APPLE)
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.dylib
-         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.dylib)
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2o.dylib
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2.dylib)
    else()
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2od.dylib
-         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2d.dylib)
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2od.dylib
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2d.dylib)
    endif()
 else()
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
-         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so)
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2o.so
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2.so)
    else()
       target_link_libraries(${Positioning}
-         ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2od.so
-         ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2d.so)
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2od.so
+         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2d.so)
    endif()
 endif()
 target_link_libraries(${Positioning}
-${PROJECT_SOURCE_DIR}/Thirdparty/GeographicLib/lib/libGeographic.a)
+${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeographic.a)
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
@@ -155,3 +155,19 @@ add_executable(TargetPosition
 tools/TargetPosition.cpp
 tools/PosBatchHandler.cpp)
 target_link_libraries(TargetPosition ${Positioning})
+
+set(CMAKE_INSTALL_PREFIX /usr/local/)
+IF(NOT CMAKE_INSTALL_CONFIG_NAME)
+   set(CMAKE_INSTALL_CONFIG_NAME ${CMAKE_BUILD_TYPE})
+endif()
+install(TARGETS TargetPosition
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+ 
+FILE(GLOB TARGET_LIBS ${PROJECT_SOURCE_DIR}/lib/*.so)
+
+install(FILES ${TARGET_LIBS}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+# uninstall
+include(cmake/PositionUninstall.cmake)
