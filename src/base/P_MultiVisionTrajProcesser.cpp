@@ -150,9 +150,13 @@ namespace Position
             Mat R,t;
             Position::Pt3Vector pts;
             // PROMTD_V(data._name.c_str()," matches ",matches.size());
+            if(matches.size() < 4)
+            {
+                return Mat();
+            }
             if(mpEst->estimate(R,t, matches,pts))
             {//推算位姿
-        
+                cout << "1" << endl;
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 R.copyTo(pose.rowRange(0,3).colRange(0,3));
                 t.copyTo(pose.rowRange(0,3).col(3));

@@ -7,11 +7,11 @@
 #include "P_Checker.h"
 int main(int argc, char **argv)
 {
-    if(3 != argc)
+    if(2 != argc)
     {
         PROMTD_S("Paramer's size error!");
         PROMTD_S("Please input absolutely path");
-        PROMTD_V("Format","TargetPosition \"PROJROOTPATH\" \"CONFIGPATH\" ");
+        PROMTD_V("Format","TargetPosition \"PROJROOTPATH\" ");
         return -1;
     }
 
@@ -20,17 +20,21 @@ int main(int argc, char **argv)
         PROMTD_V(argv[1], "Dirtroy not found! Please Check it.");
         return -1;
     }
-    if(!PATHCHECK(argv[2]))
+    PROMTD_V("Project Path",argv[1]);
+    string prjpath = string(argv[1]) + "/";
+    string cfgpath = prjpath + "config/config.yaml";
+
+    if(!PATHCHECK(cfgpath))
     {
-        PROMTD_V(argv[2], "Config not found! Please Check it.");
+        PROMTD_V(cfgpath.c_str(), "Config not found! Please Check it.");
         return -1;
     }
 
-    PROMTD_V("Project Path",argv[1]);
-    PROMTD_V("Config Path",argv[2]);
+    
+    PROMTD_V("Config Path",cfgpath.c_str());
 
-    string prjpath = string(argv[1]) + "/";
-    std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig(argv[2])); 
+    
+    std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig(cfgpath)); 
     SETCFGVALUE(pCfg,PrjPath,prjpath);
     SETCFGVALUE(pCfg,CamMatrixPath,string(prjpath + "config/extrinsics.xml"));
     std::shared_ptr<Position::IData>   pData(new Position::ImgAutoData(pCfg));
@@ -45,11 +49,12 @@ int main(int argc, char **argv)
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();
 
+  
+
+#if 0  //only for test
     const std::string imgpath = GETCFGVALUE(pCfg,ImgPath, string);
     if(imgpath.empty())
         return -1;  
-
-#if 0  //only for test
     for(; iter != ed; ++iter)
     {
         if(iter->_targets.empty())
