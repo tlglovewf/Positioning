@@ -1,3 +1,6 @@
+
+message(STATUS "------Build Test Programs---------")
+
 #build test_trace # XXX_SOURCE_DIR   XXX stand for projectname
 add_executable(test_trace
 ${Positioning_SOURCE_DIR}/test/test_trace.cpp)
