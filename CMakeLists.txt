@@ -160,18 +160,19 @@ tools/TargetPosition.cpp
 tools/PosBatchHandler.cpp)
 target_link_libraries(TargetPosition ${Positioning})
 
-#set(CMAKE_INSTALL_PREFIX /usr/local/)
+set(CMAKE_INSTALL_PREFIX /usr/local/)
 #IF(NOT CMAKE_INSTALL_CONFIG_NAME)
 #   set(CMAKE_INSTALL_CONFIG_NAME ${CMAKE_BUILD_TYPE})
 #endif()
-#install(TARGETS TargetPosition
-#        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-#        ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
- 
-#FILE(GLOB TARGET_LIBS ${PROJECT_SOURCE_DIR}/lib/*.so)
+install(TARGETS TargetPosition ${Positioning}
+       RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+       LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
-#install(FILES ${TARGET_LIBS}
-#        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+FILE(GLOB DEPEND_LIBS ${PROJECT_SOURCE_DIR}/lib/*.so)
 
-# uninstall
-#include(cmake/PositionUninstall.cmake)
+#ARCHIVE DESTINATION
+install(FILES ${DEPEND_LIBS}
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+#uninstall
+include(cmake/PositionUninstall.cmake)
