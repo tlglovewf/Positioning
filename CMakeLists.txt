@@ -161,9 +161,7 @@ tools/PosBatchHandler.cpp)
 target_link_libraries(TargetPosition ${Positioning})
 
 set(CMAKE_INSTALL_PREFIX /usr/local/)
-#IF(NOT CMAKE_INSTALL_CONFIG_NAME)
-#   set(CMAKE_INSTALL_CONFIG_NAME ${CMAKE_BUILD_TYPE})
-#endif()
+
 install(TARGETS TargetPosition ${Positioning}
        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
