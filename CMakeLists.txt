@@ -82,18 +82,28 @@ endif()
 
 FILE(GLOB_RECURSE SRC_LIST_CPP ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
-#set include file search path
+# recurrence include directories
+function(include_sub_directories_recursively root_dir)
+    if (IS_DIRECTORY ${root_dir})               #check directory
+        message("include dir: " ${root_dir})
+        include_directories(${root_dir})
+    endif()
+    file(GLOB ALL_SUB RELATIVE ${root_dir} ${root_dir}/*) #insert sub dirs 
+    foreach(sub ${ALL_SUB})
+        if (IS_DIRECTORY ${root_dir}/${sub})
+            include_sub_directories_recursively(${root_dir}/${sub}) #
+        endif()
+    endforeach()
+endfunction()
+
+
 include_directories(
 ${PROJECT_SOURCE_DIR}
-${PROJECT_SOURCE_DIR}/inc
-${PROJECT_SOURCE_DIR}/inc/base
-${PROJECT_SOURCE_DIR}/inc/base/feature
-${PROJECT_SOURCE_DIR}/inc/orb
-${PROJECT_SOURCE_DIR}/inc/viewer
-${PROJECT_SOURCE_DIR}/inc/gps
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
 )
+include_sub_directories_recursively(${PROJECT_SOURCE_DIR}/inc)
+
 
 #set lib link path 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
