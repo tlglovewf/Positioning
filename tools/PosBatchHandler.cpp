@@ -85,7 +85,7 @@ void PosBatchHandler::poseEstimate()
             if(mTrjSelector.process(batches[i]._fmsdata,imgpath))
             {//位姿估算成功
                 KeyFrameVector frames = mTrjSelector.getMap()->getAllFrames();
-                IMap::SortFrames(frames);
+               
                 assert(frames.size() == batches[i]._fmsdata.size());
                 for(size_t m = 0; m < frames.size(); ++m)
                 {

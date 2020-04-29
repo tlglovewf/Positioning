@@ -50,7 +50,9 @@ namespace Position
     KeyFrameVector ORBMap::getAllFrames()
     {
         unique_lock<mutex> lock(mMutexMap);
-        return KeyFrameVector(mspKeyFrames.begin(),mspKeyFrames.end());
+        KeyFrameVector temps(mspKeyFrames.begin(), mspKeyFrames.end());
+        IMap::SortFrames(temps);
+        return std::move(temps);
     }
 
     MapPtVector ORBMap::getAllMapPts()

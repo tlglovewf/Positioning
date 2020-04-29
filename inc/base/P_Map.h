@@ -102,7 +102,9 @@ namespace Position
         KeyFrameVector getAllFrames()
         {
             // std::unique_lock<mutex> lock(mMutexMapUpdate);
-            return KeyFrameVector(mMapFms.begin(),mMapFms.end());
+            KeyFrameVector temps(mMapFms.begin(), mMapFms.end());
+            IMap::SortFrames(temps);
+            return std::move(temps);
         }
 
         //设最近点关联地图点

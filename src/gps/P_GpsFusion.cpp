@@ -17,7 +17,7 @@ namespace  Position
         GpsSim3Optimizer sim3opt;
 
         KeyFrameVector vpkfs = pmap->getAllFrames();
-        IMap::SortFrames(vpkfs);
+        
         //只为测试
         const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
         const std::string strfus = "/media/tlg/work/tlgfiles/HDData/result/est.txt";

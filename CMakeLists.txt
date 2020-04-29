@@ -24,8 +24,9 @@ if(CMAKE_HOST_APPLE)
 endif()
 
 #view 
-OPTION(USE_VIEWER "Build with pangolin" OFF)
-OPTION(USE_XFEATURE "Build with sift"   OFF)
+OPTION(USE_VIEWER    "Build with pangolin" OFF)
+OPTION(USE_XFEATURE  "Build with sift"     OFF)
+OPTION(BUILD_TESTS   "Build test program"  OFF)
 
 if(USE_XFEATURE)
    add_definitions("-DUSE_CVXFEATURE")
@@ -140,20 +141,9 @@ ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeographic.a)
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
-#build exe 
-# add_executable(Positioning
-# main.cpp)
-# target_link_libraries(Positioning ${Positioning})
-
-# add_executable(SimpleTest
-# simpletest.cpp)
-# target_link_libraries(SimpleTest ${Positioning})
-
-# add_executable(PoseEstimate
-# twoframe/poseestimate.cpp 
-# twoframe/ASiftDetector.cpp
-# )
-# target_link_libraries(PoseEstimate ${Positioning})
+if(BUILD_TESTS)
+   add_subdirectory(test)
+endif()
 
 add_executable(TargetPosition  
 tools/TargetPosition.cpp

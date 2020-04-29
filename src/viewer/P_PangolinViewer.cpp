@@ -353,7 +353,7 @@ namespace Position
     void Pangolin_Viewer::drawTraceLine()
     {
         KeyFrameVector vpKFs(mMap->getAllFrames());
-        IMap::SortFrames(vpKFs);
+        
         const float framelineW = 1.0;
         glLineWidth(framelineW);
         glBegin(GL_LINE_STRIP);
