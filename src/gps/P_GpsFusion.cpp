@@ -47,7 +47,7 @@ namespace  Position
 
             Eigen::Quaterniond rot(PConverter::toMatrix3d(Rwc));
             std::shared_ptr<gps::GpsFrame> frame_p = std::make_shared<gps::GpsFrame>();
-            frame_p->time_stamp = pkf->getData()._pos._t;
+            frame_p->time_stamp = pkf->getData()->_pos._t;
 
             frame_p->fx = cam.K.at<MATTYPE>(0,0);
             frame_p->fy = cam.K.at<MATTYPE>(1,1);
@@ -70,10 +70,10 @@ namespace  Position
             frame_p->id= pkf->index();
             
             GPSData gps;
-            gps.lat = pkf->getData()._pos.pos.lat;
-            gps.lon = pkf->getData()._pos.pos.lon;
-            gps.alt = pkf->getData()._pos.pos.alt;
-            gps.t   = pkf->getData()._pos._t;
+            gps.lat = pkf->getData()->_pos.pos.lat;
+            gps.lon = pkf->getData()->_pos.pos.lon;
+            gps.alt = pkf->getData()->_pos.pos.alt;
+            gps.t   = pkf->getData()->_pos._t;
             gps.conf = 1;
             // if(i % 10 == 0)
             // {//添加偏移
@@ -101,7 +101,7 @@ namespace  Position
             blh.lon = gps.lon;
             blh.lat = gps.lat;
             blh.alt = gps.alt;
-            PStaticWriter::WriteRealTrace(fori,blh,pkf->getData()._name);
+            PStaticWriter::WriteRealTrace(fori,blh,pkf->getData()->_name);
         }
 
 
@@ -170,7 +170,7 @@ namespace  Position
             blh.lon = lon;
             blh.lat = lat;
             blh.alt = alt;
-            PStaticWriter::WriteEstTrace(ffuse,blh,Point3d(0,0,0), vpkfs[i]->getData()._name);
+            PStaticWriter::WriteEstTrace(ffuse,blh,Point3d(0,0,0), vpkfs[i]->getData()->_name);
         }
 
 

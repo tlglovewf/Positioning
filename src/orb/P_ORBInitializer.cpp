@@ -18,7 +18,7 @@ Initializer::Initializer(const ORBFrame &ReferenceFrame, float sigma, int iterat
 
     mvKeys1 = ReferenceFrame.mvKeysUn;
 
-    refImg = ReferenceFrame.getData()._img;
+    refImg = ReferenceFrame.getData()->_img;
 
     mSigma = sigma;
     mSigma2 = sigma*sigma;
@@ -116,7 +116,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     if(!bRet)
     {
 
-        cout << "reconstruct error! " << CurrentFrame.getData()._name.c_str() << endl;
+        cout << "reconstruct error! " << CurrentFrame.getData()->_name.c_str() << endl;
 #if 0
         Position::MatchVector matches;
 
@@ -130,14 +130,14 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
         }
 
         Mat mm;
-        cv::drawMatches(refImg,mvKeys1,CurrentFrame.getData()._img,mvKeys2,matches,mm,CV_RGB(255,0,0));
-        std::string resultstr = CurrentFrame.getData()._name + "\n";
+        cv::drawMatches(refImg,mvKeys1,CurrentFrame.getData()->_img,mvKeys2,matches,mm,CV_RGB(255,0,0));
+        std::string resultstr = CurrentFrame.getData()->_name + "\n";
         resultstr.append(std::string("RH:") + std::to_string(RH) + "\n");
         resultstr += "Score:" + std::to_string(SF / (mvMatches12.size()));
         putText(mm, resultstr , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
 
         static int iidx = 0;
-        imwrite("/media/tlg/work/tlgfiles/HDData/result/init_" + CurrentFrame.getData()._name + ".jpg",mm);
+        imwrite("/media/tlg/work/tlgfiles/HDData/result/init_" + CurrentFrame.getData()->_name + ".jpg",mm);
 #endif
     }
 

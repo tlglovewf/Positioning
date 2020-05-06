@@ -13,3 +13,7 @@ ${Positioning_SOURCE_DIR}/test/test_twframe.cpp
 )
 target_link_libraries(test_twframe ${Positioning})
 endif()
+
+add_executable(test_cpp
+${Positioning_SOURCE_DIR}/test/test_cpp.cpp)
+target_link_libraries(test_cpp ${Positioning})

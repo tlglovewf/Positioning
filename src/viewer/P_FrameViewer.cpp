@@ -55,7 +55,7 @@ namespace Position
         Mat oimg;
         if(scurrent != pcurrent)
         {
-            Mat img = pcurrent->getData()._img;
+            Mat img = pcurrent->getData()->_img;
             if(img.empty())
                 return;
             drawKeypoints(img, pcurrent->getKeys(),oimg,CV_RGB(0,0,255));
@@ -86,7 +86,7 @@ namespace Position
             int nKFs = mMap->keyFrameInMap(); 
             int nMPs = mMap->mapPointsInMap();
             const IKeyFrame *curfm = mMap->currentKeyFrame();
-            s << "Pic: " << curfm->getData()._name.c_str() << " ";
+            s << "Pic: " << curfm->getData()->_name.c_str() << " ";
             s << "KFs: " << nKFs << ", MPs: " << nMPs << ", Matches: " << mTrackPts;
         }
         // else if (mStatus == eTrackLost)

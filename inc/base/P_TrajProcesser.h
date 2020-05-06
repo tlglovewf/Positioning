@@ -34,7 +34,7 @@ namespace Position
             return mpMap;
         }
         //跟踪
-        virtual cv::Mat track(const FrameData &data)
+        virtual cv::Mat track( FrameData *data)
         {
             assert(NULL);
             return cv::Mat();
@@ -76,7 +76,7 @@ namespace Position
         }
 
          //处理
-        virtual bool process(const FrameDataVector &framedatas) 
+        virtual bool process(const FrameDataPtrVector &framedatas) 
         {
             if(framedatas.size() < 2)
             {

@@ -44,16 +44,14 @@ void PMapDisplay::run()
     Position::FrameDataVIter it = mpData->begin();
     Position::FrameDataVIter ed = mpData->end();
     const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
-    bool hasTarget =  false;
 
-    int index = 0;
     //帧循环 构建局部场景
     for(;it != ed ;++it)
     {//遍历帧
        
         const std::string picpath = imgpath + it->_name;
         it->_img = imread(picpath,IMREAD_UNCHANGED);
-        mpTrajProSelector->handle(*it);
+        mpTrajProSelector->handle(&(*it));
         (*it)._img.release();
     }
 

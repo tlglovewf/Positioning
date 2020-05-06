@@ -24,9 +24,9 @@ if(CMAKE_HOST_APPLE)
 endif()
 
 #view 
-OPTION(USE_VIEWER    "Build with pangolin" OFF)
-OPTION(USE_XFEATURE  "Build with sift"     OFF)
-OPTION(BUILD_TESTS   "Build test program"  OFF)
+OPTION(USE_VIEWER            "Build with pangolin" OFF)
+OPTION(USE_XFEATURE          "Build with sift"     OFF)
+OPTION(BUILD_TEST_PROGRAMS   "Build test program"  ON )
 
 if(USE_XFEATURE)
    add_definitions("-DUSE_CVXFEATURE")
@@ -151,22 +151,36 @@ ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeographic.a)
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
-if(BUILD_TESTS)
+if(BUILD_TEST_PROGRAMS)
    add_subdirectory(test)
 endif()
 
 add_executable(TargetPosition  
 tools/TargetPosition.cpp
-tools/PosBatchHandler.cpp)
+tools/PosBatchHandler.cpp
+tools/PoseEst.cpp)
 target_link_libraries(TargetPosition ${Positioning})
 
 set(CMAKE_INSTALL_PREFIX /usr/local/)
+
+#for  install
+set_target_properties(TargetPosition PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+set_target_properties(${Positioning} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
 
 install(TARGETS TargetPosition ${Positioning}
        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
-FILE(GLOB DEPEND_LIBS ${PROJECT_SOURCE_DIR}/lib/*.so)
+FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so)
+#remove target so name 
+
+LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
+
+FOREACH(src ${DEPEND_LIBS})
+MESSAGE( ${src} )
+ENDFOREACH() 
 
 #ARCHIVE DESTINATION
 install(FILES ${DEPEND_LIBS}

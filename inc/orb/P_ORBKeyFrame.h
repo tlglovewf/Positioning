@@ -23,7 +23,7 @@ namespace Position
             assert(NULL);
         }
          //获取数据
-        virtual FrameData getData()const 
+        virtual FrameData* getData()const 
         {
             return mData;
         }
@@ -41,7 +41,7 @@ namespace Position
         //帧目标
         virtual TargetVector& getTargets() 
         {
-             return mData._targets;
+             return mData->_targets;
         }
         //获取关键点
         virtual const KeyPtVector& getKeys()const 
@@ -237,7 +237,7 @@ namespace Position
         bool mbBad;    
 
         std::shared_ptr<IMap> mpMap;
-        FrameData         mData;
+        FrameData         *mData;
         std::mutex mMutexPose;
         std::mutex mMutexConnections;
         std::mutex mMutexFeatures;

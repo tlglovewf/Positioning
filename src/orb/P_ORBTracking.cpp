@@ -66,7 +66,7 @@ void ORBTracking::SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClo
     mpLoopClosing=pLoopClosing;
 }
 
-cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnum)
+cv::Mat ORBTracking::InitMode(const FrameDataPtrVector &framedatas, const int imgnum)
 {
     cv::Mat initMat;
     if(mState != eTrackOk)
@@ -83,14 +83,14 @@ cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnu
                 mpInitializer = static_cast<Initializer*>(NULL);
                 return initMat;  
             }
-            cout<<"name-1:"<<framedatas[imgnum]._name<<endl;
+            cout<<"name-1:"<<framedatas[imgnum]->_name<<endl;
             initMat = track(framedatas[imgnum]);
             if(mpInitializer)
             {
                 int searchLen = imgnum+1+initStep<framedatas.size()? imgnum+1+initStep: framedatas.size();
                 for(size_t j = imgnum+1; j<searchLen; j++)
                 {
-                    cout<<"name-2:"<<framedatas[j]._name<<endl;
+                    cout<<"name-2:"<<framedatas[j]->_name<<endl;
                     initMat = track(framedatas[j]);
                     if(mState == eTrackOk)
                     {
@@ -115,11 +115,11 @@ cv::Mat ORBTracking::InitMode(const FrameDataVector &framedatas, const int imgnu
     return initMat;
 }
 
-cv::Mat ORBTracking::track(const FrameData &data)
+cv::Mat ORBTracking::track(FrameData *data)
 {
-    mImGray = data._img;
+    mImGray = data->_img;
 
-    if(data._img.channels()==3)
+    if(data->_img.channels()==3)
     {
         if(mbRGB)
             cvtColor(mImGray,mImGray,CV_RGB2GRAY);
@@ -134,13 +134,12 @@ cv::Mat ORBTracking::track(const FrameData &data)
             cvtColor(mImGray,mImGray,CV_BGRA2GRAY);
     }
 
-    FrameData tempdata = data;
-    tempdata._img = mImGray;
+    data->_img = mImGray;
     
     if(mState == eTrackNoReady || mState == eTrackNoImage)
-        mCurrentFrame = ORBFrame(tempdata,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
+        mCurrentFrame = ORBFrame(data,mpIniORBextractor,mpORBVocabulary.get(),mK,mDistCoef);
     else
-        mCurrentFrame = ORBFrame(tempdata,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
+        mCurrentFrame = ORBFrame(data,mpORBextractorLeft,mpORBVocabulary.get(),mK,mDistCoef);
 
     Track();
 
@@ -378,8 +377,8 @@ void ORBTracking::MonocularInitialization()
                 }
             }
             PROMT_S("Begin save match image.");
-            cv::Mat otimg = Position::PUtils::DrawFeatureMatch(mLastFrame.getData()._img,
-                                                mCurrentFrame.getData()._img,
+            cv::Mat otimg = Position::PUtils::DrawFeatureMatch(mLastFrame.getData()->_img,
+                                                mCurrentFrame.getData()->_img,
                                                 mLastFrame.getKeys(),
                                                 mCurrentFrame.getKeys(),
                                                 matches);
@@ -756,7 +755,7 @@ void ORBTracking::CreateNewKeyFrame()
     if(!mpLocalMapper->SetNotStop(true))
         return;
 
-    PROMTD_V("Creat New Frame ",mCurrentFrame.getData()._name);
+    PROMTD_V("Creat New Frame ",mCurrentFrame.getData()->_name);
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
     pKF->updatePrev(mpReferenceKF);

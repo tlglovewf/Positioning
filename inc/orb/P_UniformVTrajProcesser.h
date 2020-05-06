@@ -25,10 +25,10 @@ namespace Position
         PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata);
         ~PUniformVTrajProcesser();
          //跟踪
-        virtual cv::Mat track(const FrameData &data);
-        virtual cv::Mat track(const FrameDataVector &framedatas, const int initnum);
+        virtual cv::Mat track(FrameData *data);
+        virtual cv::Mat track(const FrameDataPtrVector &framedatas, const int initnum);
         //处理
-        virtual bool process(const FrameDataVector &framedatas);
+        virtual bool process(const FrameDataPtrVector &framedatas);
 
         //重置
         virtual void reset();

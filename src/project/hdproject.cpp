@@ -181,8 +181,8 @@ void HdPosePrj::loadPrjList(const std::string &path)
         for(int i = 0;i < n; ++i)
         {
             getline(mfile,line);
-            Position::FrameData fms;
-            fms._name = line;
+            Position::FrameData *fms = new Position::FrameData;
+            fms->_name = line;
             pv._fmsdata.emplace_back(fms);
         }
         mBatches.emplace_back(pv);
@@ -191,12 +191,12 @@ void HdPosePrj::loadPrjList(const std::string &path)
 }
 
 //加载地图
-void HdPosePrj::loadMap(const std::string &path)
+void HdPosePrj::load(const std::string &path)
 {
     //add more ...
 }
 //保存地图
-void HdPosePrj::saveMap(const std::string &path)
+void HdPosePrj::save(const std::string &path)
 {
     assert(!path.empty());
     BEGINFILEREGION(path,out)
@@ -234,7 +234,7 @@ void HdPosePrj::saveMap(const std::string &path)
                 int vaild = !T.empty();
                 //pose
                 mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
-                      << std::setw(9)  << it->_fmsdata[i]._name.c_str()
+                      << std::setw(9)  << it->_fmsdata[i]->_name.c_str()
                       << std::setw(7)  << vaild;
                 if(vaild)
                 {

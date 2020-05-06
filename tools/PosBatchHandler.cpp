@@ -4,28 +4,12 @@
 #include "P_Checker.h"
 #include "P_Factory.h"
 #include "P_Utils.h"
-void SimpleBatchGenerator::generateBatches(const std::shared_ptr<IData> &pdata, const TrackerItemVector &trkItems,PrjBatchVector &batches)
-{
-    // const string batchLine = "target_";
-    batches.reserve(trkItems.size());
-    for(size_t i = 0; i < trkItems.size(); ++i)
-    {
-       const InfoIndex bg = trkItems[i].stno;
-       const InfoIndex ed = trkItems[i].edno;
-       
-       BatchItem batch(std::to_string(trkItems[i].id),ed.first - bg.first + 1);
-       batch._fmsdata.assign(pdata->begin() + bg.first,pdata->begin() + ed.first + 1);
-       batches.emplace_back(batch);
-    }
-}
+#include "PoseEst.h"
 
-
-PosBatchHandler::PosBatchHandler( const std::shared_ptr<IConfig> &pcfg,const std::shared_ptr<IData> &pdata ):
+PosBatchHandler::PosBatchHandler( const std::shared_ptr<IConfig>   &pcfg,
+                                  const std::shared_ptr<IProjList> &prjlist):
 mpConfig(pcfg),
-mpData(pdata),
-mPrjList(new ImgAutoPrjList(pdata)),
-mpPos(Position::PFactory::CreatePositioning(Position::ePMultiImage,pdata->getCamera())),
-mTrjSelector(pcfg,pdata)
+mPrjList(prjlist)
 {
      
 }
@@ -38,25 +22,14 @@ bool PosBatchHandler::loadTrackerInfos(const std::string &path)
     assert(mPrjList);
 
     mPrjList->loadPrjList(path);
-
-    // const Position::PrjBatchVector &batches = mPrjList->getPrjList();
-    // cout << "batches size : " << batches.size() << endl;
-    // for(auto item : batches)
-    // {
-    //     PROMT_V("batch",item._btname.c_str(),item._n);
-    //     for(size_t i = 0; i < item._n; ++i)
-    //     {
-    //         cout << item._fmsdata[i]._name.c_str() << endl;
-    //         cout << item._fmsdata[i]._targets.size() << endl;
-    //     }
-    // } 
+    
     return !mPrjList->getPrjList().empty();
 }
 
 void PosBatchHandler::saveResult(const std::string &path)
 {
     PROMT_V("Saving result to ",path.c_str());
-    mPrjList->saveMap(path);
+    mPrjList->save(path);
     PROMT_S("Over! Thank you!");
 
 }
@@ -79,31 +52,31 @@ void PosBatchHandler::poseEstimate()
 //            break;
         assert(std::to_string(targets[i].id) == batches[i]._btname);
         //先赋值为最后一帧出现的位置
-        targets[i].blh = batches[i]._fmsdata.rbegin()->_pos.pos;
+        targets[i].blh = (*batches[i]._fmsdata.rbegin())->_pos.pos;
         if(batches[i]._fmsdata.size() >= 2)
         {//仅在位姿估算成功后,进行量测定位 
-            if(mTrjSelector.process(batches[i]._fmsdata,imgpath))
+            // if(mTrjSelector.process(batches[i]._fmsdata,imgpath))
             {//位姿估算成功
-                KeyFrameVector frames = mTrjSelector.getMap()->getAllFrames();
+                KeyFrameVector frames ;//= mTrjSelector.getMap()->getAllFrames();
                
                 assert(frames.size() == batches[i]._fmsdata.size());
                 for(size_t m = 0; m < frames.size(); ++m)
                 {
-                    assert(batches[i]._fmsdata[m]._name == frames[m]->getData()._name);
-                    batches[i]._fmsdata[m] = std::move(frames[m]->getData());
+                    assert(batches[i]._fmsdata[m]->_name == frames[m]->getData()->_name);
+                    batches[i]._fmsdata[m] = frames[m]->getData();
                     batches[i]._poses.emplace_back(frames[m]->getPose());
                 }
             }
         }
         PROMT_V("batch handle over.",batches[i]._n);
-        mTrjSelector.reset();
+        // mTrjSelector.reset();
     }
 
     PROMT_S("end.");
 }
 
 //选帧 策略 待优化
-static inline void selectFrame(const FrameDataVector &frames,const std::vector<Mat> &poses, int &idx1, int &idx2)
+static inline void selectFrame(const FrameDataPtrVector &frames,const std::vector<Mat> &poses, int &idx1, int &idx2)
 {
     if(frames.size() == 2)
     {
@@ -194,8 +167,8 @@ void PosBatchHandler::targetPositioning()
                 continue;
             }
 
-            FrameData &frame1 = batches[i]._fmsdata[idx1];
-            FrameData &frame2 = batches[i]._fmsdata[idx2];
+            FrameData &frame1 = *batches[i]._fmsdata[idx1];
+            FrameData &frame2 = *batches[i]._fmsdata[idx2];
             Mat &pose1 = batches[i]._poses[idx1];
             Mat &pose2 = batches[i]._poses[idx2];
             const TargetData &targ1 = getTarget(frame1,target.id);
@@ -210,12 +183,12 @@ void PosBatchHandler::targetPositioning()
             Mat pose = pose2 * pose1.inv();
             Mat R = pose.rowRange(0,3).colRange(0,3);
             Mat t = pose.rowRange(0,3).col(3);
-            Mat x3d = mpPos->position(R,t,targ1.center(),targ2.center());
+            Mat x3d;// = mpPos->position(R,t,targ1.center(),targ2.center());
             
             cout.precision(15);
             cout << frame1._pos.pos.lon << " " << frame1._pos.pos.lat << endl;
-            cout << batches[i]._fmsdata[idx2 ]._pos.pos.lon << " " 
-                 << batches[i]._fmsdata[idx2 ]._pos.pos.lat << endl;
+            cout << batches[i]._fmsdata[idx2 ]->_pos.pos.lon << " " 
+                 << batches[i]._fmsdata[idx2 ]->_pos.pos.lat << endl;
             //此处暂用定位第二帧作为方向计算
             Mat trans = PUtils::CalcTransBLH(frame1._pos, frame2._pos);
 

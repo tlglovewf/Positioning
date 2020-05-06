@@ -10,7 +10,7 @@ namespace Position
        mpCurrentTrajPro = mpSimpleTrajPro; //mpUniformVTrajPro;
    }
 
-   bool TrajProSelector::handle(const FrameData &fdata)
+   bool TrajProSelector::handle(FrameData *fdata)
    {
        if(!mpCurrentTrajPro)
             mpCurrentTrajPro = mpUniformVTrajPro;
@@ -20,14 +20,14 @@ namespace Position
 
 
      //处理帧数据
-   bool TrajProSelector::process( FrameDataVector &datas,const std::string &imgpath /*=""*/)
+   bool TrajProSelector::process(const FrameDataPtrVector &datas,const std::string &imgpath /*=""*/)
    {
        
        if(!imgpath.empty())
        {//地址不为空 需要加载图片
-            for(FrameData &data : datas)
+            for(FrameData *data : datas)
             {
-                data._img = imread(imgpath + "/" + data._name,IMREAD_UNCHANGED);
+                data->_img = imread(imgpath + "/" + data->_name,IMREAD_UNCHANGED);
             }
        }
 

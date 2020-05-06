@@ -94,7 +94,7 @@ namespace Position
     {
     public:
         //获取数据
-        virtual FrameData getData()const = 0;
+        virtual FrameData* getData()const = 0;
         //获取关键点
         virtual const KeyPtVector& getKeys()const = 0;
         //获取外点
@@ -125,7 +125,7 @@ namespace Position
         //获取光心位置
         virtual const Mat& getCameraCenter() = 0;
         //获取数据
-        virtual FrameData getData()const = 0;
+        virtual FrameData* getData()const = 0;
         //更新下一帧
         virtual void updateNext(IKeyFrame *next) = 0;
         //更新上一帧
@@ -155,7 +155,7 @@ namespace Position
     public:
         //sort
         static void SortFrames(KeyFrameVector &frames); 
-        static IKeyFrame* CreateKeyFrame(const std::shared_ptr<IMap> &pmap, const FrameData &data, const Mat &pose);
+        static IKeyFrame* CreateKeyFrame(const std::shared_ptr<IMap> &pmap, FrameData *data, const Mat &pose);
 
         //创建关键帧
         virtual IKeyFrame* createKeyFrame(IFrame *frame) = 0;
@@ -240,15 +240,37 @@ namespace Position
         virtual void saveMap(const std::string &path) = 0;
     };
 
-      //project batch file
-    class IProjList : public ISerialization
+
+    //帧批组生成器
+    class IBatchesGenerator : public IBase
     {
     public:
+        //生成批处理对象
+        virtual PrjBatchVector generate(const std::shared_ptr<IData> &pdata,const TrackerItemVector &trackers) = 0;
+    };
+
+
+      //project batch file
+    class IProjList : public IBase
+    {
+    public:
+        //设置生成器
+        virtual void setBatcherGenerator(const std::shared_ptr<IBatchesGenerator> &pGtor) = 0;
+
         //加载项目列表
         virtual void loadPrjList(const std::string &path) = 0;
 
         //获取项目列表
         virtual PrjBatchVector& getPrjList() = 0;
+
+        //目标信息
+        virtual TrackerItemVector& trackInfos() = 0;
+
+        //从文件加载
+        virtual void load(const std::string &path) = 0;
+
+        //存储到文件
+        virtual void save(const std::string &path) = 0;
     };
 
     // visual interface
@@ -314,9 +336,9 @@ namespace Position
         //获取地图
         virtual const std::shared_ptr<IMap>& getMap() = 0;
         //处理
-        virtual bool process(const FrameDataVector &framedatas) = 0;
+        virtual bool process(const FrameDataPtrVector &framedatas) = 0;
         //跟踪
-        virtual cv::Mat track(const FrameData &data) = 0;
+        virtual cv::Mat track(FrameData *data) = 0;
         //状态
         virtual eTrackStatus status()const = 0;
         //重置

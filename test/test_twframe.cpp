@@ -367,6 +367,7 @@ void SelectFrameData(const std::shared_ptr<Position::IData> &pdata, Position::Fr
 
 int main(void)
 {
+
     SemanticGraph::Instance()->loadObjInfos("segraph.config");
 
     std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
@@ -508,11 +509,11 @@ int main(void)
     }
     
      //save images
-    Mat img_goodmatch = Position::PUtils::DrawFeatureMatch(preframe->getData()._img,
-                                                       curframe->getData()._img,
-                                                       preframe->getKeys(),
-                                                       curframe->getKeys(),
-                                                       good_matches,stats);
+    Mat img_goodmatch = Position::PUtils::DrawFeatureMatch(preframe->getData()->_img,
+                                                           curframe->getData()->_img,
+                                                           preframe->getKeys(),
+                                                           curframe->getKeys(),
+                                                           good_matches,stats);
 
     imwrite("/media/tlg/work/tlgfiles/HDData/result/match.jpg",img_goodmatch);
     cout << "write successfully.." << endl;

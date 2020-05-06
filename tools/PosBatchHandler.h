@@ -12,12 +12,14 @@
 #include "project/imgautoproject.h"
 using namespace Position;
 
+
+
 //定位 段生成器
 class PosBatchHandler
 {
 public:
     PosBatchHandler(const std::shared_ptr<IConfig> &pcfg,
-                    const std::shared_ptr<IData> &pdata );
+                    const std::shared_ptr<IProjList> &prjlist);
     //加载识别文件
     bool loadTrackerInfos(const std::string &path);
   
@@ -38,10 +40,9 @@ public:
 
 protected:
     std::shared_ptr<IConfig>            mpConfig;
-    std::shared_ptr<IData>              mpData;
-    std::shared_ptr<ImgAutoPrjList>     mPrjList;
-    std::unique_ptr<IPositioning>       mpPos;
-    TrajProSelector                     mTrjSelector;
+    std::shared_ptr<IProjList>          mPrjList;
+    // std::unique_ptr<IPositioning>       mpPos;
+    // TrajProSelector                     mTrjSelector;
 };
 
 

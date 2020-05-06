@@ -5,6 +5,7 @@
 #include "project/imgautoproject.h"
 #include "PosBatchHandler.h"
 #include "P_Checker.h"
+#include "tools/PoseEst.h"
 int main(int argc, char **argv)
 {
     if(2 != argc)
@@ -46,12 +47,11 @@ int main(int argc, char **argv)
     }
 
 
+
+#if 0  //only for test
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();
 
-  
-
-#if 0  //only for test
     const std::string imgpath = GETCFGVALUE(pCfg,ImgPath, string);
     if(imgpath.empty())
         return -1;  
@@ -73,7 +73,11 @@ int main(int argc, char **argv)
     }
 #endif
 
-    PosBatchHandler poshandler(pCfg,pData);
+#if 1 
+    std::shared_ptr<Position::IProjList> prjList(new ImgAutoPrjList(pData));
+    prjList->setBatcherGenerator(shared_ptr<IBatchesGenerator>(new TargetBatchesGenerator));
+    std::shared_ptr<IPoseEstimator> pPoseEst(new BatchPoseEstimator());
+    PosBatchHandler poshandler(pCfg,prjList);
     const std::string trackerpath = prjpath + "tracker/";
     if(poshandler.loadTrackerInfos(trackerpath + "tracker.txt"))
     {
@@ -84,6 +88,18 @@ int main(int argc, char **argv)
         //结果输出
         poshandler.saveResult(trackerpath + "tracker_rst.txt");
     }
-    
+#endif
+
+    //帧批组生成器
+    // std::unique_ptr<IBatchesGenerator>  pBatchGenerator(new TargetBatchesGenerator);
+
+    // //位姿估算器
+    // std::unique_ptr<IPoseEstimator>     pPseEst(new BatchPoseEstimator);
+
+    // //视觉定位器
+    // std::unique_ptr<IVisualPositioner>  pVisualP(new BatchVisualPositioner);
+
+    // pBatchGenerator->generate(pData,)
+
     return 0;
 }

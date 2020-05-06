@@ -43,9 +43,9 @@ public:
     //加载项目列表
     virtual void loadPrjList(const std::string &path);
     //加载地图
-    virtual void loadMap(const std::string &path);
+    virtual void load(const std::string &path);
     //保存地图
-    virtual void saveMap(const std::string &path);
+    virtual void save(const std::string &path);
 };
 
 

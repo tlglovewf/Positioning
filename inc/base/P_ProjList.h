@@ -19,13 +19,13 @@ namespace Position
            mpMap = pmap;
        }
        //加载地图
-       virtual void loadMap(const std::string &path)
+       virtual void load(const std::string &path)
        {
            assert(NULL);
            //add more
        }
        //保存地图
-       virtual void saveMap(const std::string &path)
+       virtual void save(const std::string &path)
        {
            assert(NULL);
            //add more
@@ -35,6 +35,19 @@ namespace Position
        {
            return mBatches;
        }
+
+       //设置生成器
+       virtual void setBatcherGenerator(const std::shared_ptr<IBatchesGenerator> &pGtor)
+       {
+           mpGenerator = pGtor;
+       }
+
+       //目标信息
+       virtual TrackerItemVector& trackInfos() 
+       {
+           return mTrackerInfos;
+       }
+
     protected:
         //打开文件
         bool open(const std::string &path,std::ios::openmode type)
@@ -47,6 +60,8 @@ namespace Position
        std::fstream                        mfile;
        Position::PrjBatchVector            mBatches;
        std::shared_ptr<Position::IMap>     mpMap;
+       std::shared_ptr<IBatchesGenerator>  mpGenerator;
+       TrackerItemVector                   mTrackerInfos;
     };
 }
 

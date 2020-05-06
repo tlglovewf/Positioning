@@ -566,7 +566,20 @@ public:
 
         return trans;
      }
-     
+
+    /* --------------------------------------------------- */
+    /* ------------------ common functions --------------- */
+    /* --------------------------------------------------- */
+     /*
+      * make vector items unique(vts must suppport operator <)
+     */
+     template<typename T>
+     static inline void MakeVectorItemsUnique( std::vector<T> &vts )
+     {
+         std::sort(vts.begin(),vts.end());
+         vts.erase(std::unique(vts.begin(),vts.end()),vts.end());
+     }
+
 };
 
 //及时

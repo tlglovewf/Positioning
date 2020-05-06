@@ -2,7 +2,7 @@
 #include "project/imgautoproject.h"
 #include "P_Writer.h"
 #include "P_Utils.h"
-
+#include "P_Checker.h"
 #include  "Thirdparty/rapidjson/document.h"
 
 namespace Position
@@ -301,21 +301,6 @@ namespace Position
         return true;
     }
 
-    void SimpleBatchGenerator::generateBatches(const std::shared_ptr<IData> &pdata, const TrackerItemVector &trkItems,PrjBatchVector &batches)
-    {
-        batches.reserve(trkItems.size());
-        for(size_t i = 0; i < trkItems.size(); ++i)
-        {
-           const InfoIndex bg = trkItems[i].stno;
-           const InfoIndex ed = trkItems[i].edno;
-           
-           BatchItem batch(std::to_string(trkItems[i].id),ed.first - bg.first + 1);
-           batch._fmsdata.assign(pdata->begin() + bg.first,pdata->begin() + ed.first + 1);
-
-           batches.emplace_back(batch);
-        }
-    }
-
     static inline InfoIndex parseIndex(const std::string &str)
     {
          static std::regex re(string("\\(\\d*, \\d*\\)"));
@@ -357,6 +342,8 @@ namespace Position
     //加载项目列表
     void ImgAutoPrjList::loadPrjList(const std::string &path)
     {
+        if(!PATHCHECK(path))
+            return;
         if(!path.empty() && open(path,ios::in))
         {
             while(!mfile.eof())
@@ -372,17 +359,17 @@ namespace Position
         }
 
         assert(mpData);
-        assert(mBatchGenerator);
+        assert(mpGenerator);
         //genearte position batch 
-        mBatchGenerator->generateBatches(mpData,mTrackerInfos,mBatches);
+        mBatches = std::move(mpGenerator->generate(mpData,mTrackerInfos));
     }
     //加载地图
-    void ImgAutoPrjList::loadMap(const std::string &path)
+    void ImgAutoPrjList::load(const std::string &path)
     {
        //add more
     }
     //保存地图
-    void ImgAutoPrjList::saveMap(const std::string &path)
+    void ImgAutoPrjList::save(const std::string &path)
     {
         if(!path.empty() && open(path,ios::out))
         {   

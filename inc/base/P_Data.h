@@ -54,6 +54,7 @@ namespace Position
             assert(NULL);
             return 0.0;
         }
+
     protected:
         //清理
         void clear()

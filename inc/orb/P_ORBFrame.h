@@ -23,7 +23,7 @@ namespace Position
         ORBFrame(const ORBFrame &frame);
 
         // Constructor for Monocular cameras.
-        ORBFrame( const FrameData &data , ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef);
+        ORBFrame( FrameData *data , ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef);
 
 
         //帧序号
@@ -32,7 +32,7 @@ namespace Position
             return mnId;
         }
         //获取帧数据
-        virtual FrameData getData()const
+        virtual FrameData* getData()const
         {
             return mData;
         }
@@ -180,7 +180,7 @@ namespace Position
         cv::Mat mtcw;
         cv::Mat mRwc;
         cv::Mat mOw; //==mtwc
-        FrameData  mData;
+        FrameData  *mData;
     };
 
 }

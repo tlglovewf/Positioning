@@ -18,12 +18,12 @@ namespace Position
     public:
         friend class FrameHelper;
         //构造函数 主要用于持久可视化
-        PFrame(const FrameData &data,int index):mData(data),mN(0),mIndex(index){}
+        PFrame(FrameData *data,int index):mData(data),mN(0),mIndex(index){}
         //构造函数 retainimg(是否保存图片资源 默认释放)
-        PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,int index, int cameraIndex = 0);
+        PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index, int cameraIndex = 0);
         ~PFrame();
          //获取数据
-        virtual FrameData getData()const 
+        virtual FrameData* getData()const 
         {
             return mData;
         }
@@ -87,7 +87,7 @@ namespace Position
         u64                         mIndex;
 
 
-        FrameData                   mData;
+        FrameData                  *mData;
         KeyPtVector                 mKeypts;
         Mat                         mDescript;
         Mat                         mPose;
@@ -113,7 +113,7 @@ namespace Position
         friend class PMap;
         
          //获取数据
-        virtual FrameData getData()const 
+        virtual FrameData* getData()const 
         {
             return mpFrame->getData();
         }

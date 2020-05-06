@@ -927,7 +927,7 @@ namespace Position
                     }
                 }
 
-                Mat out = Position::PUtils::DrawKeyPoints( mCur->getData()._img,mCur->getKeys());
+                Mat out = Position::PUtils::DrawKeyPoints( mCur->getData()->_img,mCur->getKeys());
                 MATTYPE a,b,c;
                 for(size_t i = 0; i < matches.size(); ++i)
                 {

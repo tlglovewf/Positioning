@@ -398,7 +398,7 @@ void ORBLocalMapping::CreateNewMapPoints()
             nnew++;
         }
     }
-    PROMTD_V(mpCurrentKeyFrame->getData()._name,"Create New Points", nnew);
+    PROMTD_V(mpCurrentKeyFrame->getData()->_name,"Create New Points", nnew);
 }
 
 //搜索邻近帧,取所有共视帧以及共视帧关联的最最佳的几个共视帧,简历邻近搜索列表
@@ -646,7 +646,7 @@ void ORBLocalMapping::KeyFrameCulling()
         //当前帧关联的有效地图点 有90%的点至少有三个关联有效帧  则认为此帧为无效帧
         if(nRedundantObservations>0.9*nMPs)
         {
-            PROMT_V("Set Bad From RedundataObs,Name",pKF->getData()._name.c_str());
+            PROMT_V("Set Bad From RedundataObs,Name",pKF->getData()->_name.c_str());
             // pKF->setBadFlag();
         }
             

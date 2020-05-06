@@ -128,6 +128,18 @@ struct ImuRawData
     }
 };
 
+//信息索引 图片索引，目标在图片中索引
+typedef std::pair<int,int> InfoIndex;
+struct TrackerItem
+{
+    int             id      ;         //目标id
+    InfoIndex       stno    ;         //第一帧出现的索引
+    InfoIndex       edno    ;         //最后一帧出现的索引
+    BLHCoordinate   blh     ;         //经纬度
+    int             maxsize ;         //出现的帧数
+};
+typedef std::vector<TrackerItem>        TrackerItemVector;
+typedef TrackerItemVector::iterator     TrackerItemVIter; 
 
 // 目标结构体
 struct TargetData {
@@ -197,7 +209,7 @@ struct BatchItem
 {
     std::string _btname;
     int _n;
-    std::vector<FrameData>   _fmsdata;
+    std::vector<FrameData*>   _fmsdata;
     std::vector<Mat>         _poses;
     inline bool isvaild()const
     {
@@ -224,6 +236,9 @@ typedef RstVector::iterator                 RstVIter;
 
 typedef std::vector<FrameData>              FrameDataVector;
 typedef FrameDataVector::iterator           FrameDataVIter;
+
+typedef std::vector<FrameData*>             FrameDataPtrVector;
+typedef FrameDataPtrVector::iterator        FrameDataPtrVIter;
 
 typedef std::vector<FrameDataVector>        FrameVtContainer;
 typedef FrameVtContainer::iterator          FrameVtCIter;

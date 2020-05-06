@@ -42,62 +42,26 @@ namespace Position
         bool loadTrackJson(const std::string &path,FrameDataVector &framedatas);    
     };
 
-
-    //信息索引 图片索引，目标索引
-    typedef std::pair<int,int> InfoIndex;
-    struct TrackerItem
-    {
-        int             id      ;         //目标id
-        InfoIndex       stno    ;         //第一帧出现的索引
-        InfoIndex       edno    ;         //最后一帧出现的索引
-        BLHCoordinate   blh     ;         //经纬度
-        int             maxsize ;         //出现的帧数
-    };
-
-    typedef std::vector<TrackerItem>        TrackerItemVector;
-    typedef TrackerItemVector::iterator     TrackerItemVIter; 
-
-    //定位批产生对象
-    class IBatchGenerator : public IBase
-    {
-    public:
-        //生成定位批对象
-        virtual void generateBatches(const std::shared_ptr<IData> &pdata,const TrackerItemVector &trkItems,PrjBatchVector &batches) = 0;
-    };
-
-    class SimpleBatchGenerator : public IBatchGenerator
-    {
-    public:
-        //生成定位批对象
-        virtual void generateBatches(const std::shared_ptr<IData> &pdata,const TrackerItemVector &trkItems,PrjBatchVector &batches);
-    };
-
-
     //自动化 batch 列表类
     class ImgAutoPrjList : public ProjList
     {
     public:
         ImgAutoPrjList(const std::shared_ptr<IData> &pdata):
-        mpData(pdata),mBatchGenerator(new SimpleBatchGenerator())
+        mpData(pdata)
         {}
          //加载项目列表
         virtual void loadPrjList(const std::string &path);
         //加载地图
-        virtual void loadMap(const std::string &path);
+        virtual void load(const std::string &path);
         //保存地图
-        virtual void saveMap(const std::string &path);
-
-        //获取跟踪信息
-        TrackerItemVector& trackInfos(){return mTrackerInfos;}
+        virtual void save(const std::string &path);
     protected:
         //接写tracker 行
          void parseTracker(const std::string &line);
 
     protected:
         StringVector                        mTrkLines;
-        TrackerItemVector                   mTrackerInfos;
         std::shared_ptr<IData>              mpData;
-        std::unique_ptr<IBatchGenerator>    mBatchGenerator;
     };
 }
 

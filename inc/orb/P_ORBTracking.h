@@ -26,9 +26,9 @@ namespace Position
                      const CameraParam &camparam);
  
         // Preprocess the input and call Track(). Extract features and performs stereo matching.
-        cv::Mat track(const FrameData &data);
+        cv::Mat track( FrameData *data);
 
-        cv::Mat InitMode(const FrameDataVector &framedatas, const int imgnum);
+        cv::Mat InitMode(const FrameDataPtrVector &framedatas, const int imgnum);
         
         void SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalMapper);
         void SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClosing);

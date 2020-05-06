@@ -18,11 +18,11 @@ namespace Position
                                    const std::shared_ptr<IData> &pdata);
 
          //跟踪
-        virtual cv::Mat track(const FrameData &data);
+        virtual cv::Mat track( FrameData *data);
 
 
          //处理
-        virtual bool process(const FrameDataVector &framedatas);
+        virtual bool process(const FrameDataPtrVector &framedatas);
     protected:
         //关键帧创建
         virtual bool needCreateNewKeyFrame()

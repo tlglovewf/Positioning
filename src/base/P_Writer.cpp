@@ -53,8 +53,8 @@ namespace Position
                     continue;
                 StringVector svs = PUtils::SplitString(line,":");
                 assert(svs.size() == 2);
-                FrameData data;
-                data._name = svs[0];
+                FrameData *data = new FrameData();
+                data->_name = svs[0];
                 IFrame *pf = new PFrame(data,mpMap->frameCount());
                 pf->setPose(PConverter::str2CVMat(svs[1]));
                 mpMap->createKeyFrame(pf);
@@ -83,7 +83,7 @@ namespace Position
         mfile << HEADTRACSTR << endl;
         for(size_t i = 0; i < keyfms.size(); ++i)
         {
-            const std::string &name = keyfms[i]->getData()._name;
+            const std::string &name = keyfms[i]->getData()->_name;
             const Mat& pose = keyfms[i]->getPose();
             writeItem(name,pose);
         }

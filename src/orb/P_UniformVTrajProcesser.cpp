@@ -55,7 +55,7 @@ namespace Position
     }
 
     //处理
-    bool PUniformVTrajProcesser::process(const FrameDataVector &framedatas) 
+    bool PUniformVTrajProcesser::process(const FrameDataPtrVector &framedatas) 
         {
             if(framedatas.size() < 2)
             {
@@ -63,7 +63,6 @@ namespace Position
             }
             else
             {
-                size_t currnum;
                 for(size_t i = 0; i < framedatas.size(); ++i)
                 {
                     //track(framedatas, i);
@@ -80,7 +79,7 @@ namespace Position
             }
         }
 
-    cv::Mat PUniformVTrajProcesser::track(const FrameDataVector &framedatas, const int initnum)
+    cv::Mat PUniformVTrajProcesser::track(const FrameDataPtrVector &framedatas, const int initnum)
     {
         if(mbReset)
         {
@@ -91,7 +90,7 @@ namespace Position
     }
 
      //跟踪
-    cv::Mat PUniformVTrajProcesser::track(const FrameData &data)
+    cv::Mat PUniformVTrajProcesser::track(FrameData *data)
     {
         if(mbReset)
         {

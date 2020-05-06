@@ -128,11 +128,11 @@ bool   FrameHelper::mInit = false;
 #pragma endregion
 
     //构造函数
-    PFrame::PFrame(const FrameData &data,const std::shared_ptr<IFeature> &pFeature,int index,int cameraIndex /* = 0 */):
+    PFrame::PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index,int cameraIndex /* = 0 */):
         mCamIdx(cameraIndex),mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
-        pFeature->detect(data,mKeypts,mDescript);
+        pFeature->detect(*data,mKeypts,mDescript);
         
         mN = mKeypts.size();
         mbOutlier = U8Vector(mN,false);
@@ -142,9 +142,9 @@ bool   FrameHelper::mInit = false;
     }
     PFrame::~PFrame()
     {
-        if(!mData._img.empty())
+        if(!mData->_img.empty())
         {
-            mData._img.release();
+            mData->_img.release();
         }
     }
     PKeyFrame::PKeyFrame(IFrame *pframe,IKeyFrame *prevFrame,PMap *pMap):

@@ -36,7 +36,7 @@ namespace Position
             setPose(frame.mTcw);
     }
 
-    ORBFrame::ORBFrame(const FrameData &data, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef)
+    ORBFrame::ORBFrame(FrameData *data, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef)
         :mpORBvocabulary(voc),mpORBextractorLeft(extractor),
         mData(std::move(data)), mK(K.clone()),mDistCoef(distCoef.clone())
     {
@@ -53,7 +53,7 @@ namespace Position
         mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
         // ORB extraction
-        ExtractORB(0,mData._img);
+        ExtractORB(0,mData->_img);
 
         N = mvKeys.size();
 
@@ -68,7 +68,7 @@ namespace Position
         // This is done only for the first Frame (or after a change in the calibration)
         if(mbInitialComputations)
         {
-            ComputeImageBounds(mData._img);
+            ComputeImageBounds(mData->_img);
 
             mfGridElementWidthInv=static_cast<float>(FRAME_GRID_COLS)/static_cast<float>(mnMaxX-mnMinX);
             mfGridElementHeightInv=static_cast<float>(FRAME_GRID_ROWS)/static_cast<float>(mnMaxY-mnMinY);
@@ -216,7 +216,7 @@ namespace Position
                 {
                     const cv::KeyPoint &kpUn = mvKeysUn[vCell[j]];
 
-                    if(SemanticGraph::Instance()->isDyobj(kpUn.pt,this->getData()._name))
+                    if(SemanticGraph::Instance()->isDyobj(kpUn.pt,this->getData()->_name))
                         continue;
 
                     if(bCheckLevels)

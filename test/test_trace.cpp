@@ -142,15 +142,15 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         //     break;
         cout << "Load Batch:" << it->_btname.c_str() << endl;
 
-        Position::FrameDataVector framedatas;
+        Position::FrameDataPtrVector framedatas;
         framedatas.reserve(it->_n);
         for(int i = 0; i < it->_n; ++i)
         {
-            Position::FrameData &fdata = it->_fmsdata[i];
-            fdata._img  = imread(imgpath + "/" + fdata._name + ".jpg");
-            if(fdata._img.channels() > 1)
+            Position::FrameData *fdata = it->_fmsdata[i];
+            fdata->_img  = imread(imgpath + "/" + fdata->_name + ".jpg");
+            if(fdata->_img.channels() > 1)
             {
-                cvtColor(fdata._img,fdata._img,CV_RGB2GRAY);
+                cvtColor(fdata->_img,fdata->_img,CV_RGB2GRAY);
             }
             
             framedatas.emplace_back(fdata);
@@ -165,11 +165,11 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
             for(size_t i = 0; i < it->_fmsdata.size(); ++i)
             {
-                const std::string &nm = it->_fmsdata[i]._name;
+                const std::string &nm = it->_fmsdata[i]->_name;
 
                 Position::KeyFrameVter kit = std::find_if(frames.begin(),frames.end(),[nm](const Position::IKeyFrame *pframe)->bool
                 {
-                    return pframe->getData()._name == nm;
+                    return pframe->getData()->_name == nm;
                 });
 
                 if(kit == frames.end())
@@ -190,7 +190,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     }
     BatchTraceDisplay(prjlist,pCfg);
     timer.prompt("process traj",true);
-    prjlist->saveMap(outpath);
+    prjlist->save(outpath);
     timer.prompt("save traj");
 }
 

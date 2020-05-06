@@ -40,7 +40,7 @@ namespace Position
         return mpMap->createKeyFrame(mpCurrent);
     }
 
-    bool PMultiVisionTrajProcesser::process(const FrameDataVector &framedatas)
+    bool PMultiVisionTrajProcesser::process(const FrameDataPtrVector &framedatas)
     {
         if(framedatas.size() < 2)
         {
@@ -71,28 +71,28 @@ namespace Position
     }
 
     //跟踪
-    cv::Mat PMultiVisionTrajProcesser::track(const FrameData &data)
+    cv::Mat PMultiVisionTrajProcesser::track(FrameData *data)
     {
         
-        PROMT_V("Load",data._name.c_str());
+        PROMT_V("Load",data->_name.c_str());
         Mat grayimg ;
 
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
         {//有畸变参数存在
-            cv::undistort(data._img,grayimg,mCam.K,mCam.D);
+            cv::undistort(data->_img,grayimg,mCam.K,mCam.D);
         }
         else
         {
-            grayimg = data._img;
+            grayimg = data->_img;
         }
         if(grayimg.channels() > 1)
         {//先只考虑rbg模式的
             cvtColor(grayimg,grayimg,CV_RGB2GRAY);
         }
 
-        FrameData temp = data;
-        temp._img = grayimg;
-        mpCurrent = new PFrame(temp,mpFeature,mpMap->frameCount());
+  
+        data->_img = grayimg;
+        mpCurrent = new PFrame(data,mpFeature,mpMap->frameCount());
         Position::FrameHelper::assignFeaturesToGrid(mpCurrent);
         if(mStatus == eTrackNoImage)
         {
@@ -130,7 +130,7 @@ namespace Position
         if(matches.empty())
         {
             mStatus = eTrackLost;
-            PROMTD_V(data._name.c_str(),"can not find any match point with pre frame!");
+            PROMTD_V(data->_name.c_str(),"can not find any match point with pre frame!");
             return Mat();
         }
         else
@@ -138,10 +138,10 @@ namespace Position
 
 #if SAVEMATCHIMG
             Mat oimg;
-            cv::drawMatches(mpLastKeyFm->getData()._img,IFRAME(mpLastKeyFm)->getKeys(),mpCurrentKeyFm->getData()._img,IFRAME(mpCurrentKeyFm)->getKeys(),matches,oimg);
+            cv::drawMatches(mpLastKeyFm->getData()->_img,IFRAME(mpLastKeyFm)->getKeys(),mpCurrentKeyFm->getData()->_img,IFRAME(mpCurrentKeyFm)->getKeys(),matches,oimg);
             const std::string text = string("Match:") + std::to_string(matches.size());
             putText(oimg, text, Point(150, 150), CV_FONT_HERSHEY_COMPLEX, 5, Scalar(0, 0, 255), 3, CV_AA);
-            const string outname = outpath +  "match_"  + mpCurrentKeyFm->getData()._name;
+            const string outname = outpath +  "match_"  + mpCurrentKeyFm->getData()->_name;
             PROMTD_V("Save to",outname.c_str());
             imwrite(outname,oimg);
 #endif
@@ -206,7 +206,7 @@ namespace Position
             else
             {
                 //release data
-                PROMT_V(mpCurrentKeyFm->getData()._name.c_str(),"estimate failed!");
+                PROMT_V(mpCurrentKeyFm->getData()->_name.c_str(),"estimate failed!");
             }
             mpLastKeyFm = mpCurrentKeyFm;
             mpLast      = mpCurrent;
