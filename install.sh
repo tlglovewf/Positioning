@@ -1,4 +1,10 @@
 #!/usr/bin/env sh 
+#check if root user
+CurUser=$(id -u)
+if test "$CurUser" != "0" ; then
+        echo "To run script as administrator (user "root"), use sudo ./install.sh"
+        exit
+fi
 
 commandtype=$1
 commandinstall=install

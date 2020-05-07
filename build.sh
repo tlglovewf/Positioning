@@ -1,5 +1,3 @@
-#!/usr/bin/env 
-
 COMTYPE=Release
 
 #build thirdparty lib
