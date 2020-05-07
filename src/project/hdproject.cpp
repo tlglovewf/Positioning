@@ -176,14 +176,14 @@ void HdPosePrj::loadPrjList(const std::string &path)
             continue;
         int index = 0;
         
-        Position::BatchItem pv(batchname,n);
+        Position::BatchItem *pv = new Position::BatchItem(batchname,n);
         //read batch files name
         for(int i = 0;i < n; ++i)
         {
             getline(mfile,line);
             Position::FrameData *fms = new Position::FrameData;
             fms->_name = line;
-            pv._fmsdata.emplace_back(fms);
+            pv->_fmsdata.emplace_back(fms);
         }
         mBatches.emplace_back(pv);
     }
@@ -223,18 +223,18 @@ void HdPosePrj::save(const std::string &path)
     Position::PrjBatchVIter ed = mBatches.end();
     for(;it != ed; ++it)
     {
-        if(it->isvaild())
+        if((*it)->isvaild())
         {
             //batch info
-            mfile << it->_btname.c_str() << " " << it->_n << std::endl;
+            mfile << (*it)->_btname.c_str() << " " << (*it)->_n << std::endl;
             Mat pose = Mat::eye(4,4,MATCVTYPE);
-            for(int i = 0;i < it->_n; ++i)
+            for(int i = 0;i < (*it)->_n; ++i)
             {
-                Mat T =  it->_poses[i];
+                Mat T =  (*it)->_poses[i];
                 int vaild = !T.empty();
                 //pose
                 mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
-                      << std::setw(9)  << it->_fmsdata[i]->_name.c_str()
+                      << std::setw(9)  << (*it)->_fmsdata[i]->_name.c_str()
                       << std::setw(7)  << vaild;
                 if(vaild)
                 {
@@ -242,7 +242,7 @@ void HdPosePrj::save(const std::string &path)
                         pose = Mat::eye(4,4,MATCVTYPE);
                     else
                     {
-                        if(!it->_poses[i-1].empty())
+                        if(!(*it)->_poses[i-1].empty())
                         {
                             Mat Rfuse = T.rowRange(0,3).colRange(0,3).t();
                             Mat tfuse = -Rfuse*T.rowRange(0,3).col(3);

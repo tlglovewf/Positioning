@@ -18,7 +18,7 @@ namespace Position
         virtual bool check(const FrameData &frame) ;
         virtual bool check(const std::string &str) ;
     };
-
+    //路径有效性检测
     class PathChecker
     {
     public:
@@ -26,6 +26,7 @@ namespace Position
     };
     
 #define PATHCHECK(path) PathChecker::check(path)
+
 }
 
 #endif

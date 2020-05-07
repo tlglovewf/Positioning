@@ -130,13 +130,16 @@ struct ImuRawData
 
 //信息索引 图片索引，目标在图片中索引
 typedef std::pair<int,int> InfoIndex;
+struct BatchItem;
 struct TrackerItem
 {
-    int             id      ;         //目标id
-    InfoIndex       stno    ;         //第一帧出现的索引
-    InfoIndex       edno    ;         //最后一帧出现的索引
-    BLHCoordinate   blh     ;         //经纬度
-    int             maxsize ;         //出现的帧数
+    int             id      ;                   //目标id
+    InfoIndex       stno    ;                   //第一帧出现的索引
+    InfoIndex       edno    ;                   //最后一帧出现的索引
+    BLHCoordinate   blh     ;                   //经纬度
+    int             maxsize ;                   //出现的帧数
+    std::shared_ptr<BatchItem> batch  ;         //关联处理的批次,只有可能关联到一个批次
+    TrackerItem(){memset(this,0,sizeof(*this));}
 };
 typedef std::vector<TrackerItem>        TrackerItemVector;
 typedef TrackerItemVector::iterator     TrackerItemVIter; 
@@ -221,7 +224,7 @@ struct BatchItem
         _poses.reserve(n);
     }
 };
-typedef vector<BatchItem>                   PrjBatchVector;
+typedef vector<std::shared_ptr<BatchItem> > PrjBatchVector;
 typedef PrjBatchVector::iterator            PrjBatchVIter;
 
 typedef std::vector<PoseData>               PoseVector;

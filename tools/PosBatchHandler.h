@@ -8,8 +8,9 @@
 #ifndef _POSBATCHGENERATOR_H_H_
 #define _POSBATCHGENERATOR_H_H_
 #include "P_Interface.h"
-#include "P_TrajProSelector.h"
+#include "P_PoseEstimator.h"
 #include "project/imgautoproject.h"
+#include "PoseEst.h"
 using namespace Position;
 
 
@@ -18,8 +19,11 @@ using namespace Position;
 class PosBatchHandler
 {
 public:
-    PosBatchHandler(const std::shared_ptr<IConfig> &pcfg,
-                    const std::shared_ptr<IProjList> &prjlist);
+    PosBatchHandler(const std::shared_ptr<IConfig>           &pcfg      ,
+                    const std::shared_ptr<IProjList>         &prjlist   ,
+                    const std::shared_ptr<IVisualPositioner> &positioner,
+                    const CameraParam   &cam);
+
     //加载识别文件
     bool loadTrackerInfos(const std::string &path);
   
@@ -41,8 +45,10 @@ public:
 protected:
     std::shared_ptr<IConfig>            mpConfig;
     std::shared_ptr<IProjList>          mPrjList;
-    // std::unique_ptr<IPositioning>       mpPos;
-    // TrajProSelector                     mTrjSelector;
+    std::shared_ptr<IVisualPositioner>  mPositioner;
+
+    CameraParam                         mCamera;
+    PoseEstimator                       mPoseEstimator;
 };
 
 

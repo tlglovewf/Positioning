@@ -1,21 +1,21 @@
 /**
- *   P_TrajProSelector.h
+ *   P_PoseEstimator.h
  *   
  *   add by tu li gen   2020.2.14
  * 
  */
-#ifndef __PTRAJPROSELECTOR_H_
-#define __PTRAJPROSELECTOR_H_
+#ifndef __POSEESTIMATOR_H_
+#define __POSEESTIMATOR_H_
 #include "P_Interface.h"
 
 namespace Position
 {
     //轨迹处理选择类
-    class TrajProSelector 
+    class PoseEstimator 
     {
     public:
         //构造函数
-        TrajProSelector(const std::shared_ptr<IConfig> &pCfg, const std::shared_ptr<IData> &pdata);
+        PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam);
 
         //处理帧数据
         bool process(const FrameDataPtrVector &datas,const std::string &imgpath = "");

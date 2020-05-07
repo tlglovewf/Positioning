@@ -246,7 +246,7 @@ namespace Position
     {
     public:
         //生成批处理对象
-        virtual PrjBatchVector generate(const std::shared_ptr<IData> &pdata,const TrackerItemVector &trackers) = 0;
+        virtual PrjBatchVector generate(const std::shared_ptr<IData> &pdata,TrackerItemVector &trackers) = 0;
     };
 
 

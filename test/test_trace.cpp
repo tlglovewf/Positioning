@@ -124,7 +124,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::IData> pData(new HdData(pCfg));
 
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData->getCamera()));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     
@@ -140,13 +140,13 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         //for test 
         // if(index++ >= 10)
         //     break;
-        cout << "Load Batch:" << it->_btname.c_str() << endl;
+        cout << "Load Batch:" << (*it)->_btname.c_str() << endl;
 
         Position::FrameDataPtrVector framedatas;
-        framedatas.reserve(it->_n);
-        for(int i = 0; i < it->_n; ++i)
+        framedatas.reserve((*it)->_n);
+        for(int i = 0; i < (*it)->_n; ++i)
         {
-            Position::FrameData *fdata = it->_fmsdata[i];
+            Position::FrameData *fdata = (*it)->_fmsdata[i];
             fdata->_img  = imread(imgpath + "/" + fdata->_name + ".jpg");
             if(fdata->_img.channels() > 1)
             {
@@ -160,12 +160,12 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         {
             //gps 融合
             // gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
-            cout << "Save Batch " << it->_btname.c_str() << "pose info" << endl;
+            cout << "Save Batch " << (*it)->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
 
-            for(size_t i = 0; i < it->_fmsdata.size(); ++i)
+            for(size_t i = 0; i < (*it)->_fmsdata.size(); ++i)
             {
-                const std::string &nm = it->_fmsdata[i]->_name;
+                const std::string &nm = (*it)->_fmsdata[i]->_name;
 
                 Position::KeyFrameVter kit = std::find_if(frames.begin(),frames.end(),[nm](const Position::IKeyFrame *pframe)->bool
                 {
@@ -174,14 +174,14 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
                 if(kit == frames.end())
                 {
-                    it->_poses.emplace_back(Mat());
+                    (*it)->_poses.emplace_back(Mat());
                 }
                 else
                 {
                     Mat posefuse = Mat::eye(4,4,MATCVTYPE);
                     (*kit)->getRotation().copyTo(posefuse.rowRange(0,3).colRange(0,3));
                     (*kit)->getTranslation().copyTo(posefuse.rowRange(0,3).col(3));
-                    it->_poses.emplace_back(posefuse);
+                    (*it)->_poses.emplace_back(posefuse);
                 }
                 
             }
@@ -303,7 +303,7 @@ int main(void)
     pData->loadDatas();
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData->getCamera()));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     Position::FrameDataVector datas;
     Position::FrameDataVIter iter = pData->begin();

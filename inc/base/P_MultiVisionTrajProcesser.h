@@ -15,7 +15,7 @@ namespace Position
     public:
          //构造
          PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
-                                   const std::shared_ptr<IData> &pdata);
+                                   const CameraParam &cam);
 
          //跟踪
         virtual cv::Mat track( FrameData *data);

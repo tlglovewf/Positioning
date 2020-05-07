@@ -126,7 +126,7 @@ namespace Position
          */
         static ITrajProcesser* CreateTrajProcesser(eTrajProcesserType type, 
                                                    const std::shared_ptr<IConfig> &pcfg,
-                                                   const std::shared_ptr<IData> &pdata);
+                                                   const CameraParam &cam);
 
         /*
          * 位姿推算

@@ -76,8 +76,9 @@ int main(int argc, char **argv)
 #if 1 
     std::shared_ptr<Position::IProjList> prjList(new ImgAutoPrjList(pData));
     prjList->setBatcherGenerator(shared_ptr<IBatchesGenerator>(new TargetBatchesGenerator));
-    std::shared_ptr<IPoseEstimator> pPoseEst(new BatchPoseEstimator());
-    PosBatchHandler poshandler(pCfg,prjList);
+    std::shared_ptr<IVisualPositioner>  pPositioner(new BatchVisualPositioner(pData->getCamera()));
+    PosBatchHandler poshandler(pCfg,prjList,pPositioner,pData->getCamera());
+
     const std::string trackerpath = prjpath + "tracker/";
     if(poshandler.loadTrackerInfos(trackerpath + "tracker.txt"))
     {
@@ -89,17 +90,5 @@ int main(int argc, char **argv)
         poshandler.saveResult(trackerpath + "tracker_rst.txt");
     }
 #endif
-
-    //帧批组生成器
-    // std::unique_ptr<IBatchesGenerator>  pBatchGenerator(new TargetBatchesGenerator);
-
-    // //位姿估算器
-    // std::unique_ptr<IPoseEstimator>     pPseEst(new BatchPoseEstimator);
-
-    // //视觉定位器
-    // std::unique_ptr<IVisualPositioner>  pVisualP(new BatchVisualPositioner);
-
-    // pBatchGenerator->generate(pData,)
-
     return 0;
 }

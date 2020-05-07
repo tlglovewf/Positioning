@@ -12,7 +12,7 @@ namespace Position
 {
      //构造
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
-                                                         const std::shared_ptr<IData> &pdata)
+                                                         const CameraParam &cam):mCam(cam)
                    {
 #if 0
                         mpFeature        = std::shared_ptr<IFeature>(new FeatureQuadTree(GETCFGVALUE(pcfg,FeatureCnt,int)));
@@ -25,7 +25,6 @@ namespace Position
                         // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
                         mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
 
-                        mCam = pdata->getCamera();
 
                         Position::FrameHelper::initParams(GETCFGVALUE(pcfg,ImgWd,int),GETCFGVALUE(pcfg,ImgHg,int),&mCam);
                         mFtSearchRadius = GETCFGVALUE(pcfg,SearchRadius,int);

@@ -24,7 +24,7 @@ PMapDisplay::PMapDisplay(const shared_ptr<Position::IData> &pdata,
         exit(-1);
     }
 
-    mpTrajProSelector = std::unique_ptr<Position::TrajProSelector>(new Position::TrajProSelector(pcfg,pdata));
+    mpTrajProSelector = std::unique_ptr<Position::PoseEstimator>(new Position::PoseEstimator(pcfg,pdata->getCamera()));
 
 #ifdef USE_VIEW
     if(GETCFGVALUE(mpConfig,ViewEnable,int))

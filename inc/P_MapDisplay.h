@@ -7,7 +7,7 @@
 #ifndef __PMAPDISPLAY_H_H_
 #define __PMAPDISPLAY_H_H_
 #include "P_Interface.h"
-#include "P_TrajProSelector.h"
+#include "P_PoseEstimator.h"
 #include <thread>
 
 //轨迹地图处理  仅为调试测试
@@ -31,7 +31,7 @@ protected:
 #ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>          mpViewer;
 #endif
-    std::unique_ptr<Position::TrajProSelector>  mpTrajProSelector;
+    std::unique_ptr<Position::PoseEstimator>    mpTrajProSelector;
     std::unique_ptr<Position::IGpsFusion>       mpGpsFunsion;
 
     std::unique_ptr<std::thread>                mptViewer; 

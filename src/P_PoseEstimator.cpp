@@ -1,16 +1,16 @@
-#include "P_TrajProSelector.h"
+#include "P_PoseEstimator.h"
 #include "P_Factory.h"
 
 namespace Position
 {
-   TrajProSelector::TrajProSelector(const std::shared_ptr<IConfig> &pCfg, const std::shared_ptr<IData> &pdata)
+   PoseEstimator::PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam)
    {
-    //    mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed,pCfg,pdata));
-       mpSimpleTrajPro   = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjMultiVision,pCfg,pdata));
+    //    mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed,pCfg,cam));
+       mpSimpleTrajPro   = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjMultiVision,pCfg,cam));
        mpCurrentTrajPro = mpSimpleTrajPro; //mpUniformVTrajPro;
    }
 
-   bool TrajProSelector::handle(FrameData *fdata)
+   bool PoseEstimator::handle(FrameData *fdata)
    {
        if(!mpCurrentTrajPro)
             mpCurrentTrajPro = mpUniformVTrajPro;
@@ -20,7 +20,7 @@ namespace Position
 
 
      //处理帧数据
-   bool TrajProSelector::process(const FrameDataPtrVector &datas,const std::string &imgpath /*=""*/)
+   bool PoseEstimator::process(const FrameDataPtrVector &datas,const std::string &imgpath /*=""*/)
    {
        
        if(!imgpath.empty())
@@ -35,14 +35,14 @@ namespace Position
    }
 
    //获取地图
-   const std::shared_ptr<IMap>& TrajProSelector::getMap()
+   const std::shared_ptr<IMap>& PoseEstimator::getMap()
    {
        assert(mpCurrentTrajPro);
        return mpCurrentTrajPro->getMap();
    }
 
    //设置可视接口
-   void TrajProSelector::setViewer(const std::shared_ptr<IViewer> &pviewer)
+   void PoseEstimator::setViewer(const std::shared_ptr<IViewer> &pviewer)
    {
        mpViewer = pviewer;
        assert(mpViewer);
@@ -51,14 +51,14 @@ namespace Position
    }
 
    //重置状态
-   void TrajProSelector::reset()
+   void PoseEstimator::reset()
    {
        assert(mpCurrentTrajPro);
        mpCurrentTrajPro->reset();
    }
 
     //等待处理
-    void TrajProSelector::waitingForHandle()
+    void PoseEstimator::waitingForHandle()
     {
         if(mpCurrentTrajPro)
         {

@@ -22,7 +22,7 @@ namespace Position
     {
     public:
         //构造
-        PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const std::shared_ptr<IData> &pdata);
+        PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const CameraParam &cam);
         ~PUniformVTrajProcesser();
          //跟踪
         virtual cv::Mat track(FrameData *data);

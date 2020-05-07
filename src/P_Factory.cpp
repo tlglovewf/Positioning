@@ -145,14 +145,14 @@ namespace Position
      */
     ITrajProcesser* PFactory::CreateTrajProcesser(eTrajProcesserType type, 
                                                   const std::shared_ptr<IConfig> &pcfg,
-                                                  const std::shared_ptr<IData> &pdata)
+                                                  const CameraParam &cam)
     {
         switch(type)
         {
             case eTjUniformSpeed:
-                return new PUniformVTrajProcesser(pcfg,pdata);
+                return new PUniformVTrajProcesser(pcfg,cam);
             case eTjMultiVision:
-                return new PMultiVisionTrajProcesser(pcfg,pdata);
+                return new PMultiVisionTrajProcesser(pcfg,cam);
             default:
                 return new PTrajProcesser();
         }
