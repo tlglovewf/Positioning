@@ -1,6 +1,7 @@
 #include "P_Positioning.h"
 #include "P_Utils.h"
 #include "P_Writer.h"
+#include "P_Checker.h"
 #include "P_Factory.h"
 
 namespace Position
@@ -260,6 +261,137 @@ namespace Position
             data._pos =  PCoorTrans::XYZ_to_BLH(XYZCoordinate(wdpt.at<MATTYPE>(0),
                                                               wdpt.at<MATTYPE>(1),
                                                               wdpt.at<MATTYPE>(2)));
+        }
+    }
+
+    //通过id获取目标
+    static inline const TargetData& getTarget(const FrameData &frame,int id)
+    {
+        TargetVector::const_iterator iter = 
+        std::find_if(frame._targets.begin(),frame._targets.end(),[&](const TargetData &t)->bool
+        {
+            return t._type == id;
+        });
+        if(iter != frame._targets.end())
+            return *iter;
+        else
+        {
+            static TargetData error;
+            return error;
+        }
+    }
+
+
+    //批定位器
+    bool BatchVisualPositioner::position(TrackerItem &target)
+    {
+    PROMT_V("get target",target.id,"position.");
+    if(target.maxsize >= 2)
+    {//只有在关联帧数大于2 才进入量测赋值,否则保持原有当前帧的值
+        assert(target.batch);
+        int idx1, idx2;
+        if(target.batch->_fmsdata.size() != target.batch->_poses.size())
+            return false;
+        selectFrame(target,idx1,idx2);
+        if(idx1 >= idx2)
+        {//选帧 帧数不足 位姿推算失败 取当前位置
+            return false;
+        }
+
+        FrameData &frame1 = *target.batch->_fmsdata[idx1];
+        FrameData &frame2 = *target.batch->_fmsdata[idx2];
+        Mat &pose1 = target.batch->_poses[idx1];
+        Mat &pose2 = target.batch->_poses[idx2];
+        const TargetData &targ1 = getTarget(frame1,target.id);
+        const TargetData &targ2 = getTarget(frame2,target.id);
+
+        if(!TargetData::isValid(targ1) || !TargetData::isValid(targ2))
+        {
+            PROMT_V("target get error : ",frame1._name.c_str()," ", frame2._name.c_str()," ", target.id);
+        }
+
+        //此处暂时先直接以跟踪到的中心点为同名点 判断条件
+        Mat pose = pose2 * pose1.inv();
+        Mat R = pose.rowRange(0,3).colRange(0,3);
+        Mat t = pose.rowRange(0,3).col(3);
+     
+        //三角测量
+        cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
+        mCamera.K.copyTo(P1.rowRange(0,3).colRange(0,3));
+
+        // Camera 2 Projection Matrix K[R|t]
+        cv::Mat P2(3,4,MATCVTYPE);
+        R.copyTo(P2.rowRange(0,3).colRange(0,3));
+        t.copyTo(P2.rowRange(0,3).col(3));
+        P2 = mCamera.K * P2;
+        Mat x3d;
+        PUtils::Triangulate(targ1.center(),targ2.center(),P1,P2,x3d);
+
+
+        cout.precision(15);
+        cout << frame1._pos.pos.lon << " " << frame1._pos.pos.lat << endl;
+        cout << target.batch->_fmsdata[idx2 ]->_pos.pos.lon << " " 
+             << target.batch->_fmsdata[idx2 ]->_pos.pos.lat << endl;
+        //此处暂用定位第二帧作为方向计算
+        Mat trans = PUtils::CalcTransBLH(frame1._pos, frame2._pos);
+
+        resize(x3d,x3d,Size(1,4));
+        x3d.at<MATTYPE>(3) = 1.0;
+
+        Mat wdpt = trans * x3d;
+        //坐标转换
+        BLHCoordinate rstblh  =  PCoorTrans::XYZ_to_BLH(XYZCoordinate(wdpt.at<MATTYPE>(0),
+                                                                      wdpt.at<MATTYPE>(1),
+                                                                      wdpt.at<MATTYPE>(2)));
+
+        
+        if(ResultCheckStrategy::Instance()->check(target,idx1,rstblh))
+        {//检查通过 赋值目标位置
+            target.blh = rstblh;
+        }
+        
+
+        PROMT_V("target",target.id,target.blh.lon,target.blh.lat);
+    }
+    return true;
+    }
+
+    //重置
+    void BatchVisualPositioner::reset() 
+    {
+
+    }
+
+
+    //选择用于量测的帧
+    void BatchVisualPositioner::selectFrame(const TrackerItem &item,int &idx1, int &idx2)
+    {
+        if(item.batch->_fmsdata.size() == 2)
+        {//只有两帧的情况
+            idx1 = 0;
+            idx2 = 1;
+        }
+        else
+        {//取中间帧
+            std::vector<Mat>::const_iterator iter = std::find_if(item.batch->_poses.begin(),
+                                                                 item.batch->_poses.end(),[](const Mat &pse)->bool
+            {
+                return !pse.empty();
+            });
+
+            if(iter != item.batch->_poses.end())
+            {
+                int st = iter - item.batch->_poses.begin();
+                int mid = (item.batch->_poses.end() - iter) / 2;
+                idx1 = st + (mid - 1);
+
+                idx2 = item.batch->_fmsdata.size() - 1;
+            }
+            else
+            {
+                idx1 = 0;
+                idx2 = 0;
+            }
         }
     }
 }

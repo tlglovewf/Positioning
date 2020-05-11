@@ -50,25 +50,6 @@ namespace Position
         CameraParam   mCamera;
     };
 
-    //单张图片定位
-    class SingleImgPositioning : public Positioning
-    {
-    public:
-        SingleImgPositioning(const CameraParam &cam):Positioning(cam){}
-
-         //定位关键帧中目标
-        virtual void position(IKeyFrame *frame)
-        {
-            assert(frame);
-        }
-
-         //定位场景地图关键帧中目标
-        virtual void position(const std::shared_ptr<IMap> &pMap) 
-        {
-            assert(NULL);
-        }
-    };
-
     //多图片定位
     class MultiImgPositioning : public Positioning
     {
@@ -82,16 +63,25 @@ namespace Position
         virtual Mat position(const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2);
     };
 
-    //深度估计定位
-    class DepthLImgPositioning : public Positioning
+
+    //批定位器
+    class BatchVisualPositioner : public IVisualPositioner
     {
     public:
-        DepthLImgPositioning(const CameraParam &cam):Positioning(cam){}
-        //定位关键帧中目标
-        virtual void position(IKeyFrame *frame)
-        {
-            assert(NULL);
-        }
+        BatchVisualPositioner(const CameraParam &cam):mCamera(cam){}
+
+        //定位目标
+        virtual bool position(TrackerItem &target);
+
+        //重置
+        void reset(); 
+
+    protected:
+        //选择用于量测的帧
+        virtual void selectFrame(const TrackerItem &item,int &idx1, int &idex2);
+
+    protected:
+        CameraParam mCamera;
     };
 }
 

@@ -4,8 +4,9 @@
 #include "P_Utils.h"
 #include "project/imgautoproject.h"
 #include "PosBatchHandler.h"
+#include "P_TargetBatchesGenerator.h"
 #include "P_Checker.h"
-#include "tools/PoseEst.h"
+
 int main(int argc, char **argv)
 {
     if(2 != argc)

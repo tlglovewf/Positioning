@@ -18,7 +18,6 @@ mCamera(cam)
 {
      assert(pcfg);
      assert(prjlist);
-     assert(pstest);
      assert(positioner);
 }
 
@@ -87,8 +86,6 @@ void PosBatchHandler::poseEstimate()
 
     PROMT_S("end.");
 }
-
-
 
 
 //目标定位

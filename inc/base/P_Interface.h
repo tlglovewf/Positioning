@@ -273,6 +273,34 @@ namespace Position
         virtual void save(const std::string &path) = 0;
     };
 
+
+    //视觉定位器
+    class IVisualPositioner : public IBase
+    {
+    public:
+        //定位目标
+        virtual bool position(TrackerItem &item) = 0;
+    
+    protected:
+        //选择用于量测的帧
+        virtual void selectFrame(const TrackerItem &item,int &idx1, int &idex2) = 0;
+    };
+    
+    /*
+     *  结果检查
+     */
+    class IResultCheck : public IBase
+    {
+    public:
+        /*
+         * 检查结果
+         * @param item  跟踪对象
+         * @param index 关联帧序号
+         * @param blh   检查的结果 
+         */
+        virtual bool check(const TrackerItem &item,int index, const BLHCoordinate &blh) = 0;
+    };
+
     // visual interface
     class IViewer : public IBase
     {

@@ -10,7 +10,7 @@
 #include "P_Interface.h"
 #include "P_PoseEstimator.h"
 #include "project/imgautoproject.h"
-#include "PoseEst.h"
+
 using namespace Position;
 
 

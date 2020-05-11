@@ -82,27 +82,6 @@ namespace Position
          }
      }
 
-     /*
-      * 定位
-      */
-     IPositioning* PFactory::CreatePositioning(ePositioningType type,const CameraParam  &cam)
-     {
-         switch (type)
-         {
-            case ePSingleImage:
-                return new SingleImgPositioning(cam);
-            case ePMultiImage:
-                return new MultiImgPositioning(cam);
-            case ePDepthImage:
-                /* code */
-                return new DepthLImgPositioning(cam);
-            default:
-            {
-                assert(NULL);
-                return NULL;
-            }
-         }
-     }
     /*
      * 创建匹配器
      */

@@ -157,8 +157,7 @@ endif()
 
 add_executable(TargetPosition  
 tools/TargetPosition.cpp
-tools/PosBatchHandler.cpp
-tools/PoseEst.cpp)
+tools/PosBatchHandler.cpp)
 target_link_libraries(TargetPosition ${Positioning})
 
 set(CMAKE_INSTALL_PREFIX /usr/local/)

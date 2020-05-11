@@ -109,11 +109,6 @@ namespace Position
          * 创建特征匹配对象
          */
         static IFeatureMatcher* CreateFeatureMatcher(eFeatureMatcherType type, float ratio, bool bcheckori = true);
-
-        /*
-         * 创建定位对象
-         */
-        static IPositioning* CreatePositioning(ePositioningType type, const CameraParam  &pcfg);
         
 #ifdef USE_VIEW
         /*
