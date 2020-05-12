@@ -3,7 +3,8 @@
 #include "P_Map.h"
 #include "P_Factory.h"
 #include "P_FeatureMatcher.h"
-#include <opencv2/xfeatures2d.hpp>
+#include "P_Factory.h"
+// #include <opencv2/xfeatures2d.hpp>
 
 #include <map>
 #include <vector>
@@ -17,7 +18,6 @@
 
 using namespace std;
 using namespace cv;
-using namespace cv::xfeatures2d;
 
 
 typedef vector<KeyPoint>        KeyPtVector;
@@ -142,55 +142,55 @@ void featureMatch(eFeatureMType etype, const Mat &des1, const Mat &des2, vector<
 }
 
 //特征接口
-class SiftFeature : public Position::IFeature
-{
-public:
-    //（1）nfeatures，保留的最佳特性的数量。特征按其得分进行排序(以SIFT算法作为局部对比度进行测量)；
-    //（2）nOctavelLayers，高斯金字塔最小层级数，由图像自动计算出；
-    //（3）constrastThreshold，对比度阈值用于过滤区域中的弱特征。阈值越大，检测器产生的特征越少。；
-    //（4）edgeThreshold ，用于过滤掉类似边缘特征的阈值。 请注意，其含义与contrastThreshold不同，即edgeThreshold越大，滤出的特征越少；
-    //（5）sigma，高斯输入层级， 如果图像分辨率较低，则可能需要减少数值。
-    SiftFeature():mSift(SIFT::create(250,4,0.05,15,1.4))
-    {
-        Position::FloatVector  mvScaleFactor(4,0);
-        Position::FloatVector  mvLevelSigma2(4,0);
-        mSigmaVector.resize(4);
-        mvLevelSigma2[0]= 1.0f;
-        mSigmaVector[0] = 1.0f;
+// class SiftFeature : public Position::IFeature
+// {
+// public:
+//     //（1）nfeatures，保留的最佳特性的数量。特征按其得分进行排序(以SIFT算法作为局部对比度进行测量)；
+//     //（2）nOctavelLayers，高斯金字塔最小层级数，由图像自动计算出；
+//     //（3）constrastThreshold，对比度阈值用于过滤区域中的弱特征。阈值越大，检测器产生的特征越少。；
+//     //（4）edgeThreshold ，用于过滤掉类似边缘特征的阈值。 请注意，其含义与contrastThreshold不同，即edgeThreshold越大，滤出的特征越少；
+//     //（5）sigma，高斯输入层级， 如果图像分辨率较低，则可能需要减少数值。
+//     SiftFeature():mSift(SIFT::create(250,4,0.05,15,1.4))
+//     {
+//         Position::FloatVector  mvScaleFactor(4,0);
+//         Position::FloatVector  mvLevelSigma2(4,0);
+//         mSigmaVector.resize(4);
+//         mvLevelSigma2[0]= 1.0f;
+//         mSigmaVector[0] = 1.0f;
 
-        for(int i=1; i < 4; i++)
-        {
-            mvScaleFactor[i]=mvScaleFactor[i-1]*1.4;
-            mvLevelSigma2[i]= 1.0 /(mvScaleFactor[i]*mvScaleFactor[i]);
-        }
+//         for(int i=1; i < 4; i++)
+//         {
+//             mvScaleFactor[i]=mvScaleFactor[i-1]*1.4;
+//             mvLevelSigma2[i]= 1.0 /(mvScaleFactor[i]*mvScaleFactor[i]);
+//         }
 
-    }
+//     }
 
-    //计算特征点
-    virtual bool detect(const Position::FrameData &frame,Position::KeyPtVector &keys, Mat &descript) 
-    {
-        // Mat mask = Mat::zeros(out.size(),CV_8UC1);
+//     //计算特征点
+//     virtual bool detect(const Position::FrameData &frame,Position::KeyPtVector &keys, Mat &descript) 
+//     {
+//         // Mat mask = Mat::zeros(out.size(),CV_8UC1);
     
-        // //提出图片中间部分的匹配点
-        // int w = out.cols * 0.35;
-        // int h = out.rows * 0.35;
-        // Rect roi(w,h, w, w);
-        // mask.setTo(255);
-        // mask(roi).setTo(0);
+//         // //提出图片中间部分的匹配点
+//         // int w = out.cols * 0.35;
+//         // int h = out.rows * 0.35;
+//         // Rect roi(w,h, w, w);
+//         // mask.setTo(255);
+//         // mask(roi).setTo(0);
 
-        mSift->detect(frame._img,keys);//,mask);
-        mSift->compute(frame._img,keys,descript);
+//         mSift->detect(frame._img,keys);//,mask);
+//         mSift->compute(frame._img,keys,descript);
 
-    }
-    //返回sigma参数(主要用于优化 信息矩阵)
-    virtual const Position::FloatVector& getSigma2() const
-    {
-        return mSigmaVector;
-    }
-protected:
-    Position::FloatVector mSigmaVector;
-    Ptr<SIFT> mSift;
-};
+//     }
+//     //返回sigma参数(主要用于优化 信息矩阵)
+//     virtual const Position::FloatVector& getSigma2() const
+//     {
+//         return mSigmaVector;
+//     }
+// protected:
+//     Position::FloatVector mSigmaVector;
+//     Ptr<SIFT> mSift;
+// };
 
 
 float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVector &pt2s,
@@ -333,9 +333,7 @@ bool CheckUnique(const Position::KeyPtVector &pts, const cv::KeyPoint &keypt)
         }
     }
 }
-
-//Mask 生成
-cv::Mat GernerateMask(const std::string &sempath, const std::string &segim, Rect rect)
+Mat GernerateMask(const string &sempath,const string &segim, Rect rect)
 {
     string str = segim;
     Position::PUtils::ReplaceFileSuffix(str,"jpg", SemanticGraph::Instance()->defaultsuffix);
@@ -365,16 +363,231 @@ void SelectFrameData(const std::shared_ptr<Position::IData> &pdata, Position::Fr
 }
 
 
+
+void writeKeyPoints(const std::string &path,const Position::KeyPtVector &keypts1,const Position::KeyPtVector &keypts2,const Position::KeyPtVector &keypts3)
+{
+    if(!keypts1.empty() &&
+       !keypts2.empty() )
+       //&& keypts1.size() == keypts2.size())
+       {
+           ofstream file;
+           file.open(path);
+           
+            for(size_t i = 0; i < keypts1.size() ; ++i)
+            {
+                char fmt[255] = {0};
+
+                sprintf(fmt,"%f,%f;%f,%f;%f,%f",keypts1[i].pt.x,keypts1[i].pt.y,keypts2[i].pt.x,keypts2[i].pt.y,keypts3[i].pt.x,keypts3[i].pt.y);
+
+                file << fmt << endl;
+            }
+       
+
+           file.close();
+       }
+}
+
+void readKeyPoints(const std::string &path, Position::KeyPtVector &keypts1, Position::KeyPtVector &keypts2,Position::KeyPtVector &keypts3, Position::MatchVector &mts1,Position::MatchVector &mts2)
+{
+    if(path.empty())
+    {
+        return;
+    }
+    keypts1.clear();
+    keypts2.clear();
+    ifstream file;
+    try
+    {
+        file.open(path);
+
+        int index = 0;
+        while(!file.eof())
+        {
+            string line;
+            getline(file,line);
+            if(line.empty())
+                continue;
+            
+            Position::StringVector strs = Position::PUtils::SplitString(line,";");
+            assert(strs.size() == 3);
+            float x,y;
+            sscanf(strs[0].c_str(),"%f,%f",&x,&y);
+            keypts1.push_back(KeyPoint(Point2f(x,y),1));
+            sscanf(strs[1].c_str(),"%f,%f",&x,&y);
+            keypts2.push_back(KeyPoint(Point2f(x,y),1));
+            sscanf(strs[2].c_str(),"%f,%f",&x,&y);
+            keypts3.push_back(KeyPoint(Point2f(x,y),1));
+            DMatch dm;
+            dm.queryIdx = index;
+            dm.trainIdx = index++;
+            mts1.emplace_back(dm);
+            mts2.emplace_back(dm);
+        }
+        file.close();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+
 int main(void)
 {
 
+    Mat im1 = imread("/media/tu/Work/Datas/test/689_L.jpg");
+    Mat im2 = imread("/media/tu/Work/Datas/test/691_L.jpg");
+    Mat im3 = imread("/media/tu/Work/Datas/test/693_L.jpg");
+
+    std::shared_ptr<Position::IConfig>  pcfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
+    std::shared_ptr<Position::IFeature> pfeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
+    std::shared_ptr<Position::IFeatureMatcher> pmatch(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,0.5));
+    Position::FrameData fm1;
+    Position::FrameData fm2;
+    Position::FrameData fm3;
+    fm1._img = im1;
+
+    Position::KeyPtVector keypt1;
+    Position::KeyPtVector keypt2;
+    Position::KeyPtVector keypt3;
+    Mat des1;
+    Mat des2;
+    Mat des3;
+    // pfeature->detect(fm1,keypt1,des1);
+    // pfeature->detect(fm1,keypt2,des2);
+
+    
+
+    //手动选点
+    //1
+    keypt1.emplace_back(KeyPoint(Point2f(1478,528),1));
+    keypt2.emplace_back(KeyPoint(Point2f(1422,506),1));
+    keypt3.emplace_back(KeyPoint(Point2f(1357,475),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(776,346),1));
+    keypt2.emplace_back(KeyPoint(Point2f(685,313),1));
+    keypt3.emplace_back(KeyPoint(Point2f(584,279),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(1604,574),1));
+    keypt2.emplace_back(KeyPoint(Point2f(1565,562),1));
+    keypt3.emplace_back(KeyPoint(Point2f(1521,546),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(3425,478),1));
+    keypt2.emplace_back(KeyPoint(Point2f(3561,433),1));
+    keypt3.emplace_back(KeyPoint(Point2f(3738,365),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(784,278),1));
+    keypt2.emplace_back(KeyPoint(Point2f(690,243),1));
+    keypt3.emplace_back(KeyPoint(Point2f(588,204),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(1485,652),1));
+    keypt2.emplace_back(KeyPoint(Point2f(1425,637),1));
+    keypt3.emplace_back(KeyPoint(Point2f(1362,620),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(1387,1122),1));
+    keypt2.emplace_back(KeyPoint(Point2f(1289,1148),1));
+    keypt3.emplace_back(KeyPoint(Point2f(1164,1180),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2482,1016),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2512,1033),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2558,1048),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2306,1020),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2298,1030),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2295,1036),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(806,1152),1));
+    keypt2.emplace_back(KeyPoint(Point2f(616,1186),1));
+    keypt3.emplace_back(KeyPoint(Point2f(372,1229),1));
+
+    //11
+    keypt1.emplace_back(KeyPoint(Point2f(2287,318),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2291,250),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2300,156),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2109,302),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2094,230),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2076,135),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2583,330),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2624,263),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2677,170),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2200,564),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2183,554),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2167,537),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(1451,695),1));
+    keypt2.emplace_back(KeyPoint(Point2f(1422,696),1));
+    keypt3.emplace_back(KeyPoint(Point2f(1396,690),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2965,941),1));
+    keypt2.emplace_back(KeyPoint(Point2f(3168,962),1));
+    keypt3.emplace_back(KeyPoint(Point2f(3526,975),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2405,1001),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2413,1013),1));
+    keypt3.emplace_back(KeyPoint(Point2f(2430,1020),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(1754,1004),1));
+    keypt2.emplace_back(KeyPoint(Point2f(1718,1012),1));
+    keypt3.emplace_back(KeyPoint(Point2f(1682,1015),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(2736,1274),1));
+    keypt2.emplace_back(KeyPoint(Point2f(2888,1374),1));
+    keypt3.emplace_back(KeyPoint(Point2f(3154,1530),1));
+
+    keypt1.emplace_back(KeyPoint(Point2f(3490,697),1));
+    keypt2.emplace_back(KeyPoint(Point2f(3643,676),1));
+    keypt3.emplace_back(KeyPoint(Point2f(3842,638),1));
+
+    // Position::PFrame *pf1 = new Position::PFrame(&fm1,0);
+    // Position::PFrame *pf2 = new Position::PFrame(&fm2,1);
+    // Position::PFrame *pf3 = new Position::PFrame(&fm3,2);
+
+    // Position::MatchVector  mts = pmatch->match(pf1,pf2,10);
+
+    // Position::MatchVector mts;
+    // for(size_t i = 0; i < keypt1.size(); ++i)
+    // {
+    //     cv::DMatch dm;
+    //     dm.
+    // }
+
+    Position::MatchVector mts1,mts2;
+    mts1.reserve(keypt1.size());
+    mts2.reserve(keypt1.size());
+    // for(size_t i = 0; i < keypt1.size(); ++i)
+    // {
+    //     cv::DMatch dm;
+    //     dm.queryIdx = i;
+    //     dm.trainIdx = i;
+    //     mts.emplace_back(dm);
+    // }
+
+
+  
+
+    writeKeyPoints("/media/tu/Work/Datas/test/test.txt",keypt1,keypt2,keypt3);
+
+    readKeyPoints("/media/tu/Work/Datas/test/test.txt",keypt1,keypt2,keypt3,mts1,mts2);
+    cout << keypt1.size() << endl;
+    cout << keypt2.size() << endl;
+    cout << mts1.size() << endl;
+    Mat rstimg = Position::PUtils::DrawFeatureMatch(im1,im2,keypt1,keypt2,mts1);
+
+    imwrite("/media/tu/Work/Datas/test/rst.jpg",rstimg);    
+
+
+    return 0;
     SemanticGraph::Instance()->loadObjInfos("segraph.config");
 
     std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IData>    pData(new HdData(pCfg));
-    std::shared_ptr<Position::IFeature> pFeature(new FeatureQuadTree(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
+    std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
+
+    //new FeatureQuadTree(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
-    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(new Position::PKnnMatcher);
+    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pCfg,MatchRatio,float)));
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
 #ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
@@ -431,8 +644,8 @@ int main(void)
 
     Position::Time_Interval timer;
     timer.start();
-    Position::IFrame *preframe = new Position::PFrame(predata,pFeature, pmap->frameCount());
-    Position::IFrame *curframe = new Position::PFrame(curdata,pFeature, pmap->frameCount());
+    Position::IFrame *preframe = new Position::PFrame(&predata,pFeature, pmap->frameCount());
+    Position::IFrame *curframe = new Position::PFrame(&curdata,pFeature, pmap->frameCount());
     timer.prompt("feature detect ",true);
     
     Position::MatchVector good_matches =  pmatcher->match(preframe,curframe,3);

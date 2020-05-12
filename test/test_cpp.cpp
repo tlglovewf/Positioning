@@ -27,13 +27,6 @@ int main()
     // *vt[0] = 10;
     // display(vts);
 
-    Mat t = Mat::eye(3,3,CV_64F);
-    cout << t << endl;
-    cout << "---" << endl;
-    Mat d = t;
-    t.at<double>(1,0) = 10;
-    cout << d << endl;
-    cout << t << endl;
     // cout << distance(vts.begin(),vts.end()) << endl;
 
     // int x[] = {3,4,5,1,2};

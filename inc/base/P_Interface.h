@@ -126,14 +126,6 @@ namespace Position
         virtual const Mat& getCameraCenter() = 0;
         //获取数据
         virtual FrameData* getData()const = 0;
-        //更新下一帧
-        virtual void updateNext(IKeyFrame *next) = 0;
-        //更新上一帧
-        virtual void updatePrev(IKeyFrame *pre) = 0;
-        //获取到下一帧
-        virtual IKeyFrame* getNext() = 0;
-        //获取上一帧
-        virtual IKeyFrame* getPrev() = 0;
         //是否为坏点
         virtual bool isBad() = 0;
         //设为坏帧
@@ -271,6 +263,14 @@ namespace Position
 
         //存储到文件
         virtual void save(const std::string &path) = 0;
+    };
+
+       //帧目标定位器
+    class ITargetPositioner : public IBase
+    {
+    public:
+        //定位 frame序列 必须是排序好的
+        virtual bool position(KeyFrameVector &frame) = 0;       
     };
 
 
@@ -427,26 +427,6 @@ namespace Position
         virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts) = 0;
     };
 
-    //定位算法
-    class IPositioning : public IBase
-    {
-    public:
-        //定位场景地图关键帧中目标
-        virtual void position(const std::shared_ptr<IMap> &pMap) = 0;
-        //定位关键帧中目标
-        virtual void position(IKeyFrame *frame) = 0;
-        //定位关键点
-        virtual Mat position(const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2) = 0;
-        //获取极线
-        virtual EpLine computeEpLine(const cv::Mat &R, const cv::Mat &t,const cv::Point2f &pt) = 0;
-        //极线匹配(基于目标包围盒)
-        virtual TargetData eplineMatch(const EpLine &epline,const TargetData &item, const TargetVector &targets) = 0;
-        //极线匹配(基于块)
-        virtual cv::Point2f eplineMatch(const EpLine &epline, const FrameData &preframe, const FrameData &curframe,const cv::Point2f &pt) = 0;
-        //反投
-        virtual cv::Point2f backProject(const FrameData &frame,const BLHCoordinate &blh, cv::Mat &outimg) = 0;
-
-    };
 
     //gps融合
     class IGpsFusion : public IBase

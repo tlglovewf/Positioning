@@ -48,20 +48,6 @@ namespace Position
         {
             return mvKeysUn;
         }
-        //更新下一帧
-        virtual void updateNext(IKeyFrame *next) 
-        {
-            mpNext = next;
-        }
-        //更新上一帧
-        virtual void updatePrev(IKeyFrame *pre) 
-        {
-            mpPrev = pre;
-        }
-        //获取到下一帧
-        virtual IKeyFrame* getNext();
-        //获取上一帧
-        virtual IKeyFrame* getPrev();
 
         virtual void addMapPoint(IMapPoint* pMP, int idx);
 
@@ -227,9 +213,6 @@ namespace Position
         ORBKeyFrame* mpParent;
         std::set<ORBKeyFrame*> mspChildrens;
         std::set<ORBKeyFrame*> mspLoopEdges;
-
-        IKeyFrame *mpPrev;
-        IKeyFrame *mpNext;
 
         // Bad flags
         bool mbNotErase;

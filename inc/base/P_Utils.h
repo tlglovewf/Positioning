@@ -346,6 +346,24 @@ public:
         x3D = vt.row(3).t();
         x3D = x3D.rowRange(0,3)/x3D.at<MATTYPE>(3);
     }
+    //同名点量测
+    static Mat CorPtsMeasure(const CameraParam &camera, const Mat &R, const Mat &t, const Point2f &pt1, const Point2f &pt2)
+    {
+        if(R.empty() || t.empty()  || camera.K.empty())
+            return Mat();
+        cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
+        camera.K.copyTo(P1.rowRange(0,3).colRange(0,3));
+
+        // Camera 2 Projection Matrix K[R|t]
+        cv::Mat P2(3,4,MATCVTYPE);
+        R.copyTo(P2.rowRange(0,3).colRange(0,3));
+        t.copyTo(P2.rowRange(0,3).col(3));
+        P2 = camera.K * P2;
+        Mat rst;
+        PUtils::Triangulate(pt1,pt2,P1,P2,rst);
+        return rst;
+    }
+
     //从位置矩阵总取R和t
     static void GetRTFromFramePose(const cv::Mat &pose, cv::Mat &R, cv::Mat &t)
     {
@@ -359,6 +377,12 @@ public:
     {
         cv::Mat E = ComputeEssentialMat(R,t);
         return ComputeFundamentalMat(E,K,K);
+    }
+
+    //根据两帧位姿态,计算速度
+    static inline cv::Mat computeVelocity(const cv::Mat &prepose, const cv::Mat &curpose)
+    {
+       return curpose * prepose.inv();
     }
 
     // 设直线方程为ax+by+c=0,点坐标为(m,n)
@@ -402,6 +426,64 @@ public:
     //     b = epline[0][1];
     //     c = epline[0][2];
     // }
+
+    //通过R,t 计算极线（内参越准,计算结果越准）
+    static inline EpLine ComputeEpLine(const cv::Mat &R, const cv::Mat &t,const CameraParam &cam, const cv::Point2f &pt)
+    {
+        assert(!R.empty() && !t.empty());
+        assert(!cam.K.empty());
+
+        cv::Mat F = PUtils::ComputeFFromRT(R,t,cam.K);
+
+        double a,b,c;
+        PUtils::CalcEpiline(F,pt,a,b,c);
+
+        PROMT_V("ep line",a, b, c);
+        return EpLine(a,b,c);
+    }
+
+    //反投 依赖Frame的姿态 rpy
+    static cv::Point2f backProject(const FrameData &frame,const BLHCoordinate &blh,const CameraParam &camera)
+    {
+        //calc target xyz coordinate
+	    Point3d  xyz = PCoorTrans::BLH_to_XYZ(blh);
+
+        //calc cam xyz coordinate
+	    Point3d  cam = PCoorTrans::BLH_to_XYZ(frame._pos.pos);
+
+        Point3d dt = xyz - cam;
+
+        //trans pt -> mat
+        Mat tmp = (Mat_<MATTYPE>(3,1) << dt.x ,dt.y,dt.z);
+
+        //xyz -> enu
+	    cv::Mat XYZ2Enu1 = PCoorTrans::XYZ_to_ENU(frame._pos.pos.lat, frame._pos.pos.lon);
+
+        //计算imu到enu 转换矩阵
+	    cv::Mat Rimu2Enu1 = PCoorTrans::IMU_to_ENU(-frame._pos._yaw, frame._pos._pitch, frame._pos._roll);
+
+        //xyz->enu->imu
+        Mat rst = Rimu2Enu1.t() * XYZ2Enu1 * tmp;
+
+        //imu-> cam
+        //imu与cam不重合存在转换值时
+        if(!camera.TCam2Imu.empty())
+        {
+            rst = rst - camera.TCam2Imu;
+            rst =  camera.RCam2Imu.t() *  rst ;
+        }
+      
+
+        Mat t = camera.K * rst ;
+
+        Point2f pt;
+        pt.x = t.at<MATTYPE>(0,0) / t.at<MATTYPE>(2,0);
+        pt.y = t.at<MATTYPE>(1,0) / t.at<MATTYPE>(2,0);
+
+        return pt;
+    }
+
+
     //绘制关键点
     static Mat DrawKeyPoints(const Mat &img, const KeyPtVector &keys)
     {

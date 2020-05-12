@@ -7,12 +7,12 @@ ${Positioning_SOURCE_DIR}/test/test_trace.cpp)
 target_link_libraries(test_trace ${Positioning})
 
 #build test_twframe
-if(USE_XFEATURE)
+# if(USE_XFEATURE)
 add_executable(test_twframe
 ${Positioning_SOURCE_DIR}/test/test_twframe.cpp 
 )
 target_link_libraries(test_twframe ${Positioning})
-endif()
+# endif()
 
 add_executable(test_cpp
 ${Positioning_SOURCE_DIR}/test/test_cpp.cpp)

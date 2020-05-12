@@ -24,7 +24,7 @@ namespace Position
         mfLogScaleFactor(F.mfLogScaleFactor), mvScaleFactors(F.mvScaleFactors), mvLevelSigma2(F.mvLevelSigma2),
         mvInvLevelSigma2(F.mvInvLevelSigma2), mnMinX(F.mnMinX), mnMinY(F.mnMinY), mnMaxX(F.mnMaxX),
         mnMaxY(F.mnMaxY), mK(F.mK), mvpMapPoints(F.mvpMapPoints), mpKeyFrameDB(pKFDB),
-        mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL),mpPrev(NULL),mpNext(NULL),mbNotErase(false),
+        mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL),mbNotErase(false),
         mbToBeErased(false), mbBad(false), mpMap(pMap),mData(std::move(F.getData()))
     {
         mnId=nNextId++;
@@ -390,17 +390,6 @@ namespace Position
     {
         unique_lock<mutex> lockCon(mMutexConnections);
         return mpParent;
-    }
-
-    //获取到下一帧
-    IKeyFrame* ORBKeyFrame::getNext()
-    {
-        return mpNext;   
-    }
-    //获取上一帧
-    IKeyFrame* ORBKeyFrame::getPrev()
-    {
-        return mpPrev;
     }
 
     bool ORBKeyFrame::hasChild(ORBKeyFrame *pKF)

@@ -398,9 +398,6 @@ void ORBTracking::CreateInitialMapMonocular()
     ORBKeyFrame* pKFini = new ORBKeyFrame(mInitialFrame,mpMap,mpKeyFrameDB.get());
     ORBKeyFrame* pKFcur = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
 
-    pKFini->updateNext(pKFcur);
-    pKFcur->updatePrev(pKFini);
-
     pKFini->ComputeBoW();
     pKFcur->ComputeBoW();
 
@@ -758,7 +755,6 @@ void ORBTracking::CreateNewKeyFrame()
     PROMTD_V("Creat New Frame ",mCurrentFrame.getData()->_name);
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
-    pKF->updatePrev(mpReferenceKF);
     
     mpReferenceKF = pKF;
     mCurrentFrame.mpReferenceKF = pKF;

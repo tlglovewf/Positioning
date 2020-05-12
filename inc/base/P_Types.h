@@ -162,7 +162,7 @@ struct TargetData {
     //有效性
     static inline bool isValid(const TargetData &target)
     {
-		return target._type > WRONGDATA;
+		return (target._type > WRONGDATA) && BLHCoordinate::isValid(target._pos) ;
     }
 	TargetData() :_type(WRONGDATA){}
 };

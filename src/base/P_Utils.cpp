@@ -63,7 +63,6 @@ namespace Position
         putText(keyimg1,"keypoint size:" + std::to_string(pt1s.size()),cv::Point2f(textpos,textpos),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
         putText(keyimg2,"keypoint size:" + std::to_string(pt2s.size()),cv::Point2f(textpos,textpos),CV_FONT_HERSHEY_COMPLEX, 1, CV_RGB(255,0,0), 2, CV_AA);
         
-        
         Mat matchimg;
         hconcat(keyimg1, keyimg2, matchimg);
         Mat imkeycombine;

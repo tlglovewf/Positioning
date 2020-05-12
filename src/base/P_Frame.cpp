@@ -148,7 +148,7 @@ bool   FrameHelper::mInit = false;
         }
     }
     PKeyFrame::PKeyFrame(IFrame *pframe,IKeyFrame *prevFrame,PMap *pMap):
-    mpFrame(pframe),mpNext(NULL),mpPre(prevFrame),mpMap(pMap),mbBad(false)
+    mpFrame(pframe),mpMap(pMap),mbBad(false)
     {
         mPts.resize(mpFrame->getKeySize());
     }

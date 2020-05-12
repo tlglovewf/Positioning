@@ -54,7 +54,6 @@ namespace Position
         {
             assert(NULL != pKF);
             
-            if(NULL != mpCurrent)mpCurrent->updateNext(pKF);
             mpCurrent = pKF;
             mMapFms.insert(pKF);
             if( pKF->index() > mMaxFmId)
@@ -65,10 +64,6 @@ namespace Position
             if(NULL != pKF)
             { //重新建立链接
                 std::unique_lock<mutex> lock(mMutexMapUpdate);
-                IKeyFrame *pre = pKF->getPrev();
-                IKeyFrame *nxt = pKF->getNext();
-                if(pre)pre->updateNext(nxt);
-                if(nxt)nxt->updatePrev(pre);
                 mMapFms.erase(pKF);
                 pKF->release();
             }

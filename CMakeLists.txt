@@ -25,11 +25,11 @@ endif()
 
 #view 
 OPTION(USE_VIEWER            "Build with pangolin" OFF)
-OPTION(USE_XFEATURE          "Build with sift"     OFF)
+OPTION(USE_XFEATURE          "Build with sift"     ON)
 OPTION(BUILD_TEST_PROGRAMS   "Build test program"  ON )
 
-if(USE_XFEATURE)
-   add_definitions("-DUSE_CVXFEATURE")
+if (USE_XFEATURE)
+   add_definitions(-DUSE_CVXFEATURE)
 endif()
 
 #Check C++11 or C++0x support

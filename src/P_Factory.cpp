@@ -3,7 +3,7 @@
 #include "P_ORBFeature.h"
 #include "P_PoseEstimation.h"
 #include "P_Optimizer.h"
-#include "P_Positioning.h"
+#include "P_Positioner.h"
 #include "P_FeatureMatcher.h"
 #include "P_Checker.h"
 

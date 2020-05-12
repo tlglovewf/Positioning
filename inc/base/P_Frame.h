@@ -197,27 +197,6 @@ namespace Position
             return mTargets;
         }
 
-         //更新下一帧
-        virtual void updateNext(IKeyFrame *next) 
-        {
-            mpNext = next;
-        }
-        //更新上一帧
-        virtual void updatePrev(IKeyFrame *pre) 
-        {
-            mpPre = pre;
-        }
-         //获取到下一帧
-        virtual IKeyFrame* getNext() 
-        {
-            return mpNext;
-        }
-
-        //获取上一帧
-        virtual IKeyFrame* getPrev() 
-        {
-            return mpPre;
-        }
          //获取旋转 平移分量
         virtual Mat getRotation()
         {
@@ -240,8 +219,6 @@ namespace Position
         }
     protected:
         IFrame      *mpFrame;
-        IKeyFrame   *mpNext;
-        IKeyFrame   *mpPre;
         PMap        *mpMap;
         bool        mbBad;
 
