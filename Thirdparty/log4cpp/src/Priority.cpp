@@ -18,9 +18,9 @@ namespace log4cpp {
 	    static const std::string priority_names[10] = {
 			"FATAL",
 			"ALERT",
-			"CRIT",
+			"CRITICAL",
 			"ERROR",
-			"WARN",
+			"WARNNING",
 			"NOTICE",
 			"INFO",
 			"DEBUG",

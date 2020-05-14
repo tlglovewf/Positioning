@@ -124,6 +124,24 @@ namespace log4cpp {
         }
     };
 
+    struct FileNameComponent : public PatternLayout::PatternComponent{
+        virtual void append(std::ostringstream& out, const LoggingEvent& event) {
+            out << __FILE__;
+        }
+    };
+
+    struct FileLineComonent : public PatternLayout::PatternComponent{
+        virtual void append(std::ostringstream& out, const LoggingEvent& event) {
+            out << __LINE__;
+        }
+    };
+     
+    struct FileFuncComonent : public PatternLayout::PatternComponent{
+        virtual void append(std::ostringstream& out, const LoggingEvent& event) {
+            out << __FUNCTION__;
+        }
+    };
+
     struct ProcessorTimeComponent : public PatternLayout::PatternComponent {
         virtual void append(std::ostringstream& out, const LoggingEvent& event) {
             out << std::clock();
@@ -384,6 +402,15 @@ namespace log4cpp {
                     break;
                 case 'x':
                     component = new NDCComponent();
+                    break;
+                case 'F'://file name
+                    component = new FileNameComponent();
+                    break;
+                case 'L'://line 
+                    component = new FileLineComonent();
+                    break;
+                case 'f'://function name
+                    component = new FileFuncComonent();
                     break;
                 default:
                     std::ostringstream msg;

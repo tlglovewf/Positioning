@@ -32,6 +32,17 @@ make -j4
 #copy so to main lib
 cp ../lib/* ../../../lib/
 
+#log4cpp
+echo "build log4cpp ..."
+cd ../../log4cpp
+mkdir build 
+cd build
+cmake -DCMAKE_BUILD_TYPE=$COMTYPE .. 
+make -j4
+#copy so to main lib
+cp ../lib/* ../../../lib/
+cp ./include/log4cpp/config.h ../include/log4cpp/
+
 #build positioning
 echo "build positioning ..."
 cd ../../../

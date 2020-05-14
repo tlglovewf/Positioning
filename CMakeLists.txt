@@ -101,6 +101,7 @@ include_directories(
 ${PROJECT_SOURCE_DIR}
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
+${PROJECT_SOURCE_DIR}/Thirdparty/log4cpp/include/
 )
 include_sub_directories_recursively(${PROJECT_SOURCE_DIR}/inc)
 
@@ -125,29 +126,9 @@ ${Pangolin_LIBRARIES}
 )
 endif()
 
-if(CMAKE_HOST_APPLE)
-   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-      target_link_libraries(${Positioning}
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2o.dylib
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2.dylib)
-   else()
-      target_link_libraries(${Positioning}
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2od.dylib
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2d.dylib)
-   endif()
-else()
-   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-      target_link_libraries(${Positioning}
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2o.so
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2.so)
-   else()
-      target_link_libraries(${Positioning}
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libg2od.so
-         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libDBoW2d.so)
-   endif()
-endif()
 target_link_libraries(${Positioning}
 ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeographic.a)
+
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
@@ -162,20 +143,42 @@ target_link_libraries(TargetPosition ${Positioning})
 
 set(CMAKE_INSTALL_PREFIX /usr/local/)
 
+
+if(CMAKE_HOST_APPLE)
+   if(CMAKE_BUILD_TYPE STREQUAL "Release")
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.dylib)
+      #remove target so name 
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.dylib)
+   else()
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib)
+      #remove target so name 
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.dylib)
+   endif()
+else()
+   if(CMAKE_BUILD_TYPE STREQUAL "Release")
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so)
+      #remove target so name 
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
+   else()
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib)
+      #remove target so name 
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.so)
+   endif()
+endif()
+
+
+
+target_link_libraries(${Positioning}
+${DEPEND_LIBS}
+)
+
+
 #for  install
 set_target_properties(TargetPosition PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 set_target_properties(${Positioning} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-
-
 install(TARGETS TargetPosition ${Positioning}
        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-
-FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so)
-#remove target so name 
-
-LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
 
 FOREACH(src ${DEPEND_LIBS})
 MESSAGE( ${src} )
@@ -184,6 +187,8 @@ ENDFOREACH()
 #ARCHIVE DESTINATION
 install(FILES ${DEPEND_LIBS}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+
+
 
 #uninstall
 include(cmake/PositionUninstall.cmake)
