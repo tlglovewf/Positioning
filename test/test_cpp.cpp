@@ -51,7 +51,7 @@ int main()
         root.error("error");
     }
 
-    log4cpp::PropertyConfigurator::
+    // log4cpp::PropertyConfigurator::
 
     log4cpp::Category::shutdown();
 
