@@ -6,6 +6,7 @@
 #include <log4cpp/FileAppender.hh>
 #include <log4cpp/Priority.hh>
 #include <log4cpp/RollingFileAppender.hh>
+#include <log4cpp/PropertyConfigurator.hh>
 template<typename T>
 inline void display(T items)
 {
@@ -38,7 +39,7 @@ int main()
     log4cpp::OstreamAppender app("osAppender", &cout);
     app.setLayout(pLayerout1);
 
-    log4cpp::Category& root = log4cpp::Category::getRoot().getInstance("Positioning");//从系统中得到Category的根;
+    log4cpp::Category& root = log4cpp::Category::getRoot();//从系统中得到Category的根;
     // root.addAppender(fileAppender);
     root.addAppender(app);
     root.addAppender(rollfileAppender);
@@ -50,6 +51,7 @@ int main()
         root.error("error");
     }
 
+    log4cpp::PropertyConfigurator::
 
     log4cpp::Category::shutdown();
 
