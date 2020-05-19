@@ -15,7 +15,7 @@
 
 #include <regex>
 
-#if (defined __APPLE__) || (defined __unix__)
+#if (defined __APPLE__) || (defined __unix__)  || (defined LINUX)
 #include "dirent.h"
 #endif
 
@@ -118,7 +118,7 @@ public:
     {
         int index = 0;
         
-#if (defined __APPLE__) || (defined __unix__)
+#if (defined __APPLE__) || (defined __unix__) || (defined LINUX)
         DIR *dp;
         struct dirent *dirp;
         if((dp = opendir(dirpath.c_str())) == NULL)

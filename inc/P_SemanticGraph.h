@@ -8,6 +8,8 @@
 #define _SEMANTICGRAPH_H_H_H
 #include "P_Types.h"
 #include "P_Utils.h"
+#include "P_Checker.h"
+#include "P_Writer.h"
 //动态物体
 class SemanticGraph
 {
@@ -38,9 +40,9 @@ public:
     //加载
     void loadObjInfos(const std::string &path)
     {
-        if(path.empty())
+        if(!PATHCHECK(path))
         {
-            PROMT_S("Semantic image path is error!!!")
+            LOG_ERROR("Semantice image path error!!!")
         }
         try
         {
@@ -49,7 +51,7 @@ public:
 
             if(segfile.is_open())
             {
-                cout << "Begin to load Semantic object infos" << endl;
+                LOG_INFO("Begin to load Semantice object infos ...");
                 while(!segfile.eof())
                 {
                     std::string str;
@@ -73,6 +75,7 @@ public:
                         mObjs.insert(std::make_pair(name,vv));
                     }
                 }
+                LOG_INFO("End.");
             }
             segfile.close();
         }
@@ -113,7 +116,7 @@ public:
     {
         if(seimg.empty())
         {
-            PROMT_S("NO SEM IMAGE");
+            PROMTD_S("NO SEM IMAGE");
             return false;
         }
        cv::Vec3b clr = seimg.at<Vec3b>(pt);

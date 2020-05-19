@@ -4,7 +4,7 @@
 
 #include "P_ORBOptimizer.h"
 #include "P_ORBmatcher.h"
-
+#include "P_Writer.h"
 #include<thread>
 
 namespace Position
@@ -101,9 +101,10 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
     const float minpallax = 0.00;
     const int mintri = 30;
-    cout << "match siz : " << mvMatches12.size () << endl;
-    cout << "RH " << RH << " " << SF <<  endl;
-    cout << "score" << SF / (mvMatches12.size()) << endl;
+
+    PROMTD_V("match size",mvMatches12.size());
+    PROMTD_V("RH/SF",RH,SF);
+    PROMTD_V("Score",SF/(mvMatches12.size()));
 
     bool bRet = false;
 
@@ -115,8 +116,8 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
     if(!bRet)
     {
+        PROMTD_V("Pose recover error!",CurrentFrame.getData()->_name.c_str());
 
-        cout << "reconstruct error! " << CurrentFrame.getData()->_name.c_str() << endl;
 #if 0
         Position::MatchVector matches;
 

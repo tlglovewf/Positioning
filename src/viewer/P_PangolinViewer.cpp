@@ -44,7 +44,7 @@ namespace Position
         mpView = &pangolin::CreateDisplay()
                       .SetBounds(pangolin::Attach::Pix(25), 1.0, 0, 1.0, -(float)mWinW / mWinH)
                       .SetHandler(new pangolin::Handler3D(mCam));
-        PROMT_S("init pangolin viewer successfully.");
+        PROMTD_S("init pangolin viewer successfully.");
         mbInit = true;
     }
     void Pangolin_Viewer::renderLoop()
@@ -55,7 +55,7 @@ namespace Position
             ;
         }
     
-        PROMT_S("Render Over !!!");
+        PROMTD_S("Render Over !!!");
     }
     
     void GetCurrentOpenGLCameraMatrix(IKeyFrame *pkf, pangolin::OpenGlMatrix &M)

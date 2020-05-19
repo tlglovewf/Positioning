@@ -34,9 +34,9 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     mbRGB = camparam.rgb;
 
     if(mbRGB)
-        PROMT_S("- color order: RGB (ignored if grayscale)")
+        PROMTD_S("- color order: RGB (ignored if grayscale)")
     else
-        PROMT_S("- color order: BGR (ignored if grayscale)")
+        PROMTD_S("- color order: BGR (ignored if grayscale)")
 
     // Load ORB parameters
 
@@ -83,14 +83,12 @@ cv::Mat ORBTracking::InitMode(const FrameDataPtrVector &framedatas, const int im
                 mpInitializer = static_cast<Initializer*>(NULL);
                 return initMat;  
             }
-            cout<<"name-1:"<<framedatas[imgnum]->_name<<endl;
             initMat = track(framedatas[imgnum]);
             if(mpInitializer)
             {
                 int searchLen = imgnum+1+initStep<framedatas.size()? imgnum+1+initStep: framedatas.size();
                 for(size_t j = imgnum+1; j<searchLen; j++)
                 {
-                    cout<<"name-2:"<<framedatas[j]->_name<<endl;
                     initMat = track(framedatas[j]);
                     if(mState == eTrackOk)
                     {
@@ -253,7 +251,7 @@ void ORBTracking::Track()
         {
             if(mpMap->keyFrameInMap() <=5)
             {
-                PROMT_S("Track Lost,Not enough frame can track again. reseting ...");
+                LOG_WARNING("Track Lost,Not enough frame can track again. reseting ...");
                 Reset();
                 return;
             }
@@ -322,7 +320,6 @@ void ORBTracking::MonocularInitialization()
         // Find correspondences
         ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
-        cout << "init over." << endl;
         // Check if there are enough correspondences
         if(nmatches < 80)
         {
@@ -362,7 +359,7 @@ void ORBTracking::MonocularInitialization()
         else
         {
 
-            PROMT_S("Initialize Failed !!!");
+            LOG_INFO("Initialize Failed !!!");
 #if 0 // test init 
             MatchVector matches;
             for(int i = 0;i < mvIniMatches.size();++i)
@@ -455,8 +452,7 @@ void ORBTracking::CreateInitialMapMonocular()
 
     if(medianDepth < 0 || pKFcur->TrackedMapPoints(1) < 50)
     {
-        PROMT_V("Tracked Map Points size",pKFcur->TrackedMapPoints(1));
-        PROMT_S("Point size not enough . reset..");
+        LOG_WARNING_F("Tracked Map Points size:%s, resetting",pKFcur->TrackedMapPoints(1));
         Reset();
         return;
     }
@@ -680,7 +676,7 @@ bool ORBTracking::NeedNewKeyFrame()
     // If Local Mapping is freezed by a Loop Closure do not insert keyframes
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
     {
-         PROMT_S("Can Not Create KeyFrame.")
+         PROMTD_S("Can Not Create KeyFrame.")
          return false;
     }
        
@@ -970,7 +966,7 @@ void ORBTracking::UpdateLocalKeyFrames()
 //重定位(当运动模型跟踪丢失 且追参考帧追踪也丢失了 才进行)
 bool ORBTracking::Relocalization()
 {
-    PROMT_S("Track lost Relocalization.");
+    LOG_WARNING_F("Track lost Relocalization.%s",mCurrentFrame.getData()->_name.c_str());
 
     mState = eTrackNoReady;
 

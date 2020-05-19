@@ -87,7 +87,7 @@ bool HdData::loadDatas()
 
     try
     {
-        PROMT_S("begin to load datas.");
+        LOG_INFO("Begin load datas ...");
         ifstream pstfile, imufile;
         pstfile.open(pstpath);
         int index = 0;
@@ -133,12 +133,12 @@ bool HdData::loadDatas()
             mFrameDatas.emplace_back(framedata);
         }
         pstfile.close();
-        PROMT_V("data loaded successfully.",mFrameDatas.size());
+        LOG_INFO_F("Data loaded successfully:%d",mFrameDatas.size());
         return true;
     }
     catch (const std::exception &e)
     {
-        PROMT_S(e.what());
+        LOG_ERROR(e.what());
     }
     return false;
 }

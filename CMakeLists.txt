@@ -166,8 +166,6 @@ else()
    endif()
 endif()
 
-
-
 target_link_libraries(${Positioning}
 ${DEPEND_LIBS}
 )

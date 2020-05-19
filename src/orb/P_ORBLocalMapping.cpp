@@ -519,7 +519,7 @@ bool ORBLocalMapping::Stop()
     if(mbStopRequested && !mbNotStop)
     {//请求暂停或者设置停止
         mbStopped = true;
-        cout << "Local Mapping STOP" << endl;
+        LOG_INFO("Local Mapping STOP");
         return true;
     }
 
@@ -550,7 +550,7 @@ void ORBLocalMapping::Release()
         delete *lit;
     mlNewKeyFrames.clear();
 
-    cout << "Local Mapping RELEASE" << endl;
+    LOG_INFO("Local Mapping RELEASE");
 }
 
 bool ORBLocalMapping::AcceptKeyFrames()

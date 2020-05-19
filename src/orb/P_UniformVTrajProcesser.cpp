@@ -17,17 +17,14 @@ namespace Position
         std::string vocpath = GETCFGVALUE(pcfg,VocPath,string);
 
         mpVocabulary = std::make_shared<ORBVocabulary>();
-        PROMT_S("Begin to load vocabulary!")
-        Time_Interval time;
-        time.start();
+        LOG_INFO("Begin to load vocabulary!")
         bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
         if(!bVocLoad)
         {
-            PROMT_S("vocabulary path error~!");  
-            PROMT_V("Failed to open at: ",vocpath.c_str());
+            LOG_CRIT_F("vocabulary path error:%s",vocpath.c_str());  
             exit(-1);
         }
-        time.prompt("Voc loaded cost:");
+        LOG_INFO("Vocabulary finished.");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
 
@@ -108,7 +105,7 @@ namespace Position
             usleep(100);
         }
 
-        PROMT_S("FrameDatas have Processed over.");
+        PROMTD_S("FrameDatas have Processed over.");
     }
 
     //重置
@@ -124,14 +121,14 @@ namespace Position
         {
             mpLocalMapper->RequestFinish();
             mptLocalMapping->join();
-            cout << "local mapping thread over." << endl;
+            LOG_DEBUG("local mapping thread over.");
         }
         
         if(mptLoopClosing && mptLoopClosing->joinable())
         {
             mpLoopCloser->RequestFinish();
             mptLoopClosing->join();
-            cout << "closing thread over." << endl;
+            LOG_DEBUG("closing thread over.");
         }
     }
 }

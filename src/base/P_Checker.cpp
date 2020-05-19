@@ -1,6 +1,11 @@
 #include "P_Checker.h"
 #include "P_Writer.h"
 #include "P_Utils.h"
+// #if (defined __APPLE__) || (defined __unix__) || (defined LINUX)
+// #include "dirent.h"
+// #endif
+#include <unistd.h>
+
 namespace Position
 {
     bool PChecker::check(const FrameData &frame)
@@ -25,10 +30,27 @@ namespace Position
 
     bool PathChecker::check(const std::string &str)
     {
-        //add more 
+        //add more
+        if(str.empty() || 
+           (access( str.c_str(), 0 ) == -1))
+            return false;
+
         return true;
     }
 
+        //文件权限查询
+    bool FilePermissionChecker::checkRead (const std::string &path)
+    {
+        if(!PATHCHECK(path))
+            return false;
+        return access(path.c_str(),4) != -1;
+    }
+    bool FilePermissionChecker::checkWrite(const std::string &path)
+    {
+        if(!PATHCHECK(path))
+            return false;
+        return access(path.c_str(),2) != -1;
+    }
 
     bool ResultPosCheck::check(const TrackerItem &item,int index,const BLHCoordinate &blh)
     {

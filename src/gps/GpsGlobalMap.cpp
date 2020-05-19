@@ -172,22 +172,22 @@ namespace gps{
                 std::shared_ptr< GpsFrame> frame_p = mappoints[i]->track[j].frame;
                 if(all_frame_set.find(frame_p)==all_frame_set.end())
                 {
-                    std::cout<<"[CheckConsistence]non exist frame!!"<<std::endl;
+                    //std::cout<<"[CheckConsistence]non exist frame!!"<<std::endl;
                 }
                 if(frame_p==nullptr)
                 {
-                    cout << "frame_p==nullptr" << endl;
+                    //cout << "frame_p==nullptr" << endl;
                 }
                 std::shared_ptr< GpsMapPoint> mp = frame_p->obss[mappoints[i]->track[j].kp_ind];
                 if(mp==nullptr)
                 {
-                    cout << "mp==nullptr" << endl;
+                    //cout << "mp==nullptr" << endl;
                 }
                 else
                 {
                     if(mp->id!=mappoints[i]->id)
                     {
-                        cout <<"mp->id!=mappoints[i]->id: "<<mp->id<<" : "<<mappoints[i]->id;
+                        //cout <<"mp->id!=mappoints[i]->id: "<<mp->id<<" : "<<mappoints[i]->id;
                     }
                 }
             }       
@@ -210,7 +210,7 @@ namespace gps{
                     }
                     if(find_one==false)
                     {
-                        cout << "find_one==false" << endl;
+                        //cout << "find_one==false" << endl;
                         frames[i]->obss[j]==nullptr;
                     }
                 }

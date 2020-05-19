@@ -7,6 +7,7 @@
 #include "P_Converter.h"
 #include "P_ORBOptimizer.h"
 #include "P_ORBmatcher.h"
+#include "P_Writer.h"
 #include <unistd.h>
 
 namespace Position
@@ -379,8 +380,6 @@ namespace Position
 
     void ORBLoopClosing::CorrectLoop()
     {
-        cout << "Loop detected!" << endl;
-
         // Send a stop signal to Local Mapping
         // Avoid new keyframes are inserted while correcting the loop
         mpLocalMapper->RequestStop();
@@ -620,7 +619,7 @@ namespace Position
 
     void ORBLoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
     {
-        cout << "Starting Global Bundle Adjustment" << endl;
+        PROMTD_S("Starting Global Bundle Adjustment");
 
         int idx =  mnFullBAIdx;
         Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
@@ -636,8 +635,9 @@ namespace Position
 
             if(!mbStopGBA)
             {
-                cout << "Global Bundle Adjustment finished" << endl;
-                cout << "Updating map ..." << endl;
+                PROMTD_S("Global Bundle Adjustment finished");
+                PROMTD_S("Updating map ...");
+
                 mpLocalMapper->RequestStop();
                 // Wait until Local Mapping has effectively stopped
 
@@ -713,8 +713,6 @@ namespace Position
                 }            
 
                 mpLocalMapper->Release();
-
-                cout << "Map updated!" << endl;
             }
 
             mbFinishedGBA = true;

@@ -544,7 +544,6 @@ namespace Position
         }
         else if(maxGood==nGood4)
         {
-            cout << parallax4 << endl;
             if(parallax4>=minParallax)
             {
                 vP3D = vP3D4;
@@ -911,7 +910,8 @@ namespace Position
             else //if(pF_HF>0.6)
                 bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
-            cout << "reconstruct : " << RH << " " << bol << endl;
+            PROMTD_V("reconstruct",RH, bol);
+
             if(bol)
             {//剔除三角化失败的点
                 MatchVector::iterator it = matches.begin();
@@ -942,7 +942,6 @@ namespace Position
                 //save epline 
                 // imwrite( "/media/tlg/work/tlgfiles/HDData/result/orbepline.jpg",out);
                 // cout << "F" << endl;
-                // cout <<  F << endl;
             }
         }
         return bol;

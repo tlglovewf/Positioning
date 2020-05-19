@@ -81,16 +81,16 @@ void PMapDisplay::saveResult()
 {
     if(GETCFGVALUE(mpConfig,MapSave,int))
     {
-        Position::Time_Interval time;
-        time.start();
         Position::MapSerManager::Instance()->setMap(mpTrajProSelector->getMap());
-        PROMT_S("Begin to save map");
+
+        LOG_INFO("Save Result ...")
+        
         const std::string path = GETCFGVALUE(mpConfig,OutPath,string) + "/";
         Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path + "trac.txt");
-        time.prompt("Saving trace cost:");
+
         Position::MapSerManager::Instance()->mpPtSerPtr()->saveMap(path + "mpts.txt");
-        time.prompt("Saving map points cost:");
-        PROMT_S("Save map successflly!");
+
+        LOG_INFO("Save Result Finished.");
     }
 }
 

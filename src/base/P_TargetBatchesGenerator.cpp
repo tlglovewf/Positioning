@@ -25,7 +25,7 @@ namespace Position
            trackitems[i].blh = (pdata->begin() + ed.first)->_pos.pos;
            batches.emplace_back(batch);
         }
-        cout << "batches " << batches.size() << endl;
+        LOG_INFO_F("%s:%d","Batches size",batches.size());
         return batches;
     }
 }

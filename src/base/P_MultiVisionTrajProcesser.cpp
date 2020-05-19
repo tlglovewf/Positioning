@@ -61,9 +61,9 @@ namespace Position
             Position::KeyFrameVector keyframes(mpMap->getAllFrames());
             Position::MapPtVector    mappts(mpMap->getAllMapPts());
             bool pBstop = false;
-            PROMT_V("Begin global optimization", keyframes.size());
+            // LOG_DEBUG_F("Begin Global opt:%d",keyframes.size());
             mpOptimizer->bundleAdjustment(keyframes,mappts,mpFeature->getSigma2(),5, &pBstop);
-            PROMT_S("End Optimization.");
+            // LOG_DEBUG("Global opt Finished.");
 
             return true;
         }
@@ -72,8 +72,7 @@ namespace Position
     //跟踪
     cv::Mat PMultiVisionTrajProcesser::track(FrameData *data)
     {
-        
-        PROMT_V("Load",data->_name.c_str());
+        LOG_DEBUG_F("Process:%s",data->_name.c_str());
         Mat grayimg ;
 
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )

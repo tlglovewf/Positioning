@@ -37,13 +37,14 @@ int main(int argc, char **argv)
 
     
     std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig(cfgpath)); 
+    LOG_INITIALIZE(pCfg)
     SETCFGVALUE(pCfg,PrjPath,prjpath);
     SETCFGVALUE(pCfg,CamMatrixPath,string(prjpath + "config/extrinsics.xml"));
     std::shared_ptr<Position::IData>   pData(new Position::ImgAutoData(pCfg));
 
     if(!pData->loadDatas())
     {
-        PROMTD_S("Failed to load the Project datas!");
+        LOG_CRIT("Failed to load the Prj datas.");
         return -1;
     }
 
@@ -75,6 +76,7 @@ int main(int argc, char **argv)
 #endif
 
 #if 1 
+
     std::shared_ptr<Position::IProjList> prjList(new ImgAutoPrjList(pData));
     prjList->setBatcherGenerator(shared_ptr<IBatchesGenerator>(new TargetBatchesGenerator));
     std::shared_ptr<IVisualPositioner>  pPositioner(new BatchVisualPositioner(pData->getCamera()));

@@ -153,7 +153,6 @@ namespace Position
         g2o::SE3Quat SE3quat_recov = vSE3_recov->estimate();
         cv::Mat pose = PConverter::toCvMat(SE3quat_recov);
         pFrame->setPose(pose);
-        // cout << "bad pt size : " << nBad << endl;
         return nInitialCorrespondences-nBad;
     }
 

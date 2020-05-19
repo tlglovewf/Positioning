@@ -267,6 +267,7 @@ void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position:
 
 int main(void)
 {  
+
 #if WEIYA
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config/config_weiya.yaml"); 
     std::shared_ptr<Position::IData> pData(new WeiyaData(pCfg));

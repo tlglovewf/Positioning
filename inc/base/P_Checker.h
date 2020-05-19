@@ -24,9 +24,17 @@ namespace Position
     public:
         static bool check(const std::string &path) ;
     };
-    
-#define PATHCHECK(path) PathChecker::check(path)
+    //文件权限查询
+    class FilePermissionChecker
+    {
+    public:
+        static bool checkRead (const std::string &path);
+        static bool checkWrite(const std::string &path);
+    };
 
+#define PATHCHECK(path)  Position::PathChecker::check(path)
+#define READCHECK(path)  Position::FilePermissionChecker::checkRead(path)
+#define WRITECHECK(path) Position::FilePermissionChecker::checkWrite(path)
 
 
     /*

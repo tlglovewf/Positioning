@@ -18,6 +18,7 @@ ImgRgb: 1  #rgb 1  rbg 0
 #path 
 #PrjPath: "/media/tlg/work/tlgfiles/WEIYA/9900000120042200/"
 
+LogPath: ""
 #ImgPath: ""
 #SemPath: ""
 #PosPath: "/Users/TLG/Downloads/data/weiya/20191105/gray/pst.txt"

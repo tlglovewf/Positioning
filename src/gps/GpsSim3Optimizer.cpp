@@ -1,6 +1,6 @@
 #include "GpsSim3Optimizer.h"
 #include "P_Utils.h"
-
+#include "P_Writer.h"
 //使用sim3对in_pose进行变换得到out_pose
 static void transformPoseUseSim3(Eigen::Matrix4d& sim3, Eigen::Matrix4d& in_pose,  Eigen::Matrix4d& out_pose)
 {
@@ -355,7 +355,7 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
             
         }
     }
-    std::cout<<"add gps edge: "<<gps_edges.size()<<std::endl;
+    // std::cout<<"add gps edge: "<<gps_edges.size()<<std::endl;
     
     std::vector<g2o::EdgeSE3*> se3_edge_list;
     for(int i=0; i<mGlobalMap.pose_graph_v1.size(); i++)
@@ -366,17 +366,17 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
 
         if(mGlobalMap.pose_graph_v1.size() != mGlobalMap.pose_graph_v2.size())
         {
-            std::cout<<"connection frame null!!"<<std::endl;
+            LOG_CRIT("gps fuse:connection frame null!!");
             exit(0);
         }
         if(mGlobalMap.pose_graph_v1[i]==nullptr ||mGlobalMap.pose_graph_v2[i]==nullptr)
         {
-            std::cout<<"connection frame null!!"<<std::endl;
+            LOG_CRIT("gps fuse:connection frame null!!");
             exit(0);
         }
         if(frame_to_vertex.find(mGlobalMap.pose_graph_v1[i])==frame_to_vertex.end()||frame_to_vertex.find(mGlobalMap.pose_graph_v2[i])==frame_to_vertex.end())
         {
-            std::cout<<"non exist frame!!"<<std::endl;
+            LOG_CRIT("non exist frame!!");
             exit(0);
         }
         e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(frame_to_vertex[mGlobalMap.pose_graph_v1[i]]));
@@ -401,7 +401,6 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
 
         se3_edge_list.push_back(e);
     }
-    std::cout<<"add sim3 edge: "<<se3_edge_list.size()<<std::endl;
     
     float avg_error=0;
     for(int i=0; i<gps_edges.size(); i++)
@@ -409,7 +408,7 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
         gps_edges[i]->computeError();
         avg_error=avg_error+sqrt(gps_edges[i]->chi2())/gps_edges.size();
     }
-    std::cout<<"gps edge err before: "<<avg_error<<std::endl;
+    // std::cout<<"gps edge err before: "<<avg_error<<std::endl;
     avg_error=0;
     for(int i=0; i<se3_edge_list.size(); i++)
     {
@@ -420,7 +419,7 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
             return;
         }
     }
-    std::cout<<"sim3 edge err before: "<<avg_error<<std::endl;
+    // std::cout<<"sim3 edge err before: "<<avg_error<<std::endl;
     
     optimizer.initializeOptimization();
 
@@ -432,7 +431,7 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
         gps_edges[i]->computeError();
         avg_error=avg_error+sqrt(gps_edges[i]->chi2())/gps_edges.size();
     }
-    std::cout<<"gps edge err after: "<<avg_error<<std::endl;
+    // std::cout<<"gps edge err after: "<<avg_error<<std::endl;
     avg_error=0;
     for(int i=0; i<se3_edge_list.size(); i++)
     {
@@ -444,7 +443,7 @@ void GpsSim3Optimizer::pose_graph_opti_se3()
         }
         
     }
-    std::cout<<"sim3 edge err after: "<<avg_error<<std::endl;
+    // std::cout<<"sim3 edge err after: "<<avg_error<<std::endl;
     for(int i=0; i<v_se3_list.size(); i++)
     {
         g2o::SE3Quat CorrectedSiw =  v_se3_list[i]->estimate();

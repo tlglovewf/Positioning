@@ -155,6 +155,7 @@ namespace Position
         FloatConfigParam    MatchRatio;     //匹配比例
 
         //路径参数
+        StringConfigParam   LogPath;        //Log路径
         StringConfigParam   ImgPath;        //图片路径
         StringConfigParam   PosPath;        //数据路径
         StringConfigParam   SemPath;        //语义路径

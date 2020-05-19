@@ -429,7 +429,7 @@ namespace Position
 
         if(mbToBeErased)
         {
-            PROMT_S("Set Bad from Erased!")
+            PROMTD_S("Set Bad from Erased!")
             setBadFlag();
         }
     }

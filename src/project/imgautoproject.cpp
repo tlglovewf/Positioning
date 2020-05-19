@@ -55,7 +55,7 @@ namespace Position
 	    }
 	    else
 	    {
-            PROMT_S("Read camera config failed!!!")
+            LOG_ERROR("Read camera config failed!!!")
 	    }
 
 #if 0  //read camera ex paramers
@@ -79,14 +79,20 @@ namespace Position
      //加载track json
     bool ImgAutoData::loadTrackJson(const std::string &path,FrameDataVector &framedatas)
     {
-        if(path.empty() || framedatas.empty())
+        if(!PATHCHECK(path) || framedatas.empty())
+        {
+            LOG_ERROR_F("%s not found.",path.c_str());
             return false;
+        }
+
+        LOG_INFO_F("%s Load ...",path.c_str()); 
+
         ifstream json_file;
 	    json_file.open(path.c_str());
 	    string line, json;
 	    if (!json_file.is_open())
 	    {
-            PROMT_S("Error opening track json file");
+            LOG_CRIT("Track json can not be open.");
 	    	return 0;
 	    }
 	    while (!json_file.eof())
@@ -105,7 +111,7 @@ namespace Position
             string errmsg = errmsgValue.GetString();
             if (errmsg != "OK")
             {
-                PROMT_S("Json File Error! Check if the file is available!")
+                LOG_CRIT("Json file error! check if the file is available!");
                 return 0;
             }
             else
@@ -123,11 +129,13 @@ namespace Position
                             
                             if (trmkArray.IsArray())
                             {
-                                cout << "trmk : " << trmkArray.Size()  << endl;
-                                cout << "fmdt : " << framedatas.size() << endl;
+                                LOG_INFO_F("trk size:%d",trmkArray.Size());
+                                LOG_INFO_F("fmt size:%d",framedatas.size());
+
                                 if(trmkArray.Size() != framedatas.size() )
                                 {
-                                    PROMT_S("image seq size and trkarray size are not same!");
+                                    LOG_ERROR("Frame size and track array size not same!");
+
                                     return false;
                                 }
                                 for (int j = 0; j < trmkArray.Size(); j++)
@@ -148,7 +156,7 @@ namespace Position
                                          mseq = atoi(trmkValue["seqNum"].GetString()) - 1;
                                          if(mseq != j)
                                          {
-                                             PROMT_V(framedatas[j]._name,"seq numb error. ")
+                                             LOG_ERROR_F("%s seq numb error",framedatas[j]._name.c_str());
                                          }
                                     }
                                 }
@@ -156,16 +164,17 @@ namespace Position
                         }
                         else
                         {
-                            PROMT_S("Json File has no trackMark!");
+                            LOG_ERROR("Track file is empty.");
                             return false;
                         }	
                     }
                 }
                 else
                 {
-                    PROMT_S("Json File has no data!");
+                    LOG_ERROR("Json File is emtpy.");
                     return false;
                 }
+                LOG_INFO("Json File finished.");
                 return true;
             }
         }
@@ -175,6 +184,12 @@ namespace Position
     //读取trk文档
     static void ReadTrkTxt(const string &txtfile, StringVector &lines)
     {
+
+        if(!PATHCHECK(txtfile))
+        {
+            LOG_ERROR_F("%s-%s",txtfile.c_str(),"not exsit.");
+        }
+
     	ifstream txt_file;
     	txt_file.open(txtfile.c_str());
     	assert(txt_file.is_open());
@@ -200,7 +215,7 @@ namespace Position
         if(expath.empty())
             return false;
 
-        const std::string raw_data      = expath    + "/raw_data";
+        const std::string raw_data      = expath    + "raw_data";
         const std::string seqpath       = raw_data  + "/seq.txt";
         const std::string trkjson       = raw_data  + "/track.json";
         const std::string imgpath       = raw_data  + "/image/";
@@ -284,14 +299,14 @@ namespace Position
                 }
                 else
                 {
-                    //PROMTD_V(mFrameDatas[i]._name.c_str(),"no target!!!");
+                    LOG_DEBUG_F("%s:no target!!!",mFrameDatas[i]._name.c_str());
                 }
             }
 
 
         }catch(exception e)
         {
-            PROMT_V("error",e.what());
+            LOG_ERROR_F("%s(%d) throw %s",__FILE__,__LINE__,e.what());
         }
       
         //load frame datas
@@ -343,7 +358,11 @@ namespace Position
     void ImgAutoPrjList::loadPrjList(const std::string &path)
     {
         if(!PATHCHECK(path))
+        {
+            LOG_ERROR_F("%s path error..",path.c_str());
             return;
+        }
+            
         if(!path.empty() && open(path,ios::in))
         {
             while(!mfile.eof())

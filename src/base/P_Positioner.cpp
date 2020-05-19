@@ -189,75 +189,88 @@ namespace Position
     //批定位器
     bool BatchVisualPositioner::position(TrackerItem &target)
     {
-    PROMT_V("get target",target.id,"position.");
-    if(target.maxsize >= 2)
-    {//只有在关联帧数大于2 才进入量测赋值,否则保持原有当前帧的值
-        assert(target.batch);
-        int idx1, idx2;
-        if(target.batch->_fmsdata.size() != target.batch->_poses.size())
-            return false;
-        selectFrame(target,idx1,idx2);
-        if(idx1 >= idx2)
-        {//选帧 帧数不足 位姿推算失败 取当前位置
-            return false;
+        LOG_INFO_F("Calc Target %d Pos.",target.id);
+        if(target.maxsize >= 2)
+        {//只有在关联帧数大于2 才进入量测赋值,否则保持原有当前帧的值
+            assert(target.batch);
+            int idx1, idx2;
+            if(target.batch->_fmsdata.size() != target.batch->_poses.size())
+            {
+                LOG_WARNING_F("Target %d Batch Pose Not Enough.",target.id);
+                LOG_INFO_F("Target %d Pos:%f,%f",target.id,target.blh.lon,target.blh.lat);
+                return false;
+            }
+                
+            selectFrame(target,idx1,idx2);
+            if(idx1 >= idx2)
+            {//选帧 帧数不足 位姿推算失败 取当前位置
+                LOG_WARNING_F("calc %d position failed!!",target.id);
+                return false;
+            }
+            FrameData &frame1 = *target.batch->_fmsdata[idx1];
+            FrameData &frame2 = *target.batch->_fmsdata[idx2];
+            Mat &pose1 = target.batch->_poses[idx1];
+            Mat &pose2 = target.batch->_poses[idx2];
+            const TargetData &targ1 = getTarget(frame1,target.id);
+            const TargetData &targ2 = getTarget(frame2,target.id);
+
+            if(!TargetData::isValid(targ1) || !TargetData::isValid(targ2))
+            {
+                LOG_WARNING_F("Get target %d error %s-%s",target.id,      
+                                                        frame1._name.c_str(),
+                                                        frame2._name.c_str());
+                return false;
+            }
+            //此处暂时先直接以跟踪到的中心点为同名点 判断条件
+            Mat pose = pose2 * pose1.inv();
+            Mat R = pose.rowRange(0,3).colRange(0,3);
+            Mat t = pose.rowRange(0,3).col(3);
+
+            //三角测量
+            cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
+            mCamera.K.copyTo(P1.rowRange(0,3).colRange(0,3));
+
+            // Camera 2 Projection Matrix K[R|t]
+            cv::Mat P2(3,4,MATCVTYPE);
+            R.copyTo(P2.rowRange(0,3).colRange(0,3));
+            t.copyTo(P2.rowRange(0,3).col(3));
+            P2 = mCamera.K * P2;
+            Mat x3d;
+            PUtils::Triangulate(targ1.center(),targ2.center(),P1,P2,x3d);
+
+
+            cout.precision(15);
+
+            PROMTD_V("frame blh",frame1._pos.pos.lon,frame1._pos.pos.lat);
+
+            PROMTD_V("target blh",target.batch->_fmsdata[idx2 ]->_pos.pos.lon,
+                                  target.batch->_fmsdata[idx2 ]->_pos.pos.lat);
+
+            //此处暂用定位第二帧作为方向计算
+            Mat trans = PUtils::CalcTransBLH(frame1._pos, frame2._pos);
+
+            resize(x3d,x3d,Size(1,4));
+            x3d.at<MATTYPE>(3) = 1.0;
+
+            Mat wdpt = trans * x3d;
+            //坐标转换
+            BLHCoordinate rstblh  =  PCoorTrans::XYZ_to_BLH(XYZCoordinate(wdpt.at<MATTYPE>(0),
+                                                                          wdpt.at<MATTYPE>(1),
+                                                                          wdpt.at<MATTYPE>(2)));
+
+
+            if(ResultCheckStrategy::Instance()->check(target,idx1,rstblh))
+            {//检查通过 赋值目标位置
+                target.blh = rstblh;
+            }
+
+            LOG_INFO_F("Target %d Pos:%f,%f",target.id,target.blh.lon,target.blh.lat);
         }
-
-        FrameData &frame1 = *target.batch->_fmsdata[idx1];
-        FrameData &frame2 = *target.batch->_fmsdata[idx2];
-        Mat &pose1 = target.batch->_poses[idx1];
-        Mat &pose2 = target.batch->_poses[idx2];
-        const TargetData &targ1 = getTarget(frame1,target.id);
-        const TargetData &targ2 = getTarget(frame2,target.id);
-
-        if(!TargetData::isValid(targ1) || !TargetData::isValid(targ2))
+        else
         {
-            PROMT_V("target get error : ",frame1._name.c_str()," ", frame2._name.c_str()," ", target.id);
+            LOG_WARNING_F("Frame Not Enough.Target %d Not Changed.",target.id);
         }
-
-        //此处暂时先直接以跟踪到的中心点为同名点 判断条件
-        Mat pose = pose2 * pose1.inv();
-        Mat R = pose.rowRange(0,3).colRange(0,3);
-        Mat t = pose.rowRange(0,3).col(3);
-     
-        //三角测量
-        cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
-        mCamera.K.copyTo(P1.rowRange(0,3).colRange(0,3));
-
-        // Camera 2 Projection Matrix K[R|t]
-        cv::Mat P2(3,4,MATCVTYPE);
-        R.copyTo(P2.rowRange(0,3).colRange(0,3));
-        t.copyTo(P2.rowRange(0,3).col(3));
-        P2 = mCamera.K * P2;
-        Mat x3d;
-        PUtils::Triangulate(targ1.center(),targ2.center(),P1,P2,x3d);
-
-
-        cout.precision(15);
-        cout << frame1._pos.pos.lon << " " << frame1._pos.pos.lat << endl;
-        cout << target.batch->_fmsdata[idx2 ]->_pos.pos.lon << " " 
-             << target.batch->_fmsdata[idx2 ]->_pos.pos.lat << endl;
-        //此处暂用定位第二帧作为方向计算
-        Mat trans = PUtils::CalcTransBLH(frame1._pos, frame2._pos);
-
-        resize(x3d,x3d,Size(1,4));
-        x3d.at<MATTYPE>(3) = 1.0;
-
-        Mat wdpt = trans * x3d;
-        //坐标转换
-        BLHCoordinate rstblh  =  PCoorTrans::XYZ_to_BLH(XYZCoordinate(wdpt.at<MATTYPE>(0),
-                                                                      wdpt.at<MATTYPE>(1),
-                                                                      wdpt.at<MATTYPE>(2)));
-
-        
-        if(ResultCheckStrategy::Instance()->check(target,idx1,rstblh))
-        {//检查通过 赋值目标位置
-            target.blh = rstblh;
-        }
-        
-
-        PROMT_V("target",target.id,target.blh.lon,target.blh.lat);
-    }
-    return true;
+        return true;
     }
 
     //重置

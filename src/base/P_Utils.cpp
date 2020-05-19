@@ -309,10 +309,9 @@ namespace Position
             Point3d orngauss = PCoorTrans::BLH_to_GaussPrj(realdst.pos);
             Point3d dstgauss = PCoorTrans::BLH_to_GaussPrj(blh);
 
-            cout << "dif: "
-                 << orngauss.x - dstgauss.x << " "
-                 << orngauss.y - dstgauss.y << " "
-                 << orngauss.z - dstgauss.z << endl;
+            PROMTD_V("dif",(orngauss.x - dstgauss.x),
+                           (orngauss.y - dstgauss.y),
+                           (orngauss.z - dstgauss.z));
         }
     }
 }

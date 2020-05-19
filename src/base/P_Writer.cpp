@@ -2,6 +2,14 @@
 #include "P_Converter.h"
 #include "P_Utils.h"
 #include "P_Frame.h"
+#include "P_Checker.h"
+
+//log4cpp
+#include "log4cpp/Category.hh"
+#include "log4cpp/PatternLayout.hh"
+#include "log4cpp/OstreamAppender.hh"
+#include "log4cpp/FileAppender.hh"
+#include "log4cpp/PropertyConfigurator.hh"
 
 namespace Position
 {
@@ -36,15 +44,21 @@ namespace Position
     void PMapTraceSer::loadMap(const std::string &path) 
     {
         assert(mpMap);
-        assert(!path.empty());
+        
+        if(!PATHCHECK(path))
+        {
+            LOG_ERROR("File Path error.Please check map file path.");
+            return;
+        }
+
+
         BEGINFILEREGION(path,in)
 
         string head;
         getline(mfile,head);
         if(head == HEADTRACSTR)
         {
-            PROMT_S("load trace file.")
-          
+            LOG_INFO("Load Trace File ...");
             while(!mfile.eof())
             {//遍历文件 创建关键帧
                 string line;
@@ -59,11 +73,11 @@ namespace Position
                 pf->setPose(PConverter::str2CVMat(svs[1]));
                 mpMap->createKeyFrame(pf);
             }
-            PROMT_S("trac file loaded successfully!");
+            LOG_INFO("Trace File finished.");
         }
         else
         {
-            PROMT_S("It's not a avilable trace file")
+            LOG_ERROR("It's not a avilable trace file.");
         }
         ENDFILEREGION()
     }
@@ -102,7 +116,7 @@ namespace Position
         getline(mfile,head);
         if(head == HEADMPSTR)
         {
-            PROMT_S("load map points file.")
+            LOG_INFO("Load Map ponits ...");
             while(!mfile.eof())
             {//遍历文件 创建关键帧
                 string line;
@@ -115,7 +129,7 @@ namespace Position
                     continue;
                 mpMap->createMapPoint(pt);
             }
-            PROMT_S("mpts file loaded successfully!");
+            LOG_INFO("Map points load finished.");
         }
         else
         {
@@ -146,5 +160,72 @@ namespace Position
         }
 
         ENDFILEREGION()
+    }
+
+
+    PLogManager* PLogManager::s_Mgr = NULL;
+
+    //从log配置文件加载
+    PLogManager::PLogManager(const std::string &settingPath)
+    {
+        if(PATHCHECK(settingPath))
+        {
+            try
+            {
+                PROMT_S("Load logger setting file.");
+                log4cpp::PropertyConfigurator::configure(settingPath);
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            } 
+        }
+        else
+        {//配置文件不准就默认生成一个log文件
+            PROMT_S("Log setting file not exist.Create deafult logger.");
+             //工程配置中 只能设置log文件输出信息 其他所有设置使用默认
+            // {time}{loglevel}{file}{line}:message
+            const std::string patternformat = "{%d{%Y-%m-%d %H:%M:%S.%l}}{%p}: %m%n";
+    
+            log4cpp::PatternLayout* consleLayerout = new log4cpp::PatternLayout();
+            consleLayerout->setConversionPattern(patternformat); 
+            log4cpp::OstreamAppender *consoleLogger = new log4cpp::OstreamAppender("ConsoleLogger", &cout);
+            consoleLogger->setLayout(consleLayerout);
+    
+            log4cpp::PatternLayout* filelayout = new log4cpp::PatternLayout();
+            filelayout->setConversionPattern(patternformat);
+    
+            string path = "Position.log";
+            log4cpp::Appender* fileLogger = new log4cpp::FileAppender("FileLogger", path,false);
+            fileLogger->setLayout(filelayout);
+    
+            log4cpp::Category& root = log4cpp::Category::getRoot();//从系统中得到Category的根;
+            root.setPriority(log4cpp::Priority::DEBUG);
+            root.addAppender(consoleLogger);
+            root.addAppender(fileLogger);
+        }
+    }
+    //从工程配置加载
+    PLogManager::PLogManager(const shared_ptr<IConfig> &pcfg):
+    PLogManager(GETCFGVALUE(pcfg,LogPath,string))
+    {
+     
+    }
+    PLogManager::~PLogManager()
+    {
+        log4cpp::Category::shutdown();
+    }
+    //获取log 输出类, 默认就是root
+    log4cpp::Category& PLogManager::instacne(const std::string& str /*= ""*/)
+    {
+        if(str.empty())
+        {
+            log4cpp::Category& root = log4cpp::Category::getRoot();
+            return root;
+        }
+        else
+        {
+            return log4cpp::Category::getRoot().getInstance(str);
+        }
     }
 }

@@ -18,6 +18,8 @@ namespace  Position
 
         KeyFrameVector vpkfs = pmap->getAllFrames();
         
+        LOG_INFO("Gps fuse Begin.");
+
         //只为测试
         const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
         const std::string strfus = "/media/tlg/work/tlgfiles/HDData/result/est.txt";
@@ -131,8 +133,8 @@ namespace  Position
             }
             if(pKF->index() != map.frames[i]->id)
             {
-                std::cout<<"[error]pKF->mnId!=frame_p->id"<<std::endl;
-                exit(0);
+                LOG_ERROR("Gps fuse:pKF->mnId!=frame_p->id");
+                return false;
             }
 
             for(int j = 0; j < pKF->getWorldPoints().size(); j++)
@@ -156,7 +158,8 @@ namespace  Position
 
         sim3opt.beginOpt();
 
-        cout << "gps fuse over." << endl;
+        LOG_INFO("Gps Fuse End.");
+
 
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {
