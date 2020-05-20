@@ -47,7 +47,8 @@ int main(int argc, char **argv)
     }
 
 
-#define TEST_OR_RUN 1
+#define TEST_OR_RUN 0
+
 #if TEST_OR_RUN  //only for test
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();

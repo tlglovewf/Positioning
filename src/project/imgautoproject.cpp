@@ -258,16 +258,16 @@ namespace Position
             if(!loadTrackJson(trkjson,mFrameDatas))
                 return false;
 
-// #if ONLY_FOR_TEST
-//             const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
-//             std::ofstream fori;
-//             fori.open(strori);
-//             for(int i = 0; i < framedatas.size(); ++i )
-//             {
-//                 PStaticWriter::WriteRealTrace(fori, framedatas[i]._pos.pos ,framedatas[i]._name);
-//             }
-//             fori.close();
-// #endif
+#if ONLY_FOR_TEST
+            const std::string strori = "/media/tu/Work/Datas/TracePath/project.txt";
+            std::ofstream fori;
+            fori.open(strori);
+            for(int i = 0; i < mFrameDatas.size(); ++i )
+            {
+                PStaticWriter::WriteRealTrace(fori, mFrameDatas[i]._pos.pos ,mFrameDatas[i]._name);
+            }
+            fori.close();
+#endif
          
             //根据每帧加载对应图像识别信息
             //trk 文件每行对应一张图像

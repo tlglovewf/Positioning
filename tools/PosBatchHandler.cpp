@@ -45,11 +45,13 @@ const int test_count = 3;
 void PosBatchHandler::poseEstimate()
 {
     TrackerItemVector &targets = mPrjList->trackInfos();
-    PrjBatchVector    &batches = mPrjList->getPrjList();
     const std::string imgpath  = GETCFGVALUE(mpConfig,ImgPath,string);
     if(targets.empty())
+    {
+        LOG_WARNING("Target List Empty.");
         return;
-    assert(targets.size()  == batches.size());
+    }
+       
 
     LOG_INFO("PoseEstimate ...");
 
@@ -57,22 +59,29 @@ void PosBatchHandler::poseEstimate()
     {
     //    if(i >= test_count)
     //        break;
+
+       if(NULL == targets[i].batch)
+       {
+           LOG_WARNING("Target Batch Empty.");
+           return;
+       }
+
        LOG_INFO_F("Batch : %d - %d PoseEst",targets[i].id,targets[i].batch->_fmsdata.size());
-       assert(std::to_string(targets[i].id) == batches[i]->_btname);
+    
        //先赋值为最后一帧出现的位置
-       targets[i].blh = (*batches[i]->_fmsdata.rbegin())->_pos.pos;
-       if(batches[i]->_fmsdata.size() >= 2)
+       targets[i].blh = (*targets[i].batch->_fmsdata.rbegin())->_pos.pos;
+       if(targets[i].batch->_fmsdata.size() >= 2)
        {//仅在位姿估算成功后,进行量测定位 
-           if(mPoseEstimator.process(batches[i]->_fmsdata,imgpath))
+           if(mPoseEstimator.process(targets[i].batch->_fmsdata,imgpath))
            {//位姿估算成功,对batch中每个位姿进行赋值
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();
               
-               assert(frames.size() == batches[i]->_fmsdata.size());
+               assert(frames.size() == targets[i].batch->_fmsdata.size());
                for(size_t m = 0; m < frames.size(); ++m)
                {
-                   assert(batches[i]->_fmsdata[m]->_name == frames[m]->getData()->_name);
-                   batches[i]->_fmsdata[m] = frames[m]->getData();
-                   batches[i]->_poses.emplace_back(frames[m]->getPose());
+                   assert(targets[i].batch->_fmsdata[m]->_name == frames[m]->getData()->_name);
+                   targets[i].batch->_fmsdata[m] = frames[m]->getData();
+                   targets[i].batch->_poses.emplace_back(frames[m]->getPose());
                }
            }
        }
@@ -80,10 +89,6 @@ void PosBatchHandler::poseEstimate()
        mPoseEstimator.reset();
     }
     LOG_INFO("PoseEstimate Finished.");
-    // for(auto item : batches[0]->_poses)
-    // {
-    //     cout << item << endl;
-    // }
 }
 
 
