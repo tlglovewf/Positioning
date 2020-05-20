@@ -113,12 +113,19 @@ namespace Position
             line(img,bg,ed,CV_RGB(0,255,0));
             const int thickness = 2;
             circle(img,pt,thickness,CV_RGB(255,0,0),thickness);
+            
+            float distance = -1;
             if(pt.x > 0)
             {
                 Point2f foot = GetFootPoint(a,b,c,pt);
                 line(img,pt,foot,CV_RGB(255,255,0));
                 circle(img,foot,thickness,CV_RGB(255,255,0),thickness);
-            }    
+                distance = cv::norm(foot-pt);
+            }   
+            putText(img,"Read  : Point"     ,Point2f(50,50) ,CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(255,0,0)  ,2,CV_AA);
+            putText(img,"Yellow: FootPt"    ,Point2f(50,150),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(255,255,0),2,CV_AA); 
+            putText(img,"Green : Epiline"   ,Point2f(50,250),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(0,255,0)  ,2,CV_AA);
+            putText(img,string("Distance: ") + std::to_string(distance) ,Point2f(50,350),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(0,0,255)  ,2,CV_AA);
         }
     }
 

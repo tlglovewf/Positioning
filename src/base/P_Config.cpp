@@ -16,6 +16,7 @@ namespace Position
                       MatchRatio(0.8),
                       SearchRadius(200),
                       LogPath(""),
+                      LogPrio("DEBUG"),
                       ImgPath(""),
                       SemPath(""),
                       PosPath(""),
@@ -49,6 +50,7 @@ namespace Position
         PUSH_MAP(ScaleFactor);
         PUSH_MAP(MatchRatio);
         PUSH_MAP(LogPath);
+        PUSH_MAP(LogPrio);
         PUSH_MAP(ImgPath);
         PUSH_MAP(SemPath);
         PUSH_MAP(PosPath);
@@ -107,6 +109,7 @@ namespace Position
             READ_VALUE(ScaleFactor);
             READ_VALUE(MatchRatio);
             READ_VALUE(LogPath);
+            READ_VALUE(LogPrio);
             READ_VALUE(ImgPath);
             READ_VALUE(SemPath);
             READ_VALUE(PosPath);

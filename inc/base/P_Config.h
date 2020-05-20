@@ -154,8 +154,9 @@ namespace Position
         FloatConfigParam    ScaleFactor;    //金字塔缩放比例
         FloatConfigParam    MatchRatio;     //匹配比例
 
-        //路径参数
+        //字符参数
         StringConfigParam   LogPath;        //Log路径
+        StringConfigParam   LogPrio;        //Log等级
         StringConfigParam   ImgPath;        //图片路径
         StringConfigParam   PosPath;        //数据路径
         StringConfigParam   SemPath;        //语义路径

@@ -56,7 +56,7 @@ namespace Position
 #define RELEASEPT(X)  if(X){delete X; X = NULL;}
 #define RELEASEPTS(X) if(X){delete [] X;X = NULL;}
 
- #define  CHITH  5.991  //卡方阈值 
+#define  CHITH  5.991  //卡方阈值 
 
 //base type define 
 typedef unsigned char u8;
@@ -170,7 +170,7 @@ struct TargetData {
     //有效性
     static inline bool isValid(const TargetData &target)
     {
-		return (target._type > WRONGDATA) && BLHCoordinate::isValid(target._pos) ;
+		return (target._type > WRONGDATA) || BLHCoordinate::isValid(target._pos) ;
     }
 	TargetData() :_type(WRONGDATA){}
 };

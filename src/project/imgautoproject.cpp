@@ -8,6 +8,8 @@
 namespace Position
 {
 
+#define ONLY_FOR_TEST 1
+
 #define SPLITSTR ";"   //分割字符  
 
     ImgAutoConfig::ImgAutoConfig(const std::string &path):
@@ -181,7 +183,7 @@ namespace Position
         return false;
     }
 
-    //读取trk文档
+    //读取单个图片trk文档
     static void ReadTrkTxt(const string &txtfile, StringVector &lines)
     {
 
@@ -256,16 +258,16 @@ namespace Position
             if(!loadTrackJson(trkjson,mFrameDatas))
                 return false;
 
-#if 0
-            const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
-            std::ofstream fori;
-            fori.open(strori);
-            for(int i = 0; i < framedatas.size(); ++i )
-            {
-                PStaticWriter::WriteRealTrace(fori, framedatas[i]._pos.pos ,framedatas[i]._name);
-            }
-            fori.close();
-#endif
+// #if ONLY_FOR_TEST
+//             const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
+//             std::ofstream fori;
+//             fori.open(strori);
+//             for(int i = 0; i < framedatas.size(); ++i )
+//             {
+//                 PStaticWriter::WriteRealTrace(fori, framedatas[i]._pos.pos ,framedatas[i]._name);
+//             }
+//             fori.close();
+// #endif
          
             //根据每帧加载对应图像识别信息
             //trk 文件每行对应一张图像
@@ -343,7 +345,8 @@ namespace Position
             item.maxsize    = atoi(values[11].c_str()); // 在多少张图像中出现
 
             string startseq = values[12];               //(图片索引，探测框索引) 目标第一次出现图的索引
-            string endseq   = values[values.size() - 1];//取最后一个 表示最后一帧的索引
+            int    lastnum  = max(0,atoi(values[13].c_str()));
+            string endseq   = values[values.size() - lastnum];//取目标最后一帧出现的位置
 
             item.stno = parseIndex(startseq);
             item.edno = parseIndex(endseq);
@@ -394,18 +397,28 @@ namespace Position
         {   
             assert(mTrkLines.size() == mTrackerInfos.size());
             assert(mTrackerInfos.size() == mBatches.size());
+#if ONLY_FOR_TEST
+            ofstream ofileEst("/media/tu/Work/Datas/TracePath/targetsEst.txt");
+            ofstream ofileRel("/media/tu/Work/Datas/TracePath/targetsRel.txt");
+#endif
             for(size_t i = 0; i < mTrackerInfos.size(); ++i)
             {
                 char gpsstr[50] = {0};
-                const BLHCoordinate blh = mTrackerInfos[i].blh;
+                const BLHCoordinate& blh = mTrackerInfos[i].blh;
                 if(BLHCoordinate::isValid(blh))
                 {
                     sprintf(gpsstr,"%s(%.7f,%.7f)",SPLITSTR,blh.lat,blh.lon);
+#if ONLY_FOR_TEST
+                    PStaticWriter::WriteEstTrace(ofileEst,blh,Point3d(0,0,0),mTrackerInfos[i].batch->_fmsdata[0]->_name.c_str());
+                    PStaticWriter::WriteRealTrace(ofileRel,(*mTrackerInfos[i].batch->_fmsdata.rbegin())->_pos.pos,mTrackerInfos[i].batch->_fmsdata[0]->_name.c_str());
+#endif
                 }
                 
                 mTrkLines[i].append(string(gpsstr));
                 mfile << mTrkLines[i].c_str() << endl;
             }
+            ofileEst.close();
+            ofileRel.close();
             mfile.close();
         }
     }

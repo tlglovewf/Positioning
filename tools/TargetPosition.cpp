@@ -32,10 +32,8 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    
     PROMTD_V("Config Path",cfgpath.c_str());
 
-    
     std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig(cfgpath)); 
     LOG_INITIALIZE(pCfg)
     SETCFGVALUE(pCfg,PrjPath,prjpath);
@@ -49,8 +47,8 @@ int main(int argc, char **argv)
     }
 
 
-
-#if 0  //only for test
+#define TEST_OR_RUN 1
+#if TEST_OR_RUN  //only for test
     Position::FrameDataVIter iter = pData->begin();
     Position::FrameDataVIter ed   = pData->end();
 
@@ -59,23 +57,24 @@ int main(int argc, char **argv)
         return -1;  
     for(; iter != ed; ++iter)
     {
-        if(iter->_targets.empty())
-        {
-            continue;
-        }
         Mat image = imread(imgpath + iter->_name);
         for(auto item : iter->_targets)
         {
             const Rect2f rect = item._box;
+
             cv::rectangle(image,rect,CV_RGB(0,255,0),3);
+            string text = std::to_string(item._type);
+            putText(image, text, Point2f((rect.tl().x + rect.br().x) / 2.0, rect.tl().y ), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
         }
         resize(image,image,Size(image.cols >> 2,image.rows >> 2));
-        imshow("image", image);
-        waitKey(5);
+        putText(image, iter->_name, Point2f(50,50 ), CV_FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 1, CV_AA);
+        imshow("FrameDisplay", image);
+        waitKey(100);
     }
+    waitKey();
 #endif
 
-#if 1 
+#if !TEST_OR_RUN
 
     std::shared_ptr<Position::IProjList> prjList(new ImgAutoPrjList(pData));
     prjList->setBatcherGenerator(shared_ptr<IBatchesGenerator>(new TargetBatchesGenerator));

@@ -52,7 +52,7 @@ namespace Position
         return access(path.c_str(),2) != -1;
     }
 
-    bool ResultPosCheck::check(const TrackerItem &item,int index,const BLHCoordinate &blh)
+    bool ResultPosChecker::check(const TrackerItem &item,int index,const BLHCoordinate &blh)
     {
         assert(item.batch);
         assert(BLHCoordinate::isValid(item.blh));
@@ -76,7 +76,7 @@ namespace Position
 
     ResultCheckStrategy::ResultCheckStrategy()
     {
-        mRstChks.emplace_back(new ResultPosCheck());
+        mRstChks.emplace_back(new ResultPosChecker());
     }
 
     /*
@@ -91,7 +91,7 @@ namespace Position
         for(auto rst : mRstChks)
         {//遍历检查实例
             if(!rst->check(item,index,blh))
-            {
+            {  
                 return false;
             }
         }

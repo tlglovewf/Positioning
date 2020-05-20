@@ -289,7 +289,7 @@ namespace Position
     /*
      *  结果检查
      */
-    class IResultCheck : public IBase
+    class IResultChecker : public IBase
     {
     public:
         /*

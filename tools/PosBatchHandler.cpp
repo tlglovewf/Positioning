@@ -40,7 +40,7 @@ void PosBatchHandler::saveResult(const std::string &path)
     LOG_INFO_F("Result have been saved to %s",path.c_str());
 
 }
-const int test_count = 1;
+const int test_count = 3;
 //估算batch 位姿
 void PosBatchHandler::poseEstimate()
 {
@@ -91,8 +91,6 @@ void PosBatchHandler::poseEstimate()
 void PosBatchHandler::targetPositioning()
 {
     TrackerItemVector &targets = mPrjList->trackInfos();
-    PrjBatchVector    &batches = mPrjList->getPrjList();
-    assert(targets.size()  == batches.size());
     LOG_INFO("Targets Positioning ...")
     for(size_t i = 0; i < targets.size(); ++i)
     {

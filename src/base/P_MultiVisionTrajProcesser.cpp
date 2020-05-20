@@ -72,7 +72,7 @@ namespace Position
     //跟踪
     cv::Mat PMultiVisionTrajProcesser::track(FrameData *data)
     {
-        LOG_DEBUG_F("Process:%s",data->_name.c_str());
+        LOG_INFO_F("Process:%s",data->_name.c_str());
         Mat grayimg ;
 
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )

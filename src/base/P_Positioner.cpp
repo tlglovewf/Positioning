@@ -168,7 +168,7 @@ namespace Position
     }
 
     //通过id获取目标
-    static inline const TargetData& getTarget(const FrameData &frame,int id)
+    static inline const TargetData& GetTargetFromFrame(const FrameData &frame,int id)
     {
         TargetVector::const_iterator iter = 
         std::find_if(frame._targets.begin(),frame._targets.end(),[&](const TargetData &t)->bool
@@ -180,7 +180,7 @@ namespace Position
         else
         {
             static TargetData error;
-            PROMTD_S("get error target");
+            LOG_WARNING_F("Target %d not found in %s",id , frame._name.c_str());
             return error;
         }
     }
@@ -204,28 +204,36 @@ namespace Position
             selectFrame(target,idx1,idx2);
             if(idx1 >= idx2)
             {//选帧 帧数不足 位姿推算失败 取当前位置
-                LOG_WARNING_F("calc %d position failed!!",target.id);
+                LOG_WARNING_F("Calc %d Position Failed!!",target.id);
                 return false;
             }
             FrameData &frame1 = *target.batch->_fmsdata[idx1];
             FrameData &frame2 = *target.batch->_fmsdata[idx2];
             Mat &pose1 = target.batch->_poses[idx1];
             Mat &pose2 = target.batch->_poses[idx2];
-            const TargetData &targ1 = getTarget(frame1,target.id);
-            const TargetData &targ2 = getTarget(frame2,target.id);
+            const TargetData &targ1 = GetTargetFromFrame(frame1,target.id);
+            const TargetData &targ2 = GetTargetFromFrame(frame2,target.id);
 
             if(!TargetData::isValid(targ1) || !TargetData::isValid(targ2))
             {
-                LOG_WARNING_F("Get target %d error %s-%s",target.id,      
-                                                        frame1._name.c_str(),
-                                                        frame2._name.c_str());
                 return false;
             }
             //此处暂时先直接以跟踪到的中心点为同名点 判断条件
             Mat pose = pose2 * pose1.inv();
             Mat R = pose.rowRange(0,3).colRange(0,3);
             Mat t = pose.rowRange(0,3).col(3);
+            
+            Mat img1 = frame1._img;
+            Mat img2 = frame2._img;
 
+#if 1
+            EpLine line = PUtils::ComputeEpLine(R,t,mCamera,targ1.center());
+            cvtColor(img2, img2, CV_GRAY2BGR);
+            PUtils::DrawEpiLine(line.a,line.b,line.c,targ2.center(),img2);
+
+            string outname = "/media/tu/Work/Datas/TracePath/" + std::to_string(target.id) + "_epline.jpg";
+            imwrite(outname,img2);
+#endif
             //三角测量
             cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
             mCamera.K.copyTo(P1.rowRange(0,3).colRange(0,3));
@@ -238,15 +246,9 @@ namespace Position
             Mat x3d;
             PUtils::Triangulate(targ1.center(),targ2.center(),P1,P2,x3d);
 
-
             cout.precision(15);
 
-            PROMTD_V("frame blh",frame1._pos.pos.lon,frame1._pos.pos.lat);
-
-            PROMTD_V("target blh",target.batch->_fmsdata[idx2 ]->_pos.pos.lon,
-                                  target.batch->_fmsdata[idx2 ]->_pos.pos.lat);
-
-            //此处暂用定位第二帧作为方向计算
+            //暂用取出姿态的两帧gps计算绝对坐标的转换矩阵额
             Mat trans = PUtils::CalcTransBLH(frame1._pos, frame2._pos);
 
             resize(x3d,x3d,Size(1,4));
@@ -261,10 +263,17 @@ namespace Position
 
             if(ResultCheckStrategy::Instance()->check(target,idx1,rstblh))
             {//检查通过 赋值目标位置
+                LOG_INFO_F("Calc Target %d Pos Successfully. PosBe:%f,%f",target.id,target.blh.lon,target.blh.lat);
+                
                 target.blh = rstblh;
-            }
 
-            LOG_INFO_F("Target %d Pos:%f,%f",target.id,target.blh.lon,target.blh.lat);
+                LOG_INFO_F("Calc Target %d Pos Successfully. PosAf:%f,%f",target.id,target.blh.lon,target.blh.lat);
+            }
+            else
+            {
+                LOG_WARNING_F("Calc Target %d Pos Failed.Pos Not Changed.",target.id);
+            }
+               
         }
         else
         {
@@ -281,6 +290,7 @@ namespace Position
 
 
     //选择用于量测的帧
+    //此处处理 建立在1target -> 1batch
     void BatchVisualPositioner::selectFrame(const TrackerItem &item,int &idx1, int &idx2)
     {
         if(item.batch->_fmsdata.size() == 2)
@@ -289,20 +299,25 @@ namespace Position
             idx2 = 1;
         }
         else
-        {//取中间帧
+        {//取中间有位姿的帧
             std::vector<Mat>::const_iterator iter = std::find_if(item.batch->_poses.begin(),
                                                                  item.batch->_poses.end(),[](const Mat &pse)->bool
             {
                 return !pse.empty();
             });
 
+            
+            assert(item.batch->_fmsdata.size() == item.batch->_poses.size());
+
             if(iter != item.batch->_poses.end())
             {
                 int st = iter - item.batch->_poses.begin();
                 int mid = (item.batch->_poses.end() - iter) / 2;
-                idx1 = st + (mid - 1);
+                idx1 = st + (mid - 1);     //取中间帧
 
-                idx2 = item.batch->_fmsdata.size() - 1;
+                idx2 = item.batch->_fmsdata.size() - 1;//取最后一帧
+
+                PROMTD_V("Select Frame ",idx1, " ", idx2);
             }
             else
             {

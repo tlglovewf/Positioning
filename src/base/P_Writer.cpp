@@ -165,6 +165,22 @@ namespace Position
 
     PLogManager* PLogManager::s_Mgr = NULL;
 
+    class PriorityFilter : public log4cpp::Filter
+    {
+    protected:
+        virtual Decision _decide(const log4cpp::LoggingEvent& event) 
+        {
+            if(event.priority < log4cpp::Priority::DEBUG)
+            {
+                return log4cpp::Filter::ACCEPT;
+            }   
+            else
+            {
+                return log4cpp::Filter::DENY;
+            }
+        }
+    };
+
     //从log配置文件加载
     PLogManager::PLogManager(const std::string &settingPath)
     {
@@ -185,7 +201,7 @@ namespace Position
             PROMT_S("Log setting file not exist.Create deafult logger.");
              //工程配置中 只能设置log文件输出信息 其他所有设置使用默认
             // {time}{loglevel}{file}{line}:message
-            const std::string patternformat = "{%d{%Y-%m-%d %H:%M:%S.%l}}{%p}: %m%n";
+            const std::string patternformat = "{%d{%Y-%m-%d %H:%M:%S}}{%p}: %m%n";
     
             log4cpp::PatternLayout* consleLayerout = new log4cpp::PatternLayout();
             consleLayerout->setConversionPattern(patternformat); 
@@ -198,9 +214,9 @@ namespace Position
             string path = "Position.log";
             log4cpp::Appender* fileLogger = new log4cpp::FileAppender("FileLogger", path,false);
             fileLogger->setLayout(filelayout);
-    
+            fileLogger->setFilter(new PriorityFilter());
             log4cpp::Category& root = log4cpp::Category::getRoot();//从系统中得到Category的根;
-            root.setPriority(log4cpp::Priority::DEBUG);
+
             root.addAppender(consoleLogger);
             root.addAppender(fileLogger);
         }
@@ -209,7 +225,34 @@ namespace Position
     PLogManager::PLogManager(const shared_ptr<IConfig> &pcfg):
     PLogManager(GETCFGVALUE(pcfg,LogPath,string))
     {
-     
+        std::string prior = GETCFGVALUE(pcfg,LogPrio,string);
+        log4cpp::Priority::Value ePri ;
+        if(prior == "DEBUG")
+        {
+            ePri = log4cpp::Priority::DEBUG;
+        }
+        else if(prior == "INFO")
+        {
+            ePri = log4cpp::Priority::INFO;
+        }
+        else if(prior == "WARNNING")
+        {
+            ePri = log4cpp::Priority::WARN;
+        }
+        else if(prior == "ERROR")
+        {
+            ePri = log4cpp::Priority::ERROR;
+        }
+        else if(prior == "CRITICAL")
+        {
+            ePri = log4cpp::Priority::CRIT;
+        }
+        else
+        {
+            ePri = log4cpp::Priority::DEBUG;
+        }
+        cout << prior.c_str() << " " << ePri << endl;
+        log4cpp::Category::getRoot().setPriority(ePri); 
     }
     PLogManager::~PLogManager()
     {

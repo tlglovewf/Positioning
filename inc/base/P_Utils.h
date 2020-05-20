@@ -437,8 +437,7 @@ public:
 
         double a,b,c;
         PUtils::CalcEpiline(F,pt,a,b,c);
-
-        PROMT_V("ep line",a, b, c);
+        
         return EpLine(a,b,c);
     }
 
@@ -496,7 +495,10 @@ public:
     //绘制极线 ax + by + c = 0    
     //pt 另一帧像素坐标    img 当前帧图像
     static void DrawEpiLine(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt, Mat &img);
-
+    static void DrawEpiLine(const EpLine &line,const Point2f &pt, Mat &img)
+    {
+        DrawEpiLine(line.a,line.b,line.c,pt,img);
+    }
     //像素坐标系->图像坐标系
     static inline cv::Point2d Pixel2Cam(const cv::Point2d &p, const cv::Mat &K)
     {

@@ -142,10 +142,10 @@ bool   FrameHelper::mInit = false;
     }
     PFrame::~PFrame()
     {
-        if(!mData->_img.empty())
-        {
-            mData->_img.release();
-        }
+        // if(!mData->_img.empty())
+        // {
+        //     mData->_img.release();
+        // }
     }
     PKeyFrame::PKeyFrame(IFrame *pframe,IKeyFrame *prevFrame,PMap *pMap):
     mpFrame(pframe),mpMap(pMap),mbBad(false)

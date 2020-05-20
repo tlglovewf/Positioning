@@ -40,7 +40,7 @@ namespace Position
     /*
      *  结果位置检查
      */
-    class ResultPosCheck : public IResultCheck
+    class ResultPosChecker : public IResultChecker
     {
     public:
         /*
@@ -70,7 +70,7 @@ namespace Position
         /*
          * 添加检测策略
          */
-        void addStrategy(const shared_ptr<IResultCheck> &rstcheck)
+        void addStrategy(const shared_ptr<IResultChecker> &rstcheck)
         {
             mRstChks.emplace_back(rstcheck);
         }
@@ -83,7 +83,7 @@ namespace Position
          */
         bool check(const TrackerItem &item,int index, const BLHCoordinate &blh);
     protected:
-        std::vector<shared_ptr<IResultCheck> > mRstChks;
+        std::vector<shared_ptr<IResultChecker> > mRstChks;
     };
 }
 
