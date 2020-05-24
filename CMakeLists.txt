@@ -24,9 +24,17 @@ if(CMAKE_HOST_APPLE)
 endif()
 
 #view 
-OPTION(USE_VIEWER            "Build with pangolin" OFF)
-OPTION(USE_XFEATURE          "Build with sift"     ON)
-OPTION(BUILD_TEST_PROGRAMS   "Build test program"  ON )
+OPTION(USE_VIEWER            "Build with pangolin"   ON)
+message("USE_VIEWER          option is ${USE_VIEWER}")
+
+OPTION(USE_XFEATURE          "Build with sift"       ON)
+message("USE_XFEATURE        option is ${USE_XFEATURE}")
+
+OPTION(BUILD_TEST_PROGRAMS   "Build test program"    ON)
+message("BUILD_TEST_PROGRAMS option is ${BUILD_TEST_PROGRAMS}")
+
+
+
 
 if (USE_XFEATURE)
    add_definitions(-DUSE_CVXFEATURE)
@@ -60,7 +68,7 @@ if(NOT OpenCV_FOUND)
       message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
    endif()
 else()
-   message("opencv path :" ${OpenCV_LIBS})
+   message("OpenCV Found.")
 endif()
 
 find_package(Eigen3  REQUIRED)
@@ -73,6 +81,8 @@ find_package(Pangolin REQUIRED)
    else()
       message("pangolin path : " ${Pangolin_INCLUDE_DIRS})
    endif()
+else()
+message(STATUS "No Viewer!!!")
 endif()
 
 #add source macro
@@ -85,7 +95,7 @@ FILE(GLOB_RECURSE SRC_LIST_CPP ${PROJECT_SOURCE_DIR}/src/*.cpp)
 # recurrence include directories
 function(include_sub_directories_recursively root_dir)
     if (IS_DIRECTORY ${root_dir})               #check directory
-        message("include dir: " ${root_dir})
+      #   message("include dir: " ${root_dir})
         include_directories(${root_dir})
     endif()
     file(GLOB ALL_SUB RELATIVE ${root_dir} ${root_dir}/*) #insert sub dirs 
@@ -132,10 +142,6 @@ ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeographic.a)
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
-if(BUILD_TEST_PROGRAMS)
-   add_subdirectory(test)
-endif()
-
 add_executable(TargetPosition  
 tools/TargetPosition.cpp
 tools/PosBatchHandler.cpp)
@@ -159,6 +165,7 @@ else()
       FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so)
       #remove target so name 
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.so)
    else()
       FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib)
       #remove target so name 
@@ -178,6 +185,7 @@ install(TARGETS TargetPosition ${Positioning}
        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
+message("Depdents on :")
 FOREACH(src ${DEPEND_LIBS})
 MESSAGE( ${src} )
 ENDFOREACH() 
@@ -190,3 +198,8 @@ install(FILES ${DEPEND_LIBS}
 
 #uninstall
 include(cmake/PositionUninstall.cmake)
+
+#if build test program
+if(BUILD_TEST_PROGRAMS)
+   add_subdirectory(test)
+endif()

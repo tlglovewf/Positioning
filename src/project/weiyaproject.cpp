@@ -1,5 +1,5 @@
 #include "project/weiyaproject.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Utils.h"
 WeiyaConfig::WeiyaConfig(const std::string &path):
                                ExtriPath(""),
@@ -106,8 +106,8 @@ bool WeiyaData::loadDatas()
             if(pststr.empty())
                 continue;
             char filename[255] = {0};
-            Position::FrameData framedata;
-            Position::PoseData &pose = framedata._pos;
+            Position::FrameData *framedata = new Position::FrameData();
+            Position::PoseData &pose = framedata->_pos;
             sscanf(pststr.c_str(),"%s %lf %lf %lf %lf %lf %lf %lf", filename,
                                                                     &pose._t,
                                                                     &pose.pos.lon,
@@ -117,7 +117,7 @@ bool WeiyaData::loadDatas()
                                                                     &pose._yaw,
                                                                     &pose._roll);
             PROMT_V("Load",filename);
-            framedata._name = filename;
+            framedata->_name = filename;
             mFrameDatas.emplace_back(framedata);
         }
         pstfile.close();

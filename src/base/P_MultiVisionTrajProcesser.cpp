@@ -1,9 +1,9 @@
 #include "P_MultiVisionTrajProcesser.h"
 #include "P_Factory.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Frame.h"
 
-#include "FeatureQuadTree.h"
+#include "P_UniformDistriFeature.h"
 #include <thread>
 
 #define SAVEMATCHIMG    0  //是否存储同名点匹配文件
@@ -15,7 +15,7 @@ namespace Position
                                                          const CameraParam &cam):mCam(cam)
                    {
 #if 0
-                        mpFeature        = std::shared_ptr<IFeature>(new FeatureQuadTree(GETCFGVALUE(pcfg,FeatureCnt,int)));
+                        mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
                         mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));

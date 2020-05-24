@@ -19,6 +19,11 @@ namespace Position
         {
             //add more
         }
+
+        ~PData()
+        {
+           clear();
+        }
         //预处理数据
         virtual bool loadDatas()
         {
@@ -27,13 +32,13 @@ namespace Position
         }
 
         //第一个元素
-        virtual FrameDataVIter begin() 
+        virtual FrameDataPtrVIter begin() 
         {
             return mFrameDatas.begin();
         }
 
         //最后一个元素
-        virtual FrameDataVIter end() 
+        virtual FrameDataPtrVIter end() 
         {
             return mFrameDatas.end();
         }
@@ -59,13 +64,17 @@ namespace Position
         //清理
         void clear()
         {
-            mFrameDatas.clear();
+            for(size_t i = 0; i < mFrameDatas.size(); ++i)
+            {
+                delete mFrameDatas[i];
+            }
+            mFrameDatas.shrink_to_fit();
         }
 
     protected:
         std::shared_ptr<IConfig>    mpCfg;
 
-        FrameDataVector             mFrameDatas;
+        FrameDataPtrVector          mFrameDatas;
         CameraParam                 mCamera;
     };
     // add more ..

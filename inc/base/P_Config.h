@@ -10,7 +10,6 @@
 #include <map>
 namespace Position
 {
-
     //配置属性
     template<typename T>
     class ConfigParam  : public IConfigParam

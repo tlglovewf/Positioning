@@ -1,6 +1,6 @@
 #include "P_MapDisplay.h"
 #include "P_Factory.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 
 #include "P_MultiVisionTrajProcesser.h"
 
@@ -87,18 +87,18 @@ void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std
         for(;iter != ed; ++iter)
         {
             spaceLen.at<MATTYPE>(0,3) = 10 * index++;
-            if(iter->_poses.empty())
+            if((*iter)->_poses.empty())
                 break;
-            PROMTD_V("display batch ", iter->_btname.c_str());
-            cout << iter->_n << " " << iter->_poses.size() << endl;
-            for(int i = 0;i < iter->_n; ++i)
+            PROMTD_V("display batch ", (*iter)->_btname.c_str());
+            cout << (*iter)->_n << " " << (*iter)->_poses.size() << endl;
+            for(int i = 0;i < (*iter)->_n; ++i)
             {
-                if(iter->_poses[i].empty())
+                if((*iter)->_poses[i].empty())
                     continue;
-                Position::FrameData &data = iter->_fmsdata[i]; 
-                Position::IMap::CreateKeyFrame(pmap,data,spaceLen + iter->_poses[i]);
+                Position::FrameData *data = (*iter)->_fmsdata[i]; 
+                Position::IMap::CreateKeyFrame(pmap,data,spaceLen + (*iter)->_poses[i]);
             }
-            PROMTD_V("display end ", iter->_btname.c_str());
+            PROMTD_V("display end ", (*iter)->_btname.c_str());
         }
         pviewer->setMap(pmap);
         pviewer->renderLoop();
@@ -251,8 +251,8 @@ void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position:
                 pose.at<MATTYPE>(0,3) = T0;
                 pose.at<MATTYPE>(1,3) = T1;
                 pose.at<MATTYPE>(2,3) = T2;
-                Position::FrameData fdata;
-                fdata._name = nm;
+                Position::FrameData *fdata = new Position::FrameData();
+                fdata->_name = nm;
                 cout << Position::IMap::CreateKeyFrame(pmap,fdata,spaceLen + pose)->index() << endl;
             }
         }
@@ -306,9 +306,9 @@ int main(void)
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
     std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData->getCamera()));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
-    Position::FrameDataVector datas;
-    Position::FrameDataVIter iter = pData->begin();
-    Position::FrameDataVIter ed   = pData->end();
+    Position::FrameDataPtrVector datas;
+    Position::FrameDataPtrVIter iter = pData->begin();
+    Position::FrameDataPtrVIter ed   = pData->end();
      //可视化帧数据
     std::shared_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
 

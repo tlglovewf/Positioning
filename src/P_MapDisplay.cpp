@@ -1,7 +1,7 @@
 #include "P_MapDisplay.h"
 #include "P_Factory.h"
 #include "P_Map.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "P_GpsFusion.h"
 
@@ -41,18 +41,18 @@ PMapDisplay::PMapDisplay(const shared_ptr<Position::IData> &pdata,
 //运行
 void PMapDisplay::run()
 {
-    Position::FrameDataVIter it = mpData->begin();
-    Position::FrameDataVIter ed = mpData->end();
+    Position::FrameDataPtrVIter it = mpData->begin();
+    Position::FrameDataPtrVIter ed = mpData->end();
     const std::string imgpath = GETCFGVALUE(mpConfig,ImgPath ,string) + "/";
 
     //帧循环 构建局部场景
     for(;it != ed ;++it)
     {//遍历帧
        
-        const std::string picpath = imgpath + it->_name;
-        it->_img = imread(picpath,IMREAD_UNCHANGED);
-        mpTrajProSelector->handle(&(*it));
-        (*it)._img.release();
+        const std::string picpath = imgpath + (*it)->_name;
+        (*it)->_img = imread(picpath,IMREAD_UNCHANGED);
+        mpTrajProSelector->handle(*it);
+        (*it)->_img.release();
     }
 
     //等待线程处理

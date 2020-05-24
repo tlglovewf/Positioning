@@ -1,7 +1,21 @@
 #include "P_Config.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 namespace Position
 {
+     static std::shared_ptr<IConfig> g_globaleConfig;
+
+    //获取单例
+    std::shared_ptr<IConfig>& IConfig::Instance()
+    {
+        assert(g_globaleConfig);
+        return g_globaleConfig;
+    }
+
+    //设置单例
+    void IConfig::SetInstance(const std::shared_ptr<IConfig> &pinstance)
+    {
+        g_globaleConfig = pinstance;
+    }
     //构造
     PConfig::PConfig():
                       StNo(0), 

@@ -1,6 +1,6 @@
 
 #include "project/imgautoproject.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "P_Checker.h"
 #include  "Thirdparty/rapidjson/document.h"
@@ -8,7 +8,7 @@
 namespace Position
 {
 
-#define ONLY_FOR_TEST 1
+#define ONLY_FOR_TEST 0
 
 #define SPLITSTR ";"   //分割字符  
 
@@ -31,6 +31,11 @@ namespace Position
 
     void ImgAutoData::loadCameraParams(const std::string &path)
     {
+        if(!PATHCHECK(path))
+        {
+            LOG_CRIT_F("Camera Config Path : %s Not Found.",path.c_str());
+            exit(-1);
+        }
         //read camera matrix
         FileStorage intr(path, FileStorage::READ);
         if (intr.isOpened())
@@ -49,7 +54,7 @@ namespace Position
             mCamera.fps = GETCFGVALUE(mpCfg,ImgFps,int);
             mCamera.rgb = GETCFGVALUE(mpCfg,ImgRgb,int);
             PROMT_S("Camera params >>>>>>>>>>>>>>>>>>>>>>>>>");
-            PROMT_V("K ",mCamera.K);
+            PROMT_V("K",mCamera.K);
             PROMT_V("Fps ",(int)mCamera.fps);
             PROMT_V("Rgb ",(int)mCamera.rgb);
             PROMT_S("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
@@ -79,7 +84,7 @@ namespace Position
     }
 
      //加载track json
-    bool ImgAutoData::loadTrackJson(const std::string &path,FrameDataVector &framedatas)
+    bool ImgAutoData::loadTrackJson(const std::string &path,FrameDataPtrVector &framedatas)
     {
         if(!PATHCHECK(path) || framedatas.empty())
         {
@@ -140,9 +145,9 @@ namespace Position
 
                                     return false;
                                 }
-                                for (int j = 0; j < trmkArray.Size(); j++)
+                                for (size_t j = 0; j < trmkArray.Size(); j++)
                                 {
-                                    PoseData &item = framedatas[j]._pos;
+                                    PoseData &item = framedatas[j]->_pos;
                                     int mseq;
                                     rapidjson::Value& trmkValue = trmkArray[j];
                                     if (trmkValue.HasMember("latitude"))
@@ -158,7 +163,7 @@ namespace Position
                                          mseq = atoi(trmkValue["seqNum"].GetString()) - 1;
                                          if(mseq != j)
                                          {
-                                             LOG_ERROR_F("%s seq numb error",framedatas[j]._name.c_str());
+                                             LOG_ERROR_F("%s seq numb error",framedatas[j]->_name.c_str());
                                          }
                                     }
                                 }
@@ -184,7 +189,7 @@ namespace Position
     }
 
     //读取单个图片trk文档
-    static void ReadTrkTxt(const string &txtfile, StringVector &lines)
+    void ImgAutoData::ParseTrkTxt(const string &txtfile, StringVector &lines)
     {
 
         if(!PATHCHECK(txtfile))
@@ -247,9 +252,9 @@ namespace Position
                 getline(seqfile,seqline);
                 if(seqline.empty())
                     continue;
-                FrameData fdata;
+                FrameData *fdata = new FrameData;
                 size_t npos = seqline.find_last_of("/");
-                fdata._name = seqline.substr(++npos);
+                fdata->_name = seqline.substr(++npos);
                 mFrameDatas.emplace_back(fdata);
             }
             seqfile.close();
@@ -262,9 +267,9 @@ namespace Position
             const std::string strori = "/media/tu/Work/Datas/TracePath/project.txt";
             std::ofstream fori;
             fori.open(strori);
-            for(int i = 0; i < mFrameDatas.size(); ++i )
+            for(size_t i = 0; i < mFrameDatas.size(); ++i )
             {
-                PStaticWriter::WriteRealTrace(fori, mFrameDatas[i]._pos.pos ,mFrameDatas[i]._name);
+                PStaticWriter::WriteRealTrace(fori, mFrameDatas[i]->_pos.pos ,mFrameDatas[i]->_name);
             }
             fori.close();
 #endif
@@ -273,11 +278,11 @@ namespace Position
             //trk 文件每行对应一张图像
             for(size_t i = 0; i < mFrameDatas.size(); ++i)
             {
-                std::string trkfile = mFrameDatas[i]._name;
+                std::string trkfile = mFrameDatas[i]->_name;
                 PUtils::ReplaceFileSuffix(trkfile,"jpg","trk");
                 trkfile = trackrestpath  + trkfile;
                 StringVector lines;
-                ReadTrkTxt(trkfile,lines);
+                ParseTrkTxt(trkfile,lines);
                 if(!lines.empty())
                 {//数据不为空,则表示当前帧没有识别的目标
                     for(const string &item : lines)
@@ -296,12 +301,12 @@ namespace Position
                        target._box  = Rect2f( xmin,ymin,(xmax - xmin),(ymax - ymin) );
                        target._type = id;
                        //插入目标信息
-                       mFrameDatas[i]._targets.emplace_back(target);
+                       mFrameDatas[i]->_targets.emplace_back(target);
                     }
                 }
                 else
                 {
-                    LOG_DEBUG_F("%s:no target!!!",mFrameDatas[i]._name.c_str());
+                    LOG_DEBUG_F("%s:no target!!!",mFrameDatas[i]->_name.c_str());
                 }
             }
 
@@ -341,6 +346,7 @@ namespace Position
         if(!values.empty())
         {
             TrackerItem item;
+            item.clsid      = atoi(values[6].c_str());
             item.id         = atoi(values[10].c_str()); //目标id
             item.maxsize    = atoi(values[11].c_str()); // 在多少张图像中出现
 
@@ -417,8 +423,10 @@ namespace Position
                 mTrkLines[i].append(string(gpsstr));
                 mfile << mTrkLines[i].c_str() << endl;
             }
+#if ONLY_FOR_TEST
             ofileEst.close();
             ofileRel.close();
+#endif
             mfile.close();
         }
     }

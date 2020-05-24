@@ -1,9 +1,13 @@
 #include "PosBatchHandler.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "project/imgautoproject.h"
 #include "P_Checker.h"
 #include "P_Factory.h"
 #include "P_Utils.h"
+
+#if USE_VIEW
+std::shared_ptr<Position::IViewer> s_Viewer;
+#endif
 
 
 PosBatchHandler::PosBatchHandler(const std::shared_ptr<IConfig>           &pcfg      ,
@@ -19,6 +23,12 @@ mCamera(cam)
      assert(pcfg);
      assert(prjlist);
      assert(positioner);
+
+#if USE_VIEW
+s_Viewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,GETGLOBALCONFIG()));
+s_Viewer->setMap(mPoseEstimator.getMap());
+#endif
+
 }
 
 //加载轨迹文件文件
@@ -40,7 +50,7 @@ void PosBatchHandler::saveResult(const std::string &path)
     LOG_INFO_F("Result have been saved to %s",path.c_str());
 
 }
-const int test_count = 3;
+const int test_count = 1;
 //估算batch 位姿
 void PosBatchHandler::poseEstimate()
 {
@@ -74,6 +84,10 @@ void PosBatchHandler::poseEstimate()
        {//仅在位姿估算成功后,进行量测定位 
            if(mPoseEstimator.process(targets[i].batch->_fmsdata,imgpath))
            {//位姿估算成功,对batch中每个位姿进行赋值
+
+#if USE_VIEW
+            s_Viewer->renderLoop();
+#endif
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();
               
                assert(frames.size() == targets[i].batch->_fmsdata.size());

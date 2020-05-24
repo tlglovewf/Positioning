@@ -62,7 +62,7 @@ namespace Position
 
             drawPts(pcurrent,oimg);
 
-            resize(oimg, oimg, Size(img.cols >> 1, img.rows >> 1));
+            resize(oimg, oimg, Size(img.cols >> 2, img.rows >> 2));
 
             Mat outi;
             drawFrameText(oimg,mStatus,outi);

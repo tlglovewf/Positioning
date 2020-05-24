@@ -1,6 +1,6 @@
 #include "P_Positioner.h"
 #include "P_Utils.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Checker.h"
 #include "P_Factory.h"
 
@@ -231,7 +231,7 @@ namespace Position
             cvtColor(img2, img2, CV_GRAY2BGR);
             PUtils::DrawEpiLine(line.a,line.b,line.c,targ2.center(),img2);
 
-            string outname = "/media/tu/Work/Datas/TracePath/" + std::to_string(target.id) + "_epline.jpg";
+            string outname = "/media/tlg/work/tlgfiles/my/" + std::to_string(target.id) + "_epline.jpg";
             imwrite(outname,img2);
 #endif
             //三角测量
@@ -300,6 +300,8 @@ namespace Position
         }
         else
         {//取中间有位姿的帧
+            
+            
             std::vector<Mat>::const_iterator iter = std::find_if(item.batch->_poses.begin(),
                                                                  item.batch->_poses.end(),[](const Mat &pse)->bool
             {

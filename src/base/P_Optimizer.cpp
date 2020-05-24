@@ -1,7 +1,7 @@
 #include "P_Optimizer.h"
 #include "P_Converter.h"
 #include "P_MapPoint.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "Thirdparty/g2o/g2o/core/block_solver.h"
 #include "Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h"
 #include "Thirdparty/g2o/g2o/solvers/linear_solver_eigen.h"
@@ -51,7 +51,7 @@ namespace Position
             // std::unique_lock<mutex> lock(MapPoint::mGlobalMutex);
             const MapPtVector &points = pFrame->getWorldPoints();
             assert(points.size() <= N);
-            LOG_INFO_F("%s %d",pFrame->getData()->_name.c_str(),points.size());
+            
             for( int i = 0; i < N; ++i )
             {
                 IMapPoint *pMppt = points[i];
@@ -96,7 +96,7 @@ namespace Position
                 }
             }
         }
-
+        
         if(nInitialCorrespondences<3)
             return 0;
         

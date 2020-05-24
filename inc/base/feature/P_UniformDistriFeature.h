@@ -1,5 +1,5 @@
-#ifndef  _FEATUREQUADTREE_H_H
-#define  _FEATUREQUADTREE_H_H
+#ifndef  _PUNIFORMDISTRIFEATURE_H_H
+#define  _PUNIFORMDISTRIFEATURE_H_H
 
 #ifdef USE_CVXFEATURE
 
@@ -8,14 +8,14 @@
 
 using namespace Position;
 
-//特征四叉树
-class FeatureQuadTree : public Position::IFeature
+//均匀分布特征  分块提取 + 四叉树过滤
+class PUniformDistriFeature : public Position::IFeature
 {
 
 public:
     
-    FeatureQuadTree(int nFeatures);
-    ~FeatureQuadTree(){}
+    PUniformDistriFeature(int nFeatures);
+    ~PUniformDistriFeature(){}
     //计算特征点
     virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
 

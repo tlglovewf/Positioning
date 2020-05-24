@@ -1,4 +1,4 @@
-#include "FeatureQuadTree.h"
+#include "P_UniformDistriFeature.h"
 #include "P_Utils.h"
 #define EDGE_THRESHOLD 16
 #define COLGRIDNUMBER 3
@@ -6,7 +6,7 @@
 
 #ifdef USE_CVXFEATURE
 
-FeatureQuadTree::FeatureQuadTree(int nFeatures):mMaxFeatures(nFeatures)
+PUniformDistriFeature::PUniformDistriFeature(int nFeatures):mMaxFeatures(nFeatures)
 {
     Position::FloatVector  mvScaleFactor(4,0);
     Position::FloatVector  mvLevelSigma2(4,0);
@@ -21,7 +21,7 @@ FeatureQuadTree::FeatureQuadTree(int nFeatures):mMaxFeatures(nFeatures)
     }
 }
 
-void FeatureQuadTree::detect(const Mat &img, KeyPtVector &keypts)
+void PUniformDistriFeature::detect(const Mat &img, KeyPtVector &keypts)
 {
 #if 0
     if(!mFeature)
@@ -193,7 +193,7 @@ void ENode::DivideNode(ENode &n1, ENode &n2, ENode &n3, ENode &n4)
 }
 
 
-KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistributeKeys, const int &minX,
+KeyPtVector PUniformDistriFeature::distributeQuadTree(const KeyPtVector& vToDistributeKeys, const int &minX,
                                        const int &maxX, const int &minY, const int &maxY, const int &N)
 {
     // Compute how many initial nodes   
@@ -426,20 +426,20 @@ KeyPtVector FeatureQuadTree::distributeQuadTree(const KeyPtVector& vToDistribute
     return vResultKeys;
 }
 
-bool FeatureQuadTree::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
+bool PUniformDistriFeature::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
 {
     detect(frame._img,keys);
     compute(frame._img,keys,descript);
     return true;
 }
 
-void FeatureQuadTree::compute(const Mat &img,KeyPtVector &keypts, Mat &des)
+void PUniformDistriFeature::compute(const Mat &img,KeyPtVector &keypts, Mat &des)
 {
     mFeature->compute(img,keypts,des);
 }
 
 
-void FeatureQuadTree::createQuadTree(KeyPtVector &keypts)
+void PUniformDistriFeature::createQuadTree(KeyPtVector &keypts)
 {
 
 }

@@ -1,4 +1,4 @@
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Converter.h"
 #include "P_Utils.h"
 #include "P_Frame.h"
@@ -211,7 +211,7 @@ namespace Position
             log4cpp::PatternLayout* filelayout = new log4cpp::PatternLayout();
             filelayout->setConversionPattern(patternformat);
     
-            string path = "Position.log";
+            string path = string(_DATE_LOG_()) + ".log";// "Position.log";
             log4cpp::Appender* fileLogger = new log4cpp::FileAppender("FileLogger", path,false);
             fileLogger->setLayout(filelayout);
             fileLogger->setFilter(new PriorityFilter());

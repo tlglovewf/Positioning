@@ -1,5 +1,5 @@
 #include "project/hdproject.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 
 HdConfig::HdConfig(const std::string &path):
 HdCamFx(0),
@@ -109,8 +109,8 @@ bool HdData::loadDatas()
             if(pststr.empty())
                 continue;
             char filename[255] = {0};
-            Position::FrameData framedata;
-            Position::PoseData &pose = framedata._pos;
+            Position::FrameData *framedata = new Position::FrameData;
+            Position::PoseData &pose = framedata->_pos;
 
             int sqnum;
             int type;
@@ -128,7 +128,7 @@ bool HdData::loadDatas()
 
             // PROMTD_V("Load",filename);
 
-            framedata._name = string(filename) + ".jpg";
+            framedata->_name = string(filename) + ".jpg";
 
             mFrameDatas.emplace_back(framedata);
         }

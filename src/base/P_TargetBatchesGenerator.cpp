@@ -1,5 +1,5 @@
 #include "P_TargetBatchesGenerator.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Utils.h"
 
 namespace Position
@@ -16,13 +16,9 @@ namespace Position
 
            std::shared_ptr<BatchItem> batch(new BatchItem(std::to_string(trackitems[i].id),ed.first - bg.first + 1));
             trackitems[i].batch = batch;
-           std::transform(pdata->begin() + bg.first,pdata->begin() + ed.first + 1,back_inserter(batch->_fmsdata),
-           [](FrameData &data)->FrameData*
-           {
-               return &data;
-           });
+           batch->_fmsdata = FrameDataPtrVector(pdata->begin() + bg.first,pdata->begin() + ed.first + 1);
            //默认将trackitem的值 赋成识别结果出现的最后一帧
-           trackitems[i].blh = (pdata->begin() + ed.first)->_pos.pos;
+           trackitems[i].blh = (*(pdata->begin() + ed.first))->_pos.pos;
            batches.emplace_back(batch);
         }
         LOG_INFO_F("%s:%d","Batches size",batches.size());

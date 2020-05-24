@@ -4,7 +4,7 @@
 #include "P_Factory.h"
 #include "P_FeatureMatcher.h"
 #include "P_Factory.h"
-// #include <opencv2/xfeatures2d.hpp>
+
 
 #include <map>
 #include <vector>
@@ -13,7 +13,7 @@
 
 #include "project/hdproject.h"
 
-#include "FeatureQuadTree.h"
+#include "P_UniformDistriFeature.h"
 
 
 using namespace std;
@@ -358,8 +358,8 @@ Mat GernerateMask(const string &sempath,const string &segim, Rect rect)
 
 void SelectFrameData(const std::shared_ptr<Position::IData> &pdata, Position::FrameData &predata, Position::FrameData &curdata)
 {
-   predata = *pdata->begin();
-   curdata = *(pdata->begin() + 2);
+   predata = **pdata->begin();
+   curdata = **(pdata->begin() + 2);
 }
 
 
@@ -585,7 +585,7 @@ int main(void)
     std::shared_ptr<Position::IData>    pData(new HdData(pCfg));
     std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
 
-    //new FeatureQuadTree(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
+    //new PUniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
     std::shared_ptr<Position::IFeatureMatcher>  pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pCfg,MatchRatio,float)));
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));

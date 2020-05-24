@@ -1,6 +1,6 @@
 
 #include "P_Factory.h"
-#include "P_Writer.h"
+#include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "project/imgautoproject.h"
 #include "PosBatchHandler.h"
@@ -36,6 +36,7 @@ int main(int argc, char **argv)
 
     std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig(cfgpath)); 
     LOG_INITIALIZE(pCfg)
+    SETGLOBALCONFIG(pCfg)
     SETCFGVALUE(pCfg,PrjPath,prjpath);
     SETCFGVALUE(pCfg,CamMatrixPath,string(prjpath + "config/extrinsics.xml"));
     std::shared_ptr<Position::IData>   pData(new Position::ImgAutoData(pCfg));
@@ -50,8 +51,8 @@ int main(int argc, char **argv)
 #define TEST_OR_RUN 0
 
 #if TEST_OR_RUN  //only for test
-    Position::FrameDataVIter iter = pData->begin();
-    Position::FrameDataVIter ed   = pData->end();
+    Position::FrameDataPtrVIter iter = pData->begin();
+    Position::FrameDataPtrVIter ed   = pData->end();
 
     const std::string imgpath = GETCFGVALUE(pCfg,ImgPath, string);
     if(imgpath.empty())

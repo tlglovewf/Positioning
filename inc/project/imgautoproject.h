@@ -39,7 +39,9 @@ namespace Position
         //加载相机参数
         void loadCameraParams(const std::string &path);
         //加载track json
-        bool loadTrackJson(const std::string &path,FrameDataVector &framedatas);    
+        bool loadTrackJson(const std::string &path,FrameDataPtrVector &framedatas);    
+        //解析每个文件对应的跟踪文件
+        void ParseTrkTxt(const string &txtfile, StringVector &lines);
     };
 
     //自动化 batch 列表类
@@ -56,9 +58,8 @@ namespace Position
         //保存地图
         virtual void save(const std::string &path);
     protected:
-        //接写tracker 行
-         void parseTracker(const std::string &line);
-
+        //解析tracker.txt
+        void parseTracker(const std::string &line);
     protected:
         StringVector                        mTrkLines;
         std::shared_ptr<IData>              mpData;

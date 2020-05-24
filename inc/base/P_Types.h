@@ -142,6 +142,7 @@ struct BatchItem;
 struct TrackerItem
 {
     int             id      ;                   //目标id
+    int             clsid   ;                   //小类别id
     InfoIndex       stno    ;                   //第一帧出现的索引
     InfoIndex       edno    ;                   //最后一帧出现的索引
     BLHCoordinate   blh     ;                   //经纬度
@@ -220,7 +221,7 @@ struct BatchItem
 {
     std::string _btname;
     int _n;
-    std::vector<FrameData*>   _fmsdata;
+    std::vector<FrameData*>  _fmsdata;
     std::vector<Mat>         _poses;
     inline bool isvaild()const
     {
@@ -245,14 +246,8 @@ typedef IMURawVector::iterator              IMURawVIter;
 typedef std::vector<ResultData>             RstVector;
 typedef RstVector::iterator                 RstVIter;
 
-typedef std::vector<FrameData>              FrameDataVector;
-typedef FrameDataVector::iterator           FrameDataVIter;
-
 typedef std::vector<FrameData*>             FrameDataPtrVector;
 typedef FrameDataPtrVector::iterator        FrameDataPtrVIter;
-
-typedef std::vector<FrameDataVector>        FrameVtContainer;
-typedef FrameVtContainer::iterator          FrameVtCIter;
 
 class   IFrame;           
 typedef std::vector<IFrame*>                FrameVector;

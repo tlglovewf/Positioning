@@ -46,7 +46,15 @@ namespace Position
         // 获取值
         virtual IConfigParam* operator[](const std::string &name) = 0;
         
+        //获取单例
+        static std::shared_ptr<IConfig>& Instance();
+
+        //设置单例
+        static void SetInstance(const std::shared_ptr<IConfig> &pinstance);
     };
+
+#define SETGLOBALCONFIG(X) Position::IConfig::SetInstance(X);
+#define GETGLOBALCONFIG()  Position::IConfig::Instance()
 
     //地图点
     class IMapPoint : public IBase
@@ -203,10 +211,10 @@ namespace Position
         virtual bool loadDatas() = 0;
 
         //第一个元素
-        virtual FrameDataVIter begin() = 0;
+        virtual FrameDataPtrVIter begin() = 0;
 
         //最后一个元素
-        virtual FrameDataVIter end() = 0;
+        virtual FrameDataPtrVIter end() = 0;
 
         //数据总量
         virtual size_t size()const = 0;
