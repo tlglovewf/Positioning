@@ -21,8 +21,9 @@ namespace  Position
         LOG_INFO("Gps fuse Begin.");
 
         //只为测试
-        const std::string strori = "/media/tlg/work/tlgfiles/HDData/result/ori.txt";
-        const std::string strfus = "/media/tlg/work/tlgfiles/HDData/result/est.txt";
+        const std::string opath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
+        const std::string strori = opath + "ori.txt";
+        const std::string strfus = opath + "est.txt";
         std::ofstream fori;
         fori.open(strori);
 
@@ -77,10 +78,10 @@ namespace  Position
             gps.alt = pkf->getData()->_pos.pos.alt;
             gps.t   = pkf->getData()->_pos._t;
             gps.conf = 1;
-            // if(i % 10 == 0)
-            // {//添加偏移
-            //     gps.lon += dt;
-            // }
+            if(i % 10 == 0)
+            {//添加偏移
+                gps.lon += dt;
+            }
 
             MATTYPE xyz[3];
             static bool initGps = false;

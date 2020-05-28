@@ -14,9 +14,13 @@
 class PMapDisplay
 {
 public:
-    //构造函数
+    //构造函数 
+    //@param eTjtype  1 multi  0 uniform
+    //@param useThread display in thread
     PMapDisplay(const shared_ptr<Position::IData> &pdata,
-                       const shared_ptr<Position::IConfig> &pcfg);
+                const shared_ptr<Position::IConfig> &pcfg,
+                int  eTjtype = 1,
+                bool useThread = true);
 
     //运行
     void run();
@@ -26,6 +30,7 @@ protected:
     void saveResult();
 
 protected:
+    bool                                        mbUseThread;
     std::shared_ptr<Position::IConfig>          mpConfig;
     std::shared_ptr<Position::IData>            mpData;
 #ifdef USE_VIEW

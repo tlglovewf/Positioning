@@ -1,5 +1,6 @@
 #include "P_Config.h"
 #include "P_IOHelper.h"
+#include "P_Checker.h"
 namespace Position
 {
      static std::shared_ptr<IConfig> g_globaleConfig;
@@ -95,8 +96,9 @@ namespace Position
     // 加载配置文件
     void PConfig::load(const std::string &path)
     {
-        if(path.empty())
+        if(!PATHCHECK(path))
         {
+            PROMT_V(path.c_str()," Config Path Not Found..");
             return;
         }
         else
@@ -105,7 +107,7 @@ namespace Position
             {
                 if(!mSettings.open(path,FileStorage::READ))
                 {//打开失败
-                    PROMT_V("open config error",path.c_str());
+                    PROMT_V(path.c_str(), "Open Error.");
                     exit(-1);
                 }
             }

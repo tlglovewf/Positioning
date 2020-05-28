@@ -19,7 +19,7 @@ ImgRgb: 1  #rgb 1  rbg 0
 #PrjPath: "/media/tlg/work/tlgfiles/WEIYA/9900000120042200/"
 
 LogPath: ""
-LogPrio: "WARNNING"  #log打印等级 DEBUG INFO WARNNING ERROR CRITICAL
+LogPrio: "DEBUG"  #log打印等级 DEBUG INFO WARNNING ERROR CRITICAL
 #ImgPath: ""
 #SemPath: ""
 #PosPath: "/Users/TLG/Downloads/data/weiya/20191105/gray/pst.txt"

@@ -646,8 +646,8 @@ void ORBLocalMapping::KeyFrameCulling()
         //当前帧关联的有效地图点 有90%的点至少有三个关联有效帧  则认为此帧为无效帧
         if(nRedundantObservations>0.9*nMPs)
         {
-            PROMT_V("Set Bad From RedundataObs,Name",pKF->getData()->_name.c_str());
-            // pKF->setBadFlag();
+            PROMT_V("Set Bad From RedundataObs",pKF->getData()->_name.c_str());
+            pKF->setBadFlag();
         }
             
     }

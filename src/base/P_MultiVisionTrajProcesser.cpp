@@ -14,7 +14,7 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const CameraParam &cam):mCam(cam)
                    {
-#if 0
+#if 1
                         mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
@@ -24,12 +24,12 @@ namespace Position
                         mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
                         // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
                         mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
-
-
+                       
                         Position::FrameHelper::initParams(GETCFGVALUE(pcfg,ImgWd,int),GETCFGVALUE(pcfg,ImgHg,int),&mCam);
+                        
                         mFtSearchRadius = GETCFGVALUE(pcfg,SearchRadius,int);
                         mpEst->setCamera(mCam);
-                        mpOptimizer->setCamera(mCam);
+                        mpOptimizer->setCamera(mCam);    
                    }
 
     //创建新关键帧

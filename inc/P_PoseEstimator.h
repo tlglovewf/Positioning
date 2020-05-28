@@ -15,7 +15,7 @@ namespace Position
     {
     public:
         //构造函数
-        PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam);
+        PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam,int eType = 1);
 
         //处理帧数据
         bool process(const FrameDataPtrVector &datas,const std::string &imgpath = "");

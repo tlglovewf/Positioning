@@ -12,8 +12,8 @@ MESSAGE("Build  type: " ${CMAKE_BUILD_TYPE})
 
 #release compile setting
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native ")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3  -march=native -fPIC")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native -fPIC")
 endif()
 
 # osx settting 
@@ -30,7 +30,7 @@ message("USE_VIEWER          option is ${USE_VIEWER}")
 OPTION(USE_XFEATURE          "Build with sift"       ON)
 message("USE_XFEATURE        option is ${USE_XFEATURE}")
 
-OPTION(BUILD_TEST_PROGRAMS   "Build test program"    ON)
+OPTION(BUILD_TEST_PROGRAMS   "Build test program"    ON) 
 message("BUILD_TEST_PROGRAMS option is ${BUILD_TEST_PROGRAMS}")
 
 
@@ -136,9 +136,6 @@ ${Pangolin_LIBRARIES}
 )
 endif()
 
-target_link_libraries(${Positioning}
-${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/libGeographic.a)
-
 #set program running path 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
@@ -152,22 +149,22 @@ set(CMAKE_INSTALL_PREFIX /usr/local/)
 
 if(CMAKE_HOST_APPLE)
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
-      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.dylib)
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.dylib ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.dylib)
    else()
-      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib)
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.dylib)
    endif()
 else()
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
-      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so)
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.so)
    else()
-      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib)
+      FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.so)
    endif()
@@ -176,7 +173,8 @@ endif()
 target_link_libraries(${Positioning}
 ${DEPEND_LIBS}
 )
-
+target_link_libraries(${Positioning} dl)
+target_link_libraries(${Positioning} pthread)
 
 #for  install
 set_target_properties(TargetPosition PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

@@ -6,6 +6,7 @@
 #include "P_ORBKeyFrameDatabase.h"
 #include "P_IOHelper.h"
 #include "P_Utils.h"
+#include "P_Checker.h"
 #include <unistd.h>
 
 namespace Position
@@ -15,16 +16,25 @@ namespace Position
     {
 
         std::string vocpath = GETCFGVALUE(pcfg,VocPath,string);
+        if(vocpath.empty())
+        {
+            vocpath = "../Vocabulary/ORBvoc.txt";
+        }
+        if(!PATHCHECK(vocpath))
+        {
+            LOG_CRIT_F("%s Vocabulary File Not Found!!!",vocpath.c_str());
+            exit(-1);
+        }
 
         mpVocabulary = std::make_shared<ORBVocabulary>();
         LOG_INFO("Begin to load vocabulary!")
         bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
         if(!bVocLoad)
         {
-            LOG_CRIT_F("vocabulary path error:%s",vocpath.c_str());  
+            LOG_CRIT_F("Vocabulary Format Error.",vocpath.c_str());  
             exit(-1);
         }
-        LOG_INFO("Vocabulary finished.");
+        LOG_INFO("Vocabulary Finished.");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
 

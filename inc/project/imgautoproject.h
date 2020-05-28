@@ -11,7 +11,7 @@
 #include "P_Data.h"
 #include "P_ProjList.h"
 #include "P_Positioner.h"
-
+#include "P_Database.h"
 namespace Position
 {
     //图像自动化配置文件
@@ -27,6 +27,14 @@ namespace Position
         Position::StringConfigParam CamMatrixPath;  //相机参数文件路径
     };
 
+    //相机配置参数
+    class CameraCfgDB : public PSqlite3Database
+    {
+    public:
+        //执行
+        CameraParam getCameraParams();
+    };
+
     //图像自动化 数据接口
     class ImgAutoData : public PData
     {
@@ -37,11 +45,12 @@ namespace Position
         virtual bool loadDatas();
     protected:
         //加载相机参数
-        void loadCameraParams(const std::string &path);
+        virtual void loadCameraParams(const std::string &path);
         //加载track json
         bool loadTrackJson(const std::string &path,FrameDataPtrVector &framedatas);    
         //解析每个文件对应的跟踪文件
         void ParseTrkTxt(const string &txtfile, StringVector &lines);
+   
     };
 
     //自动化 batch 列表类

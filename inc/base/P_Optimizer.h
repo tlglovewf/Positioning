@@ -35,10 +35,10 @@ namespace Position
         {
             assert(!mCam.K.empty());
 
-            mFx = mCam.K.at<double>(0,0);
-            mFy = mCam.K.at<double>(1,1);
-            mCx = mCam.K.at<double>(0,2);
-            mCy = mCam.K.at<double>(1,2);
+            mFx = mCam.K.at<MATTYPE>(0,0);
+            mFy = mCam.K.at<MATTYPE>(1,1);
+            mCx = mCam.K.at<MATTYPE>(0,2);
+            mCy = mCam.K.at<MATTYPE>(1,2);
         }
         //设置特征提取类
         virtual void setFeature(const std::shared_ptr<IFeature> &feature)

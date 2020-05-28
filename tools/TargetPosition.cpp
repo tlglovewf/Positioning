@@ -48,9 +48,9 @@ int main(int argc, char **argv)
     }
 
 
-#define TEST_OR_RUN 0
+#define TEST_OR_RUN 1
 
-#if TEST_OR_RUN  //only for test
+// #if TEST_OR_RUN  //only for test
     Position::FrameDataPtrVIter iter = pData->begin();
     Position::FrameDataPtrVIter ed   = pData->end();
 
@@ -59,8 +59,8 @@ int main(int argc, char **argv)
         return -1;  
     for(; iter != ed; ++iter)
     {
-        Mat image = imread(imgpath + iter->_name);
-        for(auto item : iter->_targets)
+        Mat image = imread(imgpath +   (*iter)->_name.c_str());
+        for(auto item : (*iter)->_targets)
         {
             const Rect2f rect = item._box;
 
@@ -69,12 +69,12 @@ int main(int argc, char **argv)
             putText(image, text, Point2f((rect.tl().x + rect.br().x) / 2.0, rect.tl().y ), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
         }
         resize(image,image,Size(image.cols >> 2,image.rows >> 2));
-        putText(image, iter->_name, Point2f(50,50 ), CV_FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 1, CV_AA);
+        putText(image, (*iter)->_name, Point2f(50,50 ), CV_FONT_HERSHEY_SIMPLEX, 1, Scalar(0, 0, 255), 1, CV_AA);
         imshow("FrameDisplay", image);
         waitKey(100);
     }
     waitKey();
-#endif
+// #endif
 
 #if !TEST_OR_RUN
 

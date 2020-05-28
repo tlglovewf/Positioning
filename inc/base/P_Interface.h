@@ -226,7 +226,19 @@ namespace Position
         virtual double getTimeFromName(const std::string &name) = 0;
     };
 
-  
+    //database interface
+    class IDatabase : public IBase
+    {
+    public:
+        //打开数据库
+        virtual bool open(const std::string &path) = 0;
+        //关闭数据库
+        virtual void close() = 0;
+        //执行
+        virtual bool exec(const std::string &str, char **&result, int &col, int &row) = 0;
+        //释放资源
+        virtual void releaseDatas(char **&result) = 0;
+    };
 
     // serialization interface
     class ISerialization : public IBase

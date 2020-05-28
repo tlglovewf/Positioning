@@ -748,7 +748,7 @@ void ORBTracking::CreateNewKeyFrame()
     if(!mpLocalMapper->SetNotStop(true))
         return;
 
-    PROMTD_V("Creat New Frame ",mCurrentFrame.getData()->_name);
+    // PROMTD_V("Creat New Frame ",mCurrentFrame.getData()->_name);
 
     ORBKeyFrame* pKF = new ORBKeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB.get());
     

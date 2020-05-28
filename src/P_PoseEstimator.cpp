@@ -3,64 +3,71 @@
 
 namespace Position
 {
-   PoseEstimator::PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam)
-   {
-    //    mpUniformVTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed,pCfg,cam));
-       mpSimpleTrajPro   = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjMultiVision,pCfg,cam));
-       mpCurrentTrajPro = mpSimpleTrajPro; //mpUniformVTrajPro;
-   }
+    PoseEstimator::PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam, int eType /*= 1*/)
+    {
+        if(0 == eType)
+        {
+             mpUniformVTrajPro   = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed, pCfg, cam));
+        }
+        else
+        {
+            /* code */
+        }
 
-   bool PoseEstimator::handle(FrameData *fdata)
-   {
-       if(!mpCurrentTrajPro)
+        mpSimpleTrajPro     = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjMultiVision, pCfg, cam));
+        mpCurrentTrajPro    = eType ? mpSimpleTrajPro : mpUniformVTrajPro;
+    }
+
+    bool PoseEstimator::handle(FrameData *fdata)
+    {
+        if (!mpCurrentTrajPro)
             mpCurrentTrajPro = mpUniformVTrajPro;
-    
+
         mpCurrentTrajPro->track(fdata);
-   }
+    }
 
+    //处理帧数据
+    bool PoseEstimator::process(const FrameDataPtrVector &datas, const std::string &imgpath /*=""*/)
+    {
 
-     //处理帧数据
-   bool PoseEstimator::process(const FrameDataPtrVector &datas,const std::string &imgpath /*=""*/)
-   {
-       
-       if(!imgpath.empty())
-       {//地址不为空 需要加载图片
-            for(FrameData *data : datas)
+        if (!imgpath.empty())
+        { //地址不为空 需要加载图片
+            for (FrameData *data : datas)
             {
-                data->_img = imread(imgpath + "/" + data->_name,IMREAD_UNCHANGED);
+                data->_img = imread(imgpath + "/" + data->_name, IMREAD_UNCHANGED);
             }
-       }
+        }
 
-       return mpCurrentTrajPro->process(datas);
-   }
+        return mpCurrentTrajPro->process(datas);
+    }
 
-   //获取地图
-   const std::shared_ptr<IMap>& PoseEstimator::getMap()
-   {
-       assert(mpCurrentTrajPro);
-       return mpCurrentTrajPro->getMap();
-   }
+    //获取地图
+    const std::shared_ptr<IMap> &PoseEstimator::getMap()
+    {
+        assert(mpCurrentTrajPro);
+        return mpCurrentTrajPro->getMap();
+    }
 
-   //设置可视接口
-   void PoseEstimator::setViewer(const std::shared_ptr<IViewer> &pviewer)
-   {
-       mpViewer = pviewer;
-       assert(mpViewer);
-       mpViewer->setMap(mpCurrentTrajPro->getMap());
-       mpCurrentTrajPro->setViewer(pviewer);
-   }
+    //设置可视接口
+    void PoseEstimator::setViewer(const std::shared_ptr<IViewer> &pviewer)
+    {
+        mpViewer = pviewer;
+        assert(mpViewer);
+        mpViewer->setMap(mpCurrentTrajPro->getMap());
+        mpCurrentTrajPro->setViewer(pviewer);
+    }
 
-   //重置状态
-   void PoseEstimator::reset()
-   {
-       assert(mpCurrentTrajPro);
-       mpCurrentTrajPro->reset();
-   }
+    //重置状态
+    void PoseEstimator::reset()
+    {
+        assert(mpCurrentTrajPro);
+        mpCurrentTrajPro->reset();
+    }
 
     //等待处理
     void PoseEstimator::waitingForHandle()
     {
-        if(mpCurrentTrajPro)
+        if (mpCurrentTrajPro)
         {
             mpCurrentTrajPro->wait();
         }

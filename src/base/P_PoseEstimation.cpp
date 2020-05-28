@@ -940,8 +940,11 @@ namespace Position
                 }
               
                 //save epline 
-                // imwrite( "/media/tlg/work/tlgfiles/HDData/result/orbepline.jpg",out);
-                // cout << "F" << endl;
+#if 0
+                std::string outpath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
+                imwrite( outpath + "/orbepline.jpg",out);
+                cout << "F" << endl;
+#endif
             }
         }
         return bol;

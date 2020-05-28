@@ -251,7 +251,7 @@ namespace Position
         {
             ePri = log4cpp::Priority::DEBUG;
         }
-        cout << prior.c_str() << " " << ePri << endl;
+        PROMT_V("Set Logger Priority",prior);
         log4cpp::Category::getRoot().setPriority(ePri); 
     }
     PLogManager::~PLogManager()

@@ -135,7 +135,7 @@ namespace Position
                 bFollow = false;
             }
             mpView->Activate(mCam);
-            // unique_lock<mutex> lock(mMap->mapUpdateMutex());
+            unique_lock<mutex> lock(mMap->mapUpdateMutex());
             if (menuShowKeyFrames)
             {
                 drawFrames();

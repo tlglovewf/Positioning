@@ -36,7 +36,6 @@ MESSAGE(STATUS "BUILD TYPE:" ${CMAKE_BUILD_TYPE})
 MESSAGE(STATUS "Lib Path:" ${LIBRARY_OUTPUT_PATH})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
-
 set (LIBNAME Geographic)
 
 include_directories(

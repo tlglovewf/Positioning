@@ -3,8 +3,8 @@
 #include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "P_Checker.h"
-#include  "Thirdparty/rapidjson/document.h"
-
+#include "Thirdparty/rapidjson/document.h"
+#include "Thirdparty/sqlite3/sqlite3.h"
 namespace Position
 {
 
@@ -28,6 +28,76 @@ namespace Position
         READ_VALUE(PrjPath);
         READ_VALUE(CamMatrixPath);
     }
+ 
+    //相机配置参数
+    CameraParam CameraCfgDB::getCameraParams()
+    {
+        CameraParam camera;
+        
+        char **pResult = NULL;
+        int nRow = 0;
+        int nCol = 0;
+        string sql = "select width,height, f,fx,fy,cx,cy,K1,K2,K3,P1,P2 from TypeCCameraInternal;";
+        //get camera internal matrix
+        if(exec(sql, pResult, nCol, nRow))
+        {
+            char *wd    = pResult[nCol++];
+            char *hg    = pResult[nCol++];
+            char *f     = pResult[nCol++];
+            char *fx    = pResult[nCol++];
+            char *fy    = pResult[nCol++];
+            char *cx    = pResult[nCol++];
+            char *cy    = pResult[nCol++];
+            char *K1    = pResult[nCol++]; 
+            char *K2    = pResult[nCol++];
+            char *K3    = pResult[nCol++];
+            char *P1    = pResult[nCol++];
+            char *P2    = pResult[nCol++];
+            
+            int    iWd = atoi(wd);
+            int    iHg = atoi(hg);
+            MATTYPE fFx = atof(fx);
+            MATTYPE fFy = atof(fy);
+            MATTYPE fCx = atof(cx);
+            MATTYPE fCy = atof(cy);
+            MATTYPE fK1 = atof(K1);
+            MATTYPE fK2 = atof(K2);
+            MATTYPE fK3 = atof(K3);
+            MATTYPE fP1 = atof(P1);
+            MATTYPE fP2 = atof(P2);
+
+            SETCFGVALUE(GETGLOBALCONFIG(),ImgWd,iWd);
+            SETCFGVALUE(GETGLOBALCONFIG(),ImgHg,iHg);
+
+            camera.K = (Mat_<MATTYPE>(3,3) << fFx, 0    ,fCx,
+                                              0  , fFy  ,fCy,
+                                              0  , 0    ,1);
+
+            // camera.D = cv::Mat(4,1,MATCVTYPE);
+
+            // camera.D.at<MATTYPE>(0) = fK1;
+            // camera.D.at<MATTYPE>(1) = fK2;
+            // camera.D.at<MATTYPE>(2) = fP1;
+            // camera.D.at<MATTYPE>(3) = fP2;
+
+            // if(fabs(fK3) > 1e-6)
+            // {
+            //     camera.D.resize(5);
+            //     camera.D.at<MATTYPE>(4) = fK3;
+            // }
+        }
+        
+        // //get camera external matrix
+        // sql = "";
+        // if(exec(sql,pResult,nCol,nRow))
+        // {
+
+        // }
+
+
+        return camera;
+    }
+
 
     void ImgAutoData::loadCameraParams(const std::string &path)
     {
@@ -113,7 +183,7 @@ namespace Position
         doc.Parse<0>(json.c_str());
 
         if (doc.HasMember("errmsg"))
-        {
+        {        
             rapidjson::Value &errmsgValue = doc["errmsg"];
             string errmsg = errmsgValue.GetString();
             if (errmsg != "OK")

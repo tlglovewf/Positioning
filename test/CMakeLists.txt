@@ -17,3 +17,7 @@ endif()
 add_executable(test_cpp
 ${Positioning_SOURCE_DIR}/test/test_cpp.cpp)
 target_link_libraries(test_cpp ${Positioning})
+
+add_executable(test_newdata
+${Positioning_SOURCE_DIR}/test/test_newdata.cpp)
+target_link_libraries(test_newdata ${Positioning})

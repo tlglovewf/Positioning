@@ -52,17 +52,19 @@ namespace Position
         assert(mMap);
         IKeyFrame *scurrent = NULL;
         IKeyFrame *pcurrent = mMap->currentKeyFrame();;
+
         Mat oimg;
         if(scurrent != pcurrent)
         {
             Mat img = pcurrent->getData()->_img;
+
             if(img.empty())
                 return;
             drawKeypoints(img, pcurrent->getKeys(),oimg,CV_RGB(0,0,255));
 
             drawPts(pcurrent,oimg);
 
-            resize(oimg, oimg, Size(img.cols >> 2, img.rows >> 2));
+            resize(oimg, oimg, Size(img.cols >> 1, img.rows >> 1));
 
             Mat outi;
             drawFrameText(oimg,mStatus,outi);
