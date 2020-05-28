@@ -58,12 +58,11 @@ void PMapDisplay::run()
         ed = mpData->end();
     }
     const std::string imgpath = GETCFGVALUE(mpConfig, ImgPath, string) + "/";
-
     //帧循环 构建局部场景
     for (; it != ed; ++it)
     { //遍历帧
-
         const std::string picpath = imgpath + (*it)->_name;
+        
         (*it)->_img = imread(picpath, IMREAD_UNCHANGED);
         mpTrajProSelector->handle(*it);
         // (*it)->_img.release();

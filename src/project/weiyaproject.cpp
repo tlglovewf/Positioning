@@ -81,8 +81,6 @@ double WeiyaData::getTimeFromName(const std::string &name)
 bool WeiyaData::loadDatas()
 {
     const std::string pstpath = GETCFGVALUE(mpCfg,PosPath,string);
-    const int         stno    = max(0,GETCFGVALUE(mpCfg,StNo,int));
-    const int         edno    = max(stno,GETCFGVALUE(mpCfg,EdNo,int));
     if(pstpath.empty())
         return false;
         
@@ -93,16 +91,13 @@ bool WeiyaData::loadDatas()
         ifstream pstfile, imufile;
         pstfile.open(pstpath);
         int index = 0;
-        bool allimg = (stno >= edno);
         std::string pststr;
         //read headline
         getline(pstfile, pststr);
         //load img pst file
-        while (!pstfile.eof() && (allimg || index++ < edno))
+        while (!pstfile.eof())
         {
             getline(pstfile, pststr);
-            if(index < stno)
-                continue;
             if(pststr.empty())
                 continue;
             char filename[255] = {0};
@@ -116,12 +111,11 @@ bool WeiyaData::loadDatas()
                                                                     &pose._pitch,
                                                                     &pose._yaw,
                                                                     &pose._roll);
-            PROMT_V("Load",filename);
             framedata->_name = filename;
             mFrameDatas.emplace_back(framedata);
         }
         pstfile.close();
-        PROMT_S("data loaded successfully.");
+        LOG_INFO_F("%s-%d","Frame Datas Finished.",mFrameDatas.size());
         return true;
     }
     catch (const std::exception &e)

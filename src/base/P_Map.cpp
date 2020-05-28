@@ -15,7 +15,9 @@ namespace Position
     {
         Position::IFrame *frame = new Position::PFrame(data,pmap->frameCount());
         frame->setPose(pose);
-        return pmap->createKeyFrame(frame);
+        IKeyFrame *pkf = pmap->createKeyFrame(frame);
+        pmap->addKeyFrame(pkf);
+        return pkf;
     }
 
     void PMap::clear()

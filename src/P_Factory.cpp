@@ -211,7 +211,7 @@ namespace Position
         {
             IFrame *frame = new PFrame(sfms[i]->getData(),baseMap->frameCount());
             frame->setPose(sfms[i]->getPose() * pLast->getPose());
-            baseMap->createKeyFrame(frame);
+            baseMap->addKeyFrame(baseMap->createKeyFrame(frame));
         }
         //写地图点
         MapPtVector mapts =  secMap->getAllMapPts();

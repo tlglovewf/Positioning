@@ -30,7 +30,6 @@ namespace Position
         {
             std::unique_lock<mutex> lock(mMutexMapUpdate);
             IKeyFrame *pF = new PKeyFrame(frame,mpCurrent,this);
-            addKeyFrame(pF);
             return pF;
         }
         //创建地图点

@@ -21,8 +21,8 @@ namespace Position
                         mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pcfg,MatchRatio,float)));
 #endif
-                        mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));// ePoseEstOrb));
-                        // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
+                        // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV)); 
+                        mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
                         mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
                        
                         Position::FrameHelper::initParams(GETCFGVALUE(pcfg,ImgWd,int),GETCFGVALUE(pcfg,ImgHg,int),&mCam);
@@ -74,7 +74,7 @@ namespace Position
     {
         LOG_INFO_F("Process:%s",data->_name.c_str());
         Mat grayimg ;
-
+        static int index = 0;
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
         {//有畸变参数存在
             cv::undistort(data->_img,grayimg,mCam.K,mCam.D);
@@ -95,10 +95,9 @@ namespace Position
         if(mStatus == eTrackNoImage)
         {
             mpLast    = mpCurrent;
+            Mat origin = Mat::eye(4,4,MATCVTYPE);
             mpCurrentKeyFm = createNewKeyFrame();
             mpLastKeyFm    = mpCurrentKeyFm;
-            Mat origin = Mat::eye(4,4,MATCVTYPE);
-            mpCurrentKeyFm->setPose(origin);
             mStatus = eTrackNoReady;
             return origin;
         }
@@ -127,8 +126,10 @@ namespace Position
 
         if(matches.empty())
         {
-            mStatus = eTrackLost;
-            PROMTD_V(data->_name.c_str(),"can not find any match point with pre frame!");
+            mpCurrentKeyFm->release();
+            mpCurrentKeyFm  = NULL;
+            mpCurrent       = NULL;
+            LOG_WARNING_F("%s - %s Match Points Not Enough~~",mpLastKeyFm->getData()->_name.c_str(),data->_name.c_str());
             return Mat();
         }
         else
@@ -157,35 +158,42 @@ namespace Position
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 R.copyTo(pose.rowRange(0,3).colRange(0,3));
                 t.copyTo(pose.rowRange(0,3).col(3));
+
+                cv::Mat LastTwc = cv::Mat::eye(4,4,MATCVTYPE);
+
+                // cv::Mat Rcw       = mpLastKeyFm->getPose().rowRange(0,3).colRange(0,3);
+                // cv::Mat tcw       = mpLastKeyFm->getPose().rowRange(0,3).col(3);
+                // cv::Mat Rwc       = Rcw.t();
+                // cv::Mat CamCenter = -Rwc * tcw;
+
+                // Rwc.copyTo(LastTwc.rowRange(0,3).colRange(0,3));
+                // CamCenter.copyTo(LastTwc.rowRange(0,3).col(3));
+
                 Mat wdpose = pose * mpLastKeyFm->getPose() ;
                 mpCurrentKeyFm->setPose(wdpose);
+                // for(auto item : matches)
+                // {//遍历匹配信息,建立地图点与关键的关联关系
+                //     Position::IMapPoint *mppt = NULL;
+                //     if(!mpLastKeyFm->hasMapPoint(item.queryIdx))
+                //     {
+                //         const Point3f fpt = pts[item.queryIdx];
+                //         Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
 
-                for(auto item : matches)
-                {//遍历匹配信息,建立地图点与关键的关联关系
-                    Position::IMapPoint *mppt = NULL;
-                    if(!mpLastKeyFm->hasMapPoint(item.queryIdx))
-                    {
-                        const Point3f fpt = pts[item.queryIdx];
-                        Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
-                        mpt = mpLastKeyFm->getPose().inv() * mpt;
-                        mpt = mpt / mpt.at<MATTYPE>(3);
-                        mppt = mpMap->createMapPoint(mpt); 
-                        mpLastKeyFm->addMapPoint(mppt,item.queryIdx);
-                    }
-                    else
-                    {
-                        mppt = mpLastKeyFm->getWorldPoints()[item.queryIdx];
-                    }
-                    mpCurrentKeyFm->addMapPoint(mppt,item.trainIdx);
-                }
+                //         mpt = mpLastKeyFm->getPose().inv() * mpt;
+                //         mpt = mpt / mpt.at<MATTYPE>(3);
+                //         mppt = mpMap->createMapPoint(mpt); 
+                //         mpLastKeyFm->addMapPoint(mppt,item.queryIdx);
+                //     }
+                //     else
+                //     {
+                //         mppt = mpLastKeyFm->getWorldPoints()[item.queryIdx];
+                //     }
+                //     mpCurrentKeyFm->addMapPoint(mppt,item.trainIdx);
+                // }
 
                 auto temps = mpCurrentKeyFm->getWorldPoints();
-                // PROMTD_V("frame mppts size" ,std::count_if(temps.begin(),temps.end(),[](Position::IMapPoint* item)->bool
-                // {
-                //     return item != NULL;
-                // }));
 
-                mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
+                // mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
              
                 for(size_t i = 0; i < temps.size(); ++i)
                 {
@@ -198,20 +206,21 @@ namespace Position
                         }
                     }
                 }
-
-                // PROMTD_V("Pose", mpCurrentKeyFm->getPose());
+                mpMap->addKeyFrame(mpCurrentKeyFm);
+                mpLastKeyFm = mpCurrentKeyFm;
+                mpLast      = mpCurrent;
+                mStatus = eTrackOk;
             }
             else
             {
                 //release data
                 PROMT_V(mpCurrentKeyFm->getData()->_name.c_str(),"estimate failed!");
+                mpCurrentKeyFm->release();
             }
-            mpLastKeyFm = mpCurrentKeyFm;
-            mpLast      = mpCurrent;
             mpCurrent   = NULL;
             mpCurrentKeyFm = NULL;
         }
-        mStatus = eTrackOk;
+        
         return mpLastKeyFm->getPose();
     }
 }

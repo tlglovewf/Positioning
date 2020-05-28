@@ -1,7 +1,7 @@
 #include "P_UniformDistriFeature.h"
 #include "P_Utils.h"
 #define EDGE_THRESHOLD 16
-#define COLGRIDNUMBER 3
+#define COLGRIDNUMBER 4
 #define ROWGRIDNUMBER 3
 
 #ifdef USE_CVXFEATURE
@@ -99,11 +99,11 @@ void PUniformDistriFeature::detect(const Mat &img, KeyPtVector &keypts)
         }
     }
 
-    cout << "key before filter:" << vToDistributeKeys.size() << endl;
+    // cout << "key before filter:" << vToDistributeKeys.size() << endl;
     keypts = distributeQuadTree(vToDistributeKeys, minBorderX, maxBorderX,
                                   minBorderY, maxBorderY,mMaxFeatures);
 
-    cout << "key after filter:" << keypts.size() << endl;
+    // cout << "key after filter:" << keypts.size() << endl;
 
     // Add border to coordinates and scale information
     const int nkps = keypts.size();

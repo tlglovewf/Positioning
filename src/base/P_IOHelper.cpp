@@ -71,7 +71,8 @@ namespace Position
                 data->_name = svs[0];
                 IFrame *pf = new PFrame(data,mpMap->frameCount());
                 pf->setPose(PConverter::str2CVMat(svs[1]));
-                mpMap->createKeyFrame(pf);
+                IKeyFrame *pkf = mpMap->createKeyFrame(pf);
+                mpMap->addKeyFrame(pkf);
             }
             LOG_INFO("Trace File finished.");
         }

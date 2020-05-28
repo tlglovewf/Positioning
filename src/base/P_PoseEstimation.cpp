@@ -501,8 +501,7 @@ namespace Position
         // If there is not a clear winner or not enough triangulated points reject initialization
         if(maxGood < nMinGood || nsimilar>1)
         {
-            PROMTD_V("similar", nsimilar,nGood1,nGood2, nGood3, nGood4);
-            PROMTD_V("minGood",nMinGood);
+            PROMTD_V("similar", nsimilar,"max < min :",maxGood, nMinGood);
             return false;
         }
 
@@ -889,28 +888,28 @@ namespace Position
             float SH, SF;
             cv::Mat H, F;
 
-            thread threadH(&ORBPoseEstimation::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
+            // thread threadH(&ORBPoseEstimation::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
             thread threadF(&ORBPoseEstimation::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
 
             // Wait until both threads have finished
-            threadH.join();
+            // threadH.join();
             threadF.join();
 
             // Compute ratio of scores
             float RH = SH/(SH+SF);
 
             const float minParallax = 0.00;//最小的时差角度
-            const float minTriangle = 20; //最少需要多少个点 三角化
+            const float minTriangle = 30; //最少需要多少个点 三角化
 
 
             BolVector bTriangle;
             // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-            if(RH > 0.5)
+            if(RH > 0.45)
                 bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
             else //if(pF_HF>0.6)
                 bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
 
-            PROMTD_V("reconstruct",RH, bol);
+            PROMTD_V("reconstruct >> ",RH, "Ret : ", bol);
 
             if(bol)
             {//剔除三角化失败的点
@@ -926,7 +925,9 @@ namespace Position
                         ++it;
                     }
                 }
-
+                
+#if 0
+                //save epline 
                 Mat out = Position::PUtils::DrawKeyPoints( mCur->getData()->_img,mCur->getKeys());
                 MATTYPE a,b,c;
                 for(size_t i = 0; i < matches.size(); ++i)
@@ -938,9 +939,6 @@ namespace Position
                     
                     Position::PUtils::DrawEpiLine(a,b,c,curpt, out);
                 }
-              
-                //save epline 
-#if 0
                 std::string outpath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
                 imwrite( outpath + "/orbepline.jpg",out);
                 cout << "F" << endl;

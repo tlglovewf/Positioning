@@ -13,7 +13,6 @@ int main(int argv, char **argc)
     }
 
     string prjpath(argc[1]);
-
     std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig("../config/config_new.yaml"));
 
     std::shared_ptr<Position::IData>   pData(new Position::NewHwProjectData(pCfg));
@@ -22,6 +21,7 @@ int main(int argv, char **argc)
     SETGLOBALCONFIG(pCfg);
     SETCFGVALUE(pCfg, PrjPath, prjpath + "/Output");
     SETCFGVALUE(pCfg,ViewEnable,1);
+
 #if 1
     PMapDisplay mapDisplay(pData,pCfg,0);
     mapDisplay.run();
