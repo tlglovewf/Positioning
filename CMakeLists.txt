@@ -33,7 +33,8 @@ message("USE_XFEATURE        option is ${USE_XFEATURE}")
 OPTION(BUILD_TEST_PROGRAMS   "Build test program"    ON) 
 message("BUILD_TEST_PROGRAMS option is ${BUILD_TEST_PROGRAMS}")
 
-
+OPTION(BUILD_TOOL_PROGRAMS   "Build tool program"    ON)
+message("BUILD_TOOL_PROGRAMS option is ${BUILD_TOOL_PROGRAMS}")
 
 
 if (USE_XFEATURE)
@@ -140,8 +141,8 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/output)
 
 add_executable(TargetPosition  
-tools/TargetPosition.cpp
-tools/PosBatchHandler.cpp)
+main/TargetPosition.cpp
+main/PosBatchHandler.cpp)
 target_link_libraries(TargetPosition ${Positioning})
 
 set(CMAKE_INSTALL_PREFIX /usr/local/)
@@ -192,6 +193,8 @@ ENDFOREACH()
 install(FILES ${DEPEND_LIBS}
         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
+install(FILES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ORBvoc.bin 
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
 
 
 #uninstall
@@ -200,4 +203,8 @@ include(cmake/PositionUninstall.cmake)
 #if build test program
 if(BUILD_TEST_PROGRAMS)
    add_subdirectory(test)
+endif()
+
+if(BUILD_TOOL_PROGRAMS)
+   add_subdirectory(tools)
 endif()

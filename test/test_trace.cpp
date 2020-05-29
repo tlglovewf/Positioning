@@ -59,7 +59,7 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 
 #else
 
-    Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
+    //Position::MapSerManager::Instance()->displayMap(pCfg,outpath + "trac.txt",outpath + "mpts.txt");
 
 #endif
 

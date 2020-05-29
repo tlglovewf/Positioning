@@ -30,9 +30,6 @@ StNo: 165  #796   #11000
 EdNo: 200  #820   #100
 
 
-#vocabulary path 
-VocPath: "/home/tlg/Documents/Sources/Positioning/Vocabulary/ORBvoc.txt"
-
 #feature params
 FeatureCnt:   2000  #特征点提取数量
 PyramidLevel: 8     #图片金字塔层数

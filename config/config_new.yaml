@@ -6,8 +6,8 @@
 
 
 #util info
-StNo: 20350
-EdNo: 20700
+StNo: 300
+EdNo: 400
 
 #camera param
 ImgWd:  1920
@@ -16,7 +16,7 @@ ImgFps: 20  #0 every frame is keyframe
 ImgRgb: 1  #rgb 1  rbg 0 
 
 #path 
-#PrjPath: "/media/tlg/work/tlgfiles/WEIYA/9900000120042200/"
+PrjPath: "/media/tu/Work/Datas/9-200524-00/Output"
 
 LogPath: ""
 LogPrio: "DEBUG"  #log打印等级 DEBUG INFO WARNNING ERROR CRITICAL
@@ -27,9 +27,6 @@ OutPath: "/media/tu/Work/Datas/newdata/"
 
 #CamMatrixPath: ""
 #BsPath:        ""
-
-#vocabulary path 
-#VocPath: "/home/tlg/Documents/Sources/Positioning/Vocabulary/ORBvoc.txt"
 
 #feature params
 FeatureCnt:   2500  #特征点提取数量

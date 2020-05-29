@@ -14,15 +14,15 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const CameraParam &cam):mCam(cam)
                    {
-#if 1
+#if 0
                         mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
                         mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pcfg,MatchRatio,float)));
 #endif
-                        // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV)); 
-                        mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
+                        mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV)); 
+                        // mpEst            = std::unique_ptr<IPoseEstimation>(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));
                         mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
                        
                         Position::FrameHelper::initParams(GETCFGVALUE(pcfg,ImgWd,int),GETCFGVALUE(pcfg,ImgHg,int),&mCam);
@@ -124,7 +124,7 @@ namespace Position
 
         Position::MatchVector matches = mpFeatureMatcher->match(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm),mFtSearchRadius); 
 
-        if(matches.empty())
+        if(matches.size() < 8)
         {
             mpCurrentKeyFm->release();
             mpCurrentKeyFm  = NULL;
@@ -148,52 +148,38 @@ namespace Position
             mpEst->setFrames(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm));
             Mat R,t;
             Position::Pt3Vector pts;
-            // PROMTD_V(data._name.c_str()," matches ",matches.size());
-            if(matches.size() < 4)
-            {
-                return Mat();
-            }
+
             if(mpEst->estimate(R,t, matches,pts))
             {//推算位姿
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 R.copyTo(pose.rowRange(0,3).colRange(0,3));
                 t.copyTo(pose.rowRange(0,3).col(3));
 
-                cv::Mat LastTwc = cv::Mat::eye(4,4,MATCVTYPE);
-
-                // cv::Mat Rcw       = mpLastKeyFm->getPose().rowRange(0,3).colRange(0,3);
-                // cv::Mat tcw       = mpLastKeyFm->getPose().rowRange(0,3).col(3);
-                // cv::Mat Rwc       = Rcw.t();
-                // cv::Mat CamCenter = -Rwc * tcw;
-
-                // Rwc.copyTo(LastTwc.rowRange(0,3).colRange(0,3));
-                // CamCenter.copyTo(LastTwc.rowRange(0,3).col(3));
-
                 Mat wdpose = pose * mpLastKeyFm->getPose() ;
                 mpCurrentKeyFm->setPose(wdpose);
-                // for(auto item : matches)
-                // {//遍历匹配信息,建立地图点与关键的关联关系
-                //     Position::IMapPoint *mppt = NULL;
-                //     if(!mpLastKeyFm->hasMapPoint(item.queryIdx))
-                //     {
-                //         const Point3f fpt = pts[item.queryIdx];
-                //         Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
+                for(auto item : matches)
+                {//遍历匹配信息,建立地图点与关键的关联关系
+                    Position::IMapPoint *mppt = NULL;
+                    if(!mpLastKeyFm->hasMapPoint(item.queryIdx))
+                    {
+                        const Point3f fpt = pts[item.queryIdx];
+                        Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
 
-                //         mpt = mpLastKeyFm->getPose().inv() * mpt;
-                //         mpt = mpt / mpt.at<MATTYPE>(3);
-                //         mppt = mpMap->createMapPoint(mpt); 
-                //         mpLastKeyFm->addMapPoint(mppt,item.queryIdx);
-                //     }
-                //     else
-                //     {
-                //         mppt = mpLastKeyFm->getWorldPoints()[item.queryIdx];
-                //     }
-                //     mpCurrentKeyFm->addMapPoint(mppt,item.trainIdx);
-                // }
+                        mpt = mpLastKeyFm->getPose().inv() * mpt;
+                        mpt = mpt / mpt.at<MATTYPE>(3);
+                        mppt = mpMap->createMapPoint(mpt); 
+                        mpLastKeyFm->addMapPoint(mppt,item.queryIdx);
+                    }
+                    else
+                    {
+                        mppt = mpLastKeyFm->getWorldPoints()[item.queryIdx];
+                    }
+                    mpCurrentKeyFm->addMapPoint(mppt,item.trainIdx);
+                }
 
                 auto temps = mpCurrentKeyFm->getWorldPoints();
 
-                // mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
+                mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
              
                 for(size_t i = 0; i < temps.size(); ++i)
                 {

@@ -2,9 +2,11 @@
 
 namespace Position
 {
+#define FRAMENAME "CurrentFrame"
     PFrameViewer::PFrameViewer():mStatus(eTrackNoImage),mTrackPts(0)
     {
-
+        cv::namedWindow(FRAMENAME);
+        resizeWindow(FRAMENAME,Size(1080,720));
     }
 
     void PFrameViewer::drawPts( IKeyFrame *pkf, Mat &im)
@@ -64,12 +66,14 @@ namespace Position
 
             drawPts(pcurrent,oimg);
 
-            resize(oimg, oimg, Size(img.cols >> 1, img.rows >> 1));
+            int dd = sqrt(img.cols / 1000);
+
+            resize(oimg, oimg, Size(img.cols >> dd, img.rows >> dd));
 
             Mat outi;
             drawFrameText(oimg,mStatus,outi);
-            
-            imshow("Frame",outi);
+
+            imshow(FRAMENAME,outi);
             cv::waitKey(1);
             scurrent = pcurrent;
         }

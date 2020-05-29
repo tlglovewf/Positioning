@@ -8,6 +8,20 @@
 //间隔最大的帧数
 const int maxThFrameCnt = 3;
 
+
+PMapDisplay::PMapDisplay(const shared_ptr<Position::IConfig> &pcfg, const shared_ptr<Position::IMap> &pmap)
+{
+#ifdef USE_VIEW
+
+    mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin, pcfg));
+
+    mpViewer->setMap(pmap);
+
+    mpViewer->renderLoop();
+
+#endif
+}
+
 //设置数据解析类型
 PMapDisplay::PMapDisplay(const shared_ptr<Position::IData> &pdata,
                          const shared_ptr<Position::IConfig> &pcfg,
@@ -20,8 +34,9 @@ PMapDisplay::PMapDisplay(const shared_ptr<Position::IData> &pdata,
     bool bol = mpData->loadDatas();
     if (!bol)
     {
-        PROMT_S("PositionController Initialize failed!!!");
-        PROMT_S("Please check config params!!!");
+        // PROMT_S("PositionController Initialize failed!!!");
+        // PROMT_S("Please check config params!!!");
+        LOG_CRIT("No Datas!!!!");
         exit(-1);
     }
 
@@ -65,7 +80,9 @@ void PMapDisplay::run()
         
         (*it)->_img = imread(picpath, IMREAD_UNCHANGED);
         mpTrajProSelector->handle(*it);
-        // (*it)->_img.release();
+#if !USE_VIEW
+        (*it)->_img.release();
+#endif
     }
 
     //等待线程处理
@@ -97,16 +114,15 @@ void PMapDisplay::run()
 
 void PMapDisplay::saveResult()
 {
+    LOG_INFO_F("Save Result %d",GETCFGVALUE(mpConfig, MapSave, int))
     if (GETCFGVALUE(mpConfig, MapSave, int))
     {
-        Position::MapSerManager::Instance()->setMap(mpTrajProSelector->getMap());
-
-        LOG_INFO("Save Result ...")
+        SETMAPSERIALIZATIONMAP(mpTrajProSelector->getMap());
 
         const std::string path = GETCFGVALUE(mpConfig, OutPath, string) + "/";
-        Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path + "trac.txt");
 
-        Position::MapSerManager::Instance()->mpPtSerPtr()->saveMap(path + "mpts.txt");
+        SAVEMAPFRAME(path + "frames.txt");
+        SAVEMAPFRAME(path + "points.txt");
 
         LOG_INFO("Save Result Finished.");
     }

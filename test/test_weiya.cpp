@@ -2,6 +2,8 @@
 #include "P_IOHelper.h"
 #include "P_Factory.h"
 #include "P_MapDisplay.h"
+#include "P_Factory.h"
+
 int main(int argv, char **argc)
 {
 // #if USE_VIEW
@@ -9,7 +11,6 @@ int main(int argv, char **argc)
     std::shared_ptr<Position::IConfig> pCfg(new WeiyaConfig("../config/config_weiya.yaml"));
 
     std::shared_ptr<Position::IData>   pData(new WeiyaData(pCfg));
-
 
     LOG_INITIALIZE(pCfg);
     SETGLOBALCONFIG(pCfg);

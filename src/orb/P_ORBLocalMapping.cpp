@@ -647,7 +647,7 @@ void ORBLocalMapping::KeyFrameCulling()
         if(nRedundantObservations>0.9*nMPs)
         {
             PROMT_V("Set Bad From RedundataObs",pKF->getData()->_name.c_str());
-            pKF->setBadFlag();
+            // pKF->setBadFlag();
         }
             
     }

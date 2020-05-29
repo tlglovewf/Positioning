@@ -7,6 +7,7 @@
 #include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "P_Checker.h"
+#include "P_ORBVocabulary.h"
 #include <unistd.h>
 
 namespace Position
@@ -14,27 +15,21 @@ namespace Position
     //构造函数
     PUniformVTrajProcesser::PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg,const CameraParam &cam):PTrajProcesser(std::make_shared<ORBMap>()),mbReset(false)
     {
-
-        std::string vocpath = GETCFGVALUE(pcfg,VocPath,string);
-        if(vocpath.empty())
+        mpVocabulary = std::make_shared<ORBVocabulary>();
+        const string path = "ORBvoc.bin";
+        if(!PATHCHECK(path))
         {
-            vocpath = "../Vocabulary/ORBvoc.txt";
-        }
-        if(!PATHCHECK(vocpath))
-        {
-            LOG_CRIT_F("%s Vocabulary File Not Found!!!",vocpath.c_str());
+            LOG_CRIT_F("%s Vocabulary File Not Found.Please Check The File At The Program Dir.",path.c_str());
             exit(-1);
         }
-
-        mpVocabulary = std::make_shared<ORBVocabulary>();
         LOG_INFO("Begin to load vocabulary!")
-        bool bVocLoad = mpVocabulary->loadFromTextFile(vocpath);
+        bool bVocLoad = mpVocabulary->loadFromBinaryFile(path);
         if(!bVocLoad)
         {
-            LOG_CRIT_F("Vocabulary Format Error.",vocpath.c_str());  
+            LOG_CRIT("Vocabulary Format Error .");  
             exit(-1);
         }
-        LOG_INFO("Vocabulary Finished.");
+        LOG_INFO("Vocabulary Data Loading Finished.");
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
 

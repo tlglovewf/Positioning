@@ -60,7 +60,7 @@ int main()
         {
             cout << result[ncol++] << endl;
             cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;
+            cout << result[ncol++] << endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
             cout << result[ncol++] << endl;
             cout << result[ncol++] << endl;
             cout << result[ncol++] << endl;

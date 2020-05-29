@@ -36,7 +36,6 @@ namespace Position
                       SemPath(""),
                       PosPath(""),
                       OutPath(""),
-                      VocPath(""),
                       ViewEnable(1),
                       ViewerW(0),
                       ViewerH(0),
@@ -70,7 +69,6 @@ namespace Position
         PUSH_MAP(SemPath);
         PUSH_MAP(PosPath);
         PUSH_MAP(OutPath);
-        PUSH_MAP(VocPath);
         PUSH_MAP(ViewEnable);
         PUSH_MAP(ViewerW);
         PUSH_MAP(ViewerH);
@@ -130,7 +128,6 @@ namespace Position
             READ_VALUE(SemPath);
             READ_VALUE(PosPath);
             READ_VALUE(OutPath);
-            READ_VALUE(VocPath);
             READ_VALUE(ViewEnable);
             READ_VALUE(ViewerW);
             READ_VALUE(ViewerH);

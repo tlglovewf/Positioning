@@ -194,6 +194,14 @@ namespace Position
         ISerialization *mpTracSer;
         ISerialization *mpPtSer;
     };
+
+
+#define   SETMAPSERIALIZATIONMAP(MAP)  Position::MapSerManager::Instance()->setMap(MAP);
+#define   SAVEMAPFRAME(path)           Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path);
+#define   SAVEMAPPOINTS(path)          Position::MapSerManager::Instance()->mpPtSerPtr()->saveMap(path);
+#define   LOADMAPFRAME(path)           Position::MapSerManager::Instance()->tracSerPtr()->loadMap(path);
+#define   LOADMAPPOINTS(path)          Position::MapSerManager::Instance()->mpPtSerPtr()->loadMap(path);
+#define   DISPLAYMAP(CFG,FMS,MPTS)     Position::MapSerManager::Instance()->displayMap(CFG,FMS,MPTS);
 }
 
 #endif

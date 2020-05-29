@@ -73,18 +73,18 @@ namespace Position
                                               0  , fFy  ,fCy,
                                               0  , 0    ,1);
 
-            // camera.D = cv::Mat(4,1,MATCVTYPE);
+            camera.D = cv::Mat(4,1,MATCVTYPE);
 
-            // camera.D.at<MATTYPE>(0) = fK1;
-            // camera.D.at<MATTYPE>(1) = fK2;
-            // camera.D.at<MATTYPE>(2) = fP1;
-            // camera.D.at<MATTYPE>(3) = fP2;
+            camera.D.at<MATTYPE>(0) = fK1/10;
+            camera.D.at<MATTYPE>(1) = fK2/10;
+            camera.D.at<MATTYPE>(2) = fP1/10;
+            camera.D.at<MATTYPE>(3) = fP2/10;
 
-            // if(fabs(fK3) > 1e-6)
-            // {
-            //     camera.D.resize(5);
-            //     camera.D.at<MATTYPE>(4) = fK3;
-            // }
+            if(fabs(fK3) > 1e-6)
+            {
+                camera.D.resize(5);
+                camera.D.at<MATTYPE>(4) = fK3/10;
+            }
         }
         
         // //get camera external matrix
@@ -170,7 +170,7 @@ namespace Position
 	    if (!json_file.is_open())
 	    {
             LOG_CRIT("Track json can not be open.");
-	    	return 0;
+	    	exit(-1);
 	    }
 	    while (!json_file.eof())
 	    {
@@ -189,7 +189,7 @@ namespace Position
             if (errmsg != "OK")
             {
                 LOG_CRIT("Json file error! check if the file is available!");
-                return 0;
+                exit(-1);
             }
             else
             {

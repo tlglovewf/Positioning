@@ -21,8 +21,10 @@ public:
                 const shared_ptr<Position::IConfig> &pcfg,
                 int  eTjtype = 1,
                 bool useThread = true);
-
-    //运行
+    //构造函数,直接可视化轨迹
+    PMapDisplay(const shared_ptr<Position::IConfig> &pcfg,
+                const shared_ptr<Position::IMap> &pmap);
+    //运行 轨迹处理 
     void run();
 
 protected:

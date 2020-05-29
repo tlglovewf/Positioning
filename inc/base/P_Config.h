@@ -160,7 +160,6 @@ namespace Position
         StringConfigParam   PosPath;        //数据路径
         StringConfigParam   SemPath;        //语义路径
         StringConfigParam   OutPath;        //输出路径
-        StringConfigParam   VocPath;        //词典路径
         //可视化参数
         IntConfigParam      ViewEnable;     //是否使用可视化
         IntConfigParam      ViewerW;        //可视窗口宽

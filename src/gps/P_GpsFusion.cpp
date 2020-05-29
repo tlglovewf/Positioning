@@ -22,15 +22,14 @@ namespace  Position
 
         //只为测试
         const std::string opath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
-        const std::string strori = opath + "ori.txt";
-        const std::string strfus = opath + "est.txt";
+        const std::string strori = opath + "/ori.txt";
+        const std::string strfus = opath + "/est.txt";
+        cout << "gps save : " << opath.c_str() << endl;
         std::ofstream fori;
         fori.open(strori);
 
         std::ofstream ffuse;
         ffuse.open(strfus);
-        //测试gps融合效果 添加的偏移
-        const double dt = 0.00001;
 
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {
@@ -78,10 +77,6 @@ namespace  Position
             gps.alt = pkf->getData()->_pos.pos.alt;
             gps.t   = pkf->getData()->_pos._t;
             gps.conf = 1;
-            if(i % 10 == 0)
-            {//添加偏移
-                gps.lon += dt;
-            }
 
             MATTYPE xyz[3];
             static bool initGps = false;
