@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Positioning",
+            "name": "test_newdata",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/output/Positioning",
+            "program": "${workspaceFolder}/output/test_newdata",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/output/",
@@ -17,10 +17,10 @@
             "MIMode": "gdb"
         },
         {
-            "name": "Simpletest",
+            "name": "test_weiya",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/output/SimpleTest",
+            "program": "${workspaceFolder}/output/test_weiya",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/output/",
