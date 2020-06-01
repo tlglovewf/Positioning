@@ -5,8 +5,9 @@ namespace Position
 #define FRAMENAME "CurrentFrame"
     PFrameViewer::PFrameViewer():mStatus(eTrackNoImage),mTrackPts(0)
     {
-        cv::namedWindow(FRAMENAME);
+        cv::namedWindow(FRAMENAME,CV_WINDOW_NORMAL);
         resizeWindow(FRAMENAME,Size(1080,720));
+        setWindowProperty(FRAMENAME,CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
     }
 
     void PFrameViewer::drawPts( IKeyFrame *pkf, Mat &im)
@@ -65,10 +66,6 @@ namespace Position
             drawKeypoints(img, pcurrent->getKeys(),oimg,CV_RGB(0,0,255));
 
             drawPts(pcurrent,oimg);
-
-            int dd = sqrt(img.cols / 1000);
-
-            resize(oimg, oimg, Size(img.cols >> dd, img.rows >> dd));
 
             Mat outi;
             drawFrameText(oimg,mStatus,outi);

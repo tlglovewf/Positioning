@@ -84,8 +84,9 @@ void PosBatchHandler::poseEstimate()
        {//仅在位姿估算成功后,进行量测定位 
            if(mPoseEstimator.process(targets[i].batch->_fmsdata,imgpath))
            {//位姿估算成功,对batch中每个位姿进行赋值
-
+                cout << "..... DISPLAY" << endl;
 #if USE_VIEW
+            cout << "DISPLAY ...." << endl;
             s_Viewer->renderLoop();
 #endif
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();

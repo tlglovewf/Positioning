@@ -72,21 +72,16 @@ void PMapDisplay::run()
     {
         ed = mpData->end();
     }
-    const std::string imgpath = GETCFGVALUE(mpConfig, ImgPath, string) + "/";
-    //帧循环 构建局部场景
-    for (; it != ed; ++it)
-    { //遍历帧
-        const std::string picpath = imgpath + (*it)->_name;
-        
-        (*it)->_img = imread(picpath, IMREAD_UNCHANGED);
-        mpTrajProSelector->handle(*it);
-#if !USE_VIEW
-        (*it)->_img.release();
-#endif
-    }
+    Position::FrameDataPtrVector tempDatas(it,ed);
 
-    //等待线程处理
-    mpTrajProSelector->waitingForHandle();
+ 
+    const std::string imgpath = GETCFGVALUE(mpConfig, ImgPath, string) + "/";
+
+    if(!mpTrajProSelector->process(tempDatas,imgpath))
+    {
+        LOG_ERROR("Trace Handle Error.");
+        return ;
+    }
 
     mpGpsFunsion->fuse(mpTrajProSelector->getMap(), mpData->getCamera());
 #ifdef USE_VIEW

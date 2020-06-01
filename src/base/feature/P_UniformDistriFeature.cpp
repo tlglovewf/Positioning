@@ -331,7 +331,7 @@ KeyPtVector PUniformDistriFeature::distributeQuadTree(const KeyPtVector& vToDist
         if((int)lNodes.size()==prevSize)
         {
             cout << "finish . " << vToDistributeKeys.size() <<  endl;
-            cout << lNodes.size() << " " << prevSize << endl;
+            // cout << lNodes.size() << " " << prevSize << endl;
             bFinish = true;
         }
         else if(((int)lNodes.size()+nToExpand*3)>N)

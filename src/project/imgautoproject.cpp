@@ -376,7 +376,7 @@ namespace Position
                 }
                 else
                 {
-                    LOG_DEBUG_F("%s:no target!!!",mFrameDatas[i]->_name.c_str());
+                    // LOG_DEBUG_F("%s:no target!!!",mFrameDatas[i]->_name.c_str());
                 }
             }
 

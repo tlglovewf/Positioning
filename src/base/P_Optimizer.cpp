@@ -187,6 +187,7 @@ namespace Position
             g2o::VertexSE3Expmap *vSE3 = new g2o::VertexSE3Expmap();
             vSE3->setEstimate(PConverter::toSE3Quat(pKF->getPose()));
             const int fIndex = pKF->index();
+
             vSE3->setId(fIndex);
             vSE3->setFixed(fIndex == 0);
             optimizer.addVertex(vSE3);
@@ -200,8 +201,10 @@ namespace Position
         for(size_t i = 0; i < mappts.size(); ++i)
         {
             IMapPoint *pMP = mappts[i];
+
             if(pMP->isBad())
                 continue;
+
             g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
             vPoint->setEstimate(PConverter::toVector3d(pMP->getWorldPos()));
             const int id = pMP->index() + maxKFid + 1;
@@ -225,21 +228,31 @@ namespace Position
                 nEdges++;
 
                 const cv::KeyPoint &kp = IFRAME(pKF)->getKeys()[it->second];
+    
                 //根据关联帧简历边
                 Eigen::Matrix<double,2,1> obs;
                 obs << kp.pt.x, kp.pt.y;
 
                 g2o::EdgeSE3ProjectXYZ *e = new g2o::EdgeSE3ProjectXYZ();
+
+                if(!optimizer.vertex(id) ||
+                   !optimizer.vertex(pKF->index()))
+                {
+                    LOG_WARNING_F("MpId:%d OR KfId:%d error!",id, pKF->index());
+                    continue;
+                }
+
                 //建立地图点 与对应帧的点联系 
                 e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));
                 e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->index())));
                 e->setMeasurement(obs);
+
                 float invSigma2 = 1.0;
                 if(kp.octave < sigma2.size())
                 {
                     invSigma2 = sigma2[kp.octave];
                 }
-
+                
                 e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);
 
                 if(bRobust)
@@ -267,6 +280,7 @@ namespace Position
             {
                 vbNotIncludedMp[i] = false;
             }
+
         }
 
         // Optimize!
@@ -325,5 +339,6 @@ namespace Position
             //     // pMP->mnBAGlobalForKF = nLoopKF;
             // }
         }
+
     }
 }

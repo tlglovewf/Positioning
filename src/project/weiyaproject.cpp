@@ -87,7 +87,7 @@ bool WeiyaData::loadDatas()
     PROMT_V("postt path ",pstpath.c_str());
     try
     {
-        PROMT_S("begin to load datas.");
+        PROMT_S("Begin To Load Datas.");
         ifstream pstfile, imufile;
         pstfile.open(pstpath);
         int index = 0;
@@ -115,6 +115,7 @@ bool WeiyaData::loadDatas()
             mFrameDatas.emplace_back(framedata);
         }
         pstfile.close();
+
         LOG_INFO_F("%s-%d","Frame Datas Finished.",mFrameDatas.size());
         return true;
     }

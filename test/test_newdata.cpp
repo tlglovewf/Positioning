@@ -22,7 +22,7 @@ int main(int argv, char **argc)
     SETCFGVALUE(pCfg,ViewEnable,1);
 
 #if 1
-    PMapDisplay mapDisplay(pData,pCfg,0);
+    PMapDisplay mapDisplay(pData,pCfg,1);
     mapDisplay.run();
 
 #else

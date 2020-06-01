@@ -14,7 +14,7 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const CameraParam &cam):mCam(cam)
                    {
-#if 0
+#if 1
                         mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
@@ -50,7 +50,9 @@ namespace Position
             for(size_t i = 0; i < framedatas.size(); ++i)
             {
                 track(framedatas[i]);
-
+#if !USE_VIEW
+                framedatas[i]->_img.release();
+#endif
                 if(mpViewer)
                 {
                     waitKey(1);
@@ -61,9 +63,9 @@ namespace Position
             Position::KeyFrameVector keyframes(mpMap->getAllFrames());
             Position::MapPtVector    mappts(mpMap->getAllMapPts());
             bool pBstop = false;
-            // LOG_DEBUG_F("Begin Global opt:%d",keyframes.size());
+            LOG_DEBUG_F("Begin Global opt:%d",keyframes.size());
             mpOptimizer->bundleAdjustment(keyframes,mappts,mpFeature->getSigma2(),5, &pBstop);
-            // LOG_DEBUG("Global opt Finished.");
+            LOG_DEBUG("Global opt Finished.");
 
             return true;
         }
@@ -74,7 +76,7 @@ namespace Position
     {
         LOG_INFO_F("Process:%s",data->_name.c_str());
         Mat grayimg ;
-        static int index = 0;
+
         if( !mCam.D.empty() && fabs(mCam.D.at<MATTYPE>(0)) > 1e-6 )
         {//有畸变参数存在
             cv::undistort(data->_img,grayimg,mCam.K,mCam.D);
@@ -88,16 +90,18 @@ namespace Position
             cvtColor(grayimg,grayimg,CV_RGB2GRAY);
         }
 
-  
         data->_img = grayimg;
         mpCurrent = new PFrame(data,mpFeature,mpMap->frameCount());
         Position::FrameHelper::assignFeaturesToGrid(mpCurrent);
         if(mStatus == eTrackNoImage)
         {
-            mpLast    = mpCurrent;
-            Mat origin = Mat::eye(4,4,MATCVTYPE);
-            mpCurrentKeyFm = createNewKeyFrame();
-            mpLastKeyFm    = mpCurrentKeyFm;
+            mpLast          = mpCurrent;
+            Mat origin      = Mat::eye(4,4,MATCVTYPE);
+            mpCurrentKeyFm  = createNewKeyFrame();
+            mpMap->addKeyFrame(mpCurrentKeyFm);
+            mpLastKeyFm     = mpCurrentKeyFm;
+            mpCurrent       = NULL;
+            mpCurrentKeyFm  = NULL;
             mStatus = eTrackNoReady;
             return origin;
         }
@@ -113,6 +117,7 @@ namespace Position
             {
                 //创建关键帧失败则释放
                 mpCurrent->release();
+                mpCurrent = NULL;
                 return Mat();
             }
         }
@@ -129,7 +134,7 @@ namespace Position
             mpCurrentKeyFm->release();
             mpCurrentKeyFm  = NULL;
             mpCurrent       = NULL;
-            LOG_WARNING_F("%s - %s Match Points Not Enough~~",mpLastKeyFm->getData()->_name.c_str(),data->_name.c_str());
+            LOG_WARNING_F("%s - %s Match Points Not Enough~~ %d",mpLastKeyFm->getData()->_name.c_str(),data->_name.c_str(), matches.size());
             return Mat();
         }
         else

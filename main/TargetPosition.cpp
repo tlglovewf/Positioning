@@ -48,9 +48,9 @@ int main(int argc, char **argv)
     }
 
 
-#define TEST_OR_RUN 1
+#define TEST_OR_RUN 0
 
-// #if TEST_OR_RUN  //only for test
+#if TEST_OR_RUN  //only for test
     Position::FrameDataPtrVIter iter = pData->begin();
     Position::FrameDataPtrVIter ed   = pData->end();
 
@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         waitKey(100);
     }
     waitKey();
-// #endif
+#endif
 
 #if !TEST_OR_RUN
 
