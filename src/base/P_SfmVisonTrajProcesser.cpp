@@ -52,8 +52,8 @@ namespace Position
 
     bool PSfmVisonTrajProcesser::process(const FrameDataPtrVector &framedatas)
     {
-        cout<<"run sfm begin ... "<<endl;
-        cout<<"framedatas.size(): "<<framedatas.size()<<endl;
+        LOG_INFO("Run SFM ...");
+        LOG_INFO_F("FrameDatas Size:%d",framedatas.size());
         if(framedatas.size() < 2 || framedatas.size() > 5)
         {
             return false;
@@ -100,7 +100,7 @@ namespace Position
             }
 
             //两两匹配
-            cout<<"run match ..."<<endl;
+            LOG_INFO("Run Match ...");
             MatchMatrix mFeatureMatchMatrix;
             mFeatureMatchMatrix.resize(framedatas.size(), vector<MatchVector>(framedatas.size()));
 
@@ -112,7 +112,7 @@ namespace Position
                 mFeatureMatchMatrix[pair.pre][pair.cur] = mpFeatureMatcher->match(mpLast,mpCurrent,mFtSearchRadius);
             }
             //用单应矩阵筛选合适的初始化帧
-            cout<<"run choose ..."<<endl;
+            LOG_INFO("Run Choose ...");
             map<float, ImagePair> matchesSizes;
             for (size_t i = 0; i < mImageFrame.size() - 1; i++) 
             {
@@ -150,7 +150,7 @@ namespace Position
             }
 
             //找内点率满足要求的两帧初始化
-            cout<<"run init ..."<<endl;
+            LOG_INFO("Looking For Best Two Frame ...")
             struct Point3DInMap 
             {
                 cv::Point3f p;
@@ -247,7 +247,7 @@ namespace Position
             }
 
             //找3d-2d匹配最多的两个图进行匹配
-            cout<<"run 3d-2d ..."<<endl;
+            LOG_INFO("Run PnpSolver ...");
             struct Image2D3DMatch 
             {
                 PtVector points2D;
@@ -263,7 +263,7 @@ namespace Position
                     {
                         continue; //skip done views
                     }
-                    cout<<"process ... "<<viewIdx<<endl;
+                    LOG_INFO_F("Process ViewId:%d", viewIdx);
                     Image2D3DMatch match2D3D;
 
                     //scan all cloud 3D points
@@ -335,7 +335,7 @@ namespace Position
 
                 if (((float)countNonZero(inliers) / (float)matches2D3D[bestView].points2D.size()) < 0.3) 
                 {
-                    cerr << "Inliers ratio is too small: " << countNonZero(inliers) << " / " << matches2D3D[bestView].points2D.size() << endl;
+                    LOG_ERROR_F("Inliers ratio is too small: %f // %d ",matches2D3D[bestView].points2D.size());
                     //continue;
                 }
 
@@ -351,7 +351,7 @@ namespace Position
                 mpCurrentKeyFm = createNewKeyFrame();
                 mpCurrentKeyFm->setPose(mCameraPoses[bestView]);
                 
-                cout<<"run merge ..."<<endl;
+                LOG_INFO("Run Merge ...");
                 for (const int goodView : mGoodImage) 
                 {
                     size_t leftIdx  = (goodView < bestView) ? goodView : bestView;
@@ -415,7 +415,7 @@ namespace Position
                         {
                             continue;
                         }
-                        cout<<"calc 3d points"<<endl;
+                        LOG_DEBUG("Calc 3d Points");
                         Position::IMapPoint *mppt = NULL;
                         const Point3f fpt = Point3f(points3d.at<float>(i, 0), points3d.at<float>(i, 1), points3d.at<float>(i, 2));
                         Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
@@ -500,8 +500,7 @@ namespace Position
 
                 //ba
                 // global optimization
-                cout<<"run ba ..."<<endl;
-               
+                LOG_INFO("Run Ba ...");
                 Position::KeyFrameVector keyframes(mpMap->getAllFrames());
                 Position::MapPtVector    mappts(mpMap->getAllMapPts());
                 bool pBstop = false;
@@ -512,23 +511,24 @@ namespace Position
                 
                 mGoodImage.insert(bestView);
             }
-            
-            for (size_t i = 0; i < mDoneImage.size(); i++)
-            {
-                cout<<"mpMap->getAllFrames()["<<i<<"]->getPose(): "<<mpMap->getAllFrames()[i]->getPose()<<endl;
-            }
+
+            // 暂时注释  add by tu. 
+            // for (size_t i = 0; i < mDoneImage.size(); i++)
+            // {
+            //     cout<<"mpMap->getAllFrames()["<<i<<"]->getPose(): "<<mpMap->getAllFrames()[i]->getPose()<<endl;
+            // }
 
             //位姿转换为相对时序的第一帧
             std::vector<cv::Mat> seqPoses;
             Mat transMapPointMat = cv::Mat::eye(4,4,MATCVTYPE);
             seqPoses.push_back(transMapPointMat.clone());
-            cout<<seqPoses[0]<<endl;
+            // cout<<seqPoses[0]<<endl;
             //时序第一帧
             Mat tmpT; 
             tmpT = mpMap->getAllFrames()[0]->getPose().inv();
             
-            cout<<"transMapPointMat: "<<tmpT<<endl;
-            cout<<tmpT.size()<<endl;
+            // cout<<"transMapPointMat: "<<tmpT<<endl;
+            // cout<<tmpT.size()<<endl;
             // tmpT = transMapPointMat.inv();
             // seqPoses.emplace_back(tmpT.clone());
             
@@ -540,13 +540,13 @@ namespace Position
                 else
                 {
                     tmpT1 = mpMap->getAllFrames()[i]->getPose()*tmpT;
-                    cout<<"tmpT1: "<<tmpT1<<endl;
-                    cout<<tmpT1.size()<<endl;
+                    // cout<<"tmpT1: "<<tmpT1<<endl;
+                    // cout<<tmpT1.size()<<endl;
                 }
                 seqPoses.push_back(tmpT1.clone());    
             }
             
-            cout<<seqPoses.size()<<endl;
+            // cout<<seqPoses.size()<<endl;
             //转换
             for (size_t i = 0; i < framedatas.size(); i++)
             {
@@ -554,13 +554,13 @@ namespace Position
                 mpMap->getAllFrames()[i]->setPose(seqPoses[i]);
             }
 
-            for (size_t i = 0; i < mDoneImage.size(); i++)
-            {
-                cout<<"====after trans===="<<endl;
-                cout<<"mpMap->getAllFrames()["<<i<<"]->getPose(): "<<mpMap->getAllFrames()[i]->getPose()<<endl;
-            }
+            // for (size_t i = 0; i < mDoneImage.size(); i++)
+            // {
+            //     cout<<"====after trans===="<<endl;
+            //     cout<<"mpMap->getAllFrames()["<<i<<"]->getPose(): "<<mpMap->getAllFrames()[i]->getPose()<<endl;
+            // }
 
-            cout<<"map trans ... "<<endl;
+            // cout<<"map trans ... "<<endl;
             //地图点转换为相对于第一帧
             // mpMap->clear();
             // for (const Point3DInMap& p : mPointCloud)
@@ -573,7 +573,7 @@ namespace Position
             //     mpt = transMapPointMat * mpt;
             //     mppt = mpMap->createMapPoint(mpt); 
             // }
-            cout<<"run sfm end ... "<<endl;
+            LOG_INFO("SFM Finished ...");
             return true;
         }
     }
