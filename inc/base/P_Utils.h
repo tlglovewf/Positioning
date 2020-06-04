@@ -609,6 +609,10 @@ public:
         return tmp.substr(index);
     }
 
+    /* get distance from two frames
+     */
+    static inline double GetDistanceFormBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2);
+
     /* get gauss project error
     */
     static inline cv::Point3d CalcGaussErr(const BLHCoordinate &lf, const BLHCoordinate &rg)

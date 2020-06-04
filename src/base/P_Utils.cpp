@@ -1,4 +1,5 @@
 #include "P_Utils.h"
+#include "P_CoorTrans.h"
 namespace Position
 {
     //图像像素 相似度计算
@@ -226,6 +227,29 @@ namespace Position
             imshow("hist",histImage);
             waitKey(0);
         }
+    }
+
+    static inline double haverSin(double x)
+    {
+        double v = sin(x / 2.0);
+        return v * v;
+    }
+
+    /* get distance from two frames
+     */
+    double PUtils::GetDistanceFormBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2)
+    {
+        double radlon1 = D2R(blh1.lon);
+        double radlat1 = D2R(blh1.lat);
+        double radlon2 = D2R(blh2.lon);
+        double radlat2 = D2R(blh2.lat);
+        
+        double a = fabs(radlat1 - radlat2);
+        double b = fabs(radlon1 - radlon2);
+        
+        double h = haverSin(b) + cos(blh1.lat)*cos(blh2.lat)*haverSin(a);
+        double distance = 2 * WGS84Datum.r_max * asin(sqrt(h));
+        return  distance;
     }
 
     /* 从位姿获取R和t

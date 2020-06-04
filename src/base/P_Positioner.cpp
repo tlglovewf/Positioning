@@ -260,8 +260,8 @@ namespace Position
                                                                           wdpt.at<MATTYPE>(1),
                                                                           wdpt.at<MATTYPE>(2)));
 
-
-            if(ResultCheckStrategy::Instance()->check(target,idx1,rstblh))
+            RstCheckParams params(target,idx1,rstblh);
+            if(ResultCheckStrategy::Instance()->check(params))
             {//检查通过 赋值目标位置
                 LOG_INFO_F("Calc Target %d Pos Successfully. PosBe:%f,%f",target.id,target.blh.lon,target.blh.lat);
                 

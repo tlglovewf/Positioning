@@ -145,24 +145,6 @@ namespace Position
         }
     }
 
-    /*
-     * 优化
-     */
-    IChecker* PFactory::CreateChecker(eCheckerType type)
-    {
-        switch (type)
-        {
-            case eNormalChecker:
-                return new PChecker();
-            default:
-                {
-                    assert(NULL);
-                    return NULL;
-                }
-        }   
-    }
-
-
     /******************************************************/
     /****************** ISerialization ********************/
     /******************************************************/

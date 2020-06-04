@@ -52,7 +52,7 @@ namespace Position
 
     bool PSfmVisonTrajProcesser::process(const FrameDataPtrVector &framedatas)
     {
-        LOG_INFO("Run SFM ...");
+        LOG_INFO("Use SFM Process ...");
         LOG_INFO_F("FrameDatas Size:%d",framedatas.size());
         if(framedatas.size() < 2 || framedatas.size() > 5)
         {

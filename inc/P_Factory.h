@@ -83,14 +83,6 @@ namespace Position
         eTjSfmVision       //sfm场景 
     };
 
-    /*
-     * 检查类型
-     */
-    DEFINEENUM(Checker)
-    {
-        eNormalChecker
-    };
-
     class IOptimizer;
     //工厂对象
     class PFactory
@@ -134,11 +126,6 @@ namespace Position
          * 优化
          */
         DEFINEFUNC(Optimizer)
-
-        /*
-         * 检查
-         */
-        DEFINEFUNC(Checker)
 
     };
 

@@ -8,26 +8,6 @@
 
 namespace Position
 {
-    bool PChecker::check(const FrameData &frame)
-    {
-        if(frame._pos._t < 0     ||
-           frame._pos.pos.lon < 0|| 
-           frame._img.empty())
-           {
-               PROMT_S("Frame error !");
-               PROMT_S(frame._name);
-               return false; 
-           }
-           else
-           {
-               return true;
-           }
-    }
-    bool PChecker::check(const std::string &str)
-    {
-        return true;
-    }
-
     bool PathChecker::check(const std::string &str)
     {
         //add more
@@ -52,14 +32,14 @@ namespace Position
         return access(path.c_str(),2) != -1;
     }
 
-    bool ResultPosChecker::check(const TrackerItem &item,int index,const BLHCoordinate &blh)
+    bool ResultPosChecker::check(const RstCheckParams &params)
     {
-        assert(item.batch);
-        assert(BLHCoordinate::isValid(item.blh));
-        assert(item.batch->_fmsdata.size() > index);
+        assert(params._itm.batch);
+        assert(BLHCoordinate::isValid(params._rst));
+        assert(params._itm.batch->_fmsdata.size() > params._idx);
 
-        double error1 = cv::norm(PUtils::CalcGaussErr(item.blh,blh));
-        double error2 = cv::norm(PUtils::CalcGaussErr(item.batch->_fmsdata[index]->_pos.pos,blh));
+        double error1 = cv::norm(PUtils::CalcGaussErr(params._itm.blh,params._rst));
+        double error2 = cv::norm(PUtils::CalcGaussErr(params._itm.batch->_fmsdata[params._idx]->_pos.pos,params._rst));
         //暂定  横纵绝对值之和 > 10m为计算无效
         const float er = 10.0;
         if( error1 > er ||
@@ -71,6 +51,7 @@ namespace Position
         {
             return true;
         }
+        return true;
     }
 
 
@@ -82,7 +63,7 @@ namespace Position
     /*
      * 检查
      */
-    bool ResultCheckStrategy::check(const TrackerItem &item,int index, const BLHCoordinate &blh)
+    bool ResultCheckStrategy::check(const RstCheckParams &params)
     {
         //没有检查实例时,默认永真
         if(mRstChks.empty())
@@ -90,7 +71,7 @@ namespace Position
 
         for(auto rst : mRstChks)
         {//遍历检查实例
-            if(!rst->check(item,index,blh))
+            if(!rst->check(params))
             {  
                 return false;
             }
@@ -98,4 +79,11 @@ namespace Position
 
         return true;
     }
+
+    bool FrameChecker::check(const FrameData &item)
+    {
+        PROMTD_S("check frame");
+    }
+
+
 }

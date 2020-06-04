@@ -222,7 +222,7 @@ void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position:
                 continue;
             //read batch name
             char nm[255] = {0};
-            size_t len = 0;
+            int len = 0;
             sscanf(line.c_str(),"%s %d",nm,&len);
 
             spaceLen.at<MATTYPE>(0,3) = 10 * index++;

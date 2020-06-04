@@ -14,7 +14,7 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const CameraParam &cam):mCam(cam)
                    {
-#if 0
+#if 1
                         mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
@@ -41,6 +41,7 @@ namespace Position
 
     bool PMultiVisionTrajProcesser::process(const FrameDataPtrVector &framedatas)
     {
+        LOG_INFO("Use MultiVision Process ...");
         if(framedatas.size() < 2)
         {
             return false;

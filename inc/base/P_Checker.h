@@ -10,14 +10,6 @@
 
 namespace Position
 {
-    //检查基类
-    class PChecker : public IChecker
-    {
-    public:
-        //检查
-        virtual bool check(const FrameData &frame) ;
-        virtual bool check(const std::string &str) ;
-    };
     //路径有效性检测
     class PathChecker
     {
@@ -38,18 +30,38 @@ namespace Position
 
 
     /*
+     *  帧检查
+     */
+    class FrameChecker : public IChecker<FrameData>
+    {
+     public:
+        //检查
+        virtual bool check(const FrameData &item);
+    };
+
+
+    //结果验证参数
+    struct RstCheckParams
+    {
+        const TrackerItem &_itm;    //验证的目标
+        int                _idx;    //验证的帧序号
+        BLHCoordinate      _rst;    //待验证结果
+        RstCheckParams(const TrackerItem &item,int idx, const BLHCoordinate &rst):_itm(item),_idx(idx),_rst(rst){}
+    };
+    /*
      *  结果位置检查
      */
-    class ResultPosChecker : public IResultChecker
+    class ResultPosChecker : public IChecker<RstCheckParams>
     {
     public:
+
         /*
          * 检查结果
          * @param item  跟踪对象
          * @param index 关联帧序号
          * @param blh   检查的结果 
          */
-        virtual bool check(const TrackerItem &item,int index, const BLHCoordinate &blh);
+        virtual bool check(const RstCheckParams &blh);
     };
 
 
@@ -70,7 +82,7 @@ namespace Position
         /*
          * 添加检测策略
          */
-        void addStrategy(const shared_ptr<IResultChecker> &rstcheck)
+        void addStrategy(const shared_ptr<IChecker<RstCheckParams> > &rstcheck)
         {
             mRstChks.emplace_back(rstcheck);
         }
@@ -81,9 +93,9 @@ namespace Position
          * @param index 关联帧序号
          * @param blh   检查的结果 
          */
-        bool check(const TrackerItem &item,int index, const BLHCoordinate &blh);
+        bool check(const RstCheckParams &params);
     protected:
-        std::vector<shared_ptr<IResultChecker> > mRstChks;
+        std::vector<shared_ptr<IChecker<RstCheckParams> > > mRstChks;
     };
 }
 

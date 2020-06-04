@@ -45,12 +45,10 @@ namespace Position
 
         // if(datas.size() < 10)
         // {
-            // LOG_INFO("Use MultiView Traj Process.");
             // mpCurrentTrajPro = mpSimpleTrajPro;
         // }
         // else
         // {
-        //     LOG_INFO("Use Uniform Traj Process.");
         //     mpCurrentTrajPro = mpUniformVTrajPro;
         // }
 

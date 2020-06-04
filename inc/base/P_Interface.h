@@ -293,7 +293,6 @@ namespace Position
         virtual bool position(KeyFrameVector &frame) = 0;       
     };
 
-
     //视觉定位器
     class IVisualPositioner : public IBase
     {
@@ -306,21 +305,6 @@ namespace Position
         virtual void selectFrame(const TrackerItem &item,int &idx1, int &idex2) = 0;
     };
     
-    /*
-     *  结果检查
-     */
-    class IResultChecker : public IBase
-    {
-    public:
-        /*
-         * 检查结果
-         * @param item  跟踪对象
-         * @param index 关联帧序号
-         * @param blh   检查的结果 
-         */
-        virtual bool check(const TrackerItem &item,int index, const BLHCoordinate &blh) = 0;
-    };
-
     // visual interface
     class IViewer : public IBase
     {
@@ -338,12 +322,21 @@ namespace Position
     };
     
     //检查
+    template<typename TYPE>
     class IChecker : public IBase
     {
     public:
         //检查
-        virtual bool check(const FrameData &frame) = 0;
-        virtual bool check(const std::string &str) = 0;
+        virtual bool check(const TYPE &item) = 0;
+    };
+
+    //过滤器
+    template<typename TYPE>
+    class IFilter : public IBase
+    {
+    public:
+        //过滤
+        virtual void doFilter(TYPE &t) = 0;
     };
 
     //特征接口

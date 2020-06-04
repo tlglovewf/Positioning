@@ -59,6 +59,7 @@ namespace Position
     //处理
     bool PUniformVTrajProcesser::process(const FrameDataPtrVector &framedatas) 
         {
+            LOG_INFO("Use UniformV Process ...");
             if(framedatas.size() < 2)
             {
                 return false;
