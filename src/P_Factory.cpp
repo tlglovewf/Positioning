@@ -10,6 +10,7 @@
 #include "P_PangolinViewer.h"
 #include "P_UniformVTrajProcesser.h"
 #include "P_MultiVisionTrajProcesser.h"
+#include "P_SfmVisonTrajProcesser.h"
 
 #include "P_IOHelper.h"
 
@@ -137,6 +138,8 @@ namespace Position
                 return new PUniformVTrajProcesser(pcfg,cam);
             case eTjMultiVision:
                 return new PMultiVisionTrajProcesser(pcfg,cam);
+            case eTjSfmVision:
+                return new PSfmVisonTrajProcesser(pcfg,cam);
             default:
                 return new PTrajProcesser();
         }

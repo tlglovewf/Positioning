@@ -16,6 +16,11 @@ namespace Position
 
         mpSimpleTrajPro     = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjMultiVision, pCfg, cam));
         mpCurrentTrajPro    = eType ? mpSimpleTrajPro : mpUniformVTrajPro;
+
+        if(2 == eType)
+        {
+            mpCurrentTrajPro = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjSfmVision, pCfg, cam));
+        }
     }
 
     bool PoseEstimator::handle(FrameData *fdata)

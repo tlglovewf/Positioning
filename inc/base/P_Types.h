@@ -233,6 +233,11 @@ struct BatchItem
         _poses.reserve(n);
     }
 };
+
+struct ImagePair {
+    size_t pre, cur;
+};
+typedef vector<ImagePair>                   ImagePairVector;
 typedef vector<std::shared_ptr<BatchItem> > PrjBatchVector;
 typedef PrjBatchVector::iterator            PrjBatchVIter;
 
@@ -281,6 +286,7 @@ typedef std::vector<cv::Point2f>            PtVector;
 typedef std::vector<cv::Point3f>            Pt3Vector;
 
 typedef std::vector<cv::DMatch>             MatchVector;
+typedef std::vector<std::vector<MatchVector> > MatchMatrix;
 
 typedef std::vector<size_t>                 SzVector;
 typedef std::vector<u8>                     U8Vector;

@@ -79,7 +79,8 @@ namespace Position
     DEFINEENUM(TrajProcesser)
     {
         eTjUniformSpeed,   //匀速运动模型
-        eTjMultiVision     //多视图场景
+        eTjMultiVision,    //多视图场景
+        eTjSfmVision       //sfm场景 
     };
 
     /*
