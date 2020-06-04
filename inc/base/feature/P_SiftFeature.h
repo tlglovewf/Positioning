@@ -37,7 +37,12 @@ namespace Position
 
          //计算特征点
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
-    
+
+        //获取名称
+        virtual std::string name()const 
+        {
+            return _TOSTRING(SIFT);
+        }
     };
 }
 

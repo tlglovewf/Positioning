@@ -541,7 +541,7 @@ int main(void)
 #ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
 #endif
-    std::shared_ptr<Position::IPoseEstimation>  poseest(Position::PFactory::CreatePoseEstimation(Position::ePoseEstOrb));//  ePoseEstCV));
+    std::shared_ptr<Position::IPoseSolver>  poseest(Position::PFactory::CreatePoseSolver(Position::ePSOrb));//  ePoseEstCV));
     
 
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);

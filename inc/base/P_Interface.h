@@ -345,6 +345,8 @@ namespace Position
     public:
         //计算特征点
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript) = 0;
+        //获取名称
+        virtual std::string name()const = 0;
         //返回sigma参数(主要用于优化 信息矩阵)
         virtual const FloatVector& getSigma2() const = 0;
     };
@@ -360,6 +362,8 @@ namespace Position
         //@param windowsize 搜索过滤范围(像素)
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize) = 0;
 
+        //获取名称
+        virtual std::string name()const = 0;
     };
 
     //跟踪状态
@@ -432,7 +436,7 @@ namespace Position
     };
 
     //位姿推算
-    class IPoseEstimation
+    class IPoseSolver
     {
     public:
         //设置相机参数

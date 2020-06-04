@@ -44,40 +44,25 @@ typedef int L4;
 
 // int (*callback)(void *, int, char **, char **)
 
+
+#define MSG(X) #X
+
+
 int main()
 {
+    cout << MSG(TEST) << endl;
 
-    Mat im = imread("/media/tu/Work/Datas/newdata/0-059377-531-0000301.jpg");
+    // Mat im = imread("/media/tu/Work/Datas/newdata/0-059377-531-0000301.jpg");
     
-    INITGLOBALMASK(im.size());
+    // INITGLOBALMASK(im.size());
 
     
-    SETGLOBALMASK(Rect2i(0,im.rows - 250,im.cols,250));
+    // SETGLOBALMASK(Rect2i(0,im.rows - 250,im.cols,250));
 
-    cout << CHECKMASK(Point2f(500,500)) << endl;
-    cout << CHECKMASK(Point2f(500, im.rows-100)) << endl;
+    // cout << CHECKMASK(Point2f(500,500)) << endl;
+    // cout << CHECKMASK(Point2f(500, im.rows-100)) << endl;
 
-    // const int catlen = 250;
-    // im(Rect2i(0,im.rows - catlen,im.cols,catlen)).setTo(0);
-    // imwrite("/media/tu/Work/Datas/newdata/2.jpg",im);
 
-    // ifstream ifile("/media/tu/Work/Datas/1014-0-08C00001-200524/RawData/IMUData/1014008C00001200524.imu");
-
-    // string line;
-    //   // get length of file:
-    // // ifile.seekg (0, ios::end);
-    // // size_t length = ifile.tellg();
-    // // cout << length << endl;
-    // // ifile.seekg (0, ios::beg);
-
-    // // ifile >> ch8 ;
-
-    // // cout << ch8 << endl;
-
-    // ifile.close();
-    // return 0;
-
-    // cout << FM_T_V << endl;
 
     return -1;
 }

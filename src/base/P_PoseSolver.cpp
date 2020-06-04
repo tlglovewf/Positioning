@@ -1,4 +1,4 @@
-#include "P_PoseEstimation.h"
+#include "P_PoseSolver.h"
 #include "P_Utils.h"
 #include <thread>
 namespace Position
@@ -18,9 +18,9 @@ namespace Position
         }
     };
 
-#pragma region ORBPoseEstimation
+#pragma region ORBPoseSolver
     //计算单应矩阵
-    void ORBPoseEstimation::FindHomography(BolVector &vbInliers, float &score, cv::Mat &H21)
+    void ORBPoseSolver::FindHomography(BolVector &vbInliers, float &score, cv::Mat &H21)
     {
         const int N = mvMatches12.size();
 
@@ -70,7 +70,7 @@ namespace Position
     }
 
     //计算基础矩阵
-    void ORBPoseEstimation::FindFundamental(BolVector &vbInliers, float &score, cv::Mat &F21)
+    void ORBPoseSolver::FindFundamental(BolVector &vbInliers, float &score, cv::Mat &F21)
     {
         // Number of putative matches
         const int N = vbInliers.size();
@@ -121,7 +121,7 @@ namespace Position
         }
     }
 
-    float ORBPoseEstimation::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVector &vbMatchesInliers, float sigma)
+    float ORBPoseSolver::CheckHomography(const cv::Mat &H21, const cv::Mat &H12, BolVector &vbMatchesInliers, float sigma)
     {
         const int N = mvMatches12.size();
 
@@ -206,7 +206,7 @@ namespace Position
         return score;
     }
 
-    float ORBPoseEstimation::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInliers, float sigma)
+    float ORBPoseSolver::CheckFundamental(const cv::Mat &F21, BolVector &vbMatchesInliers, float sigma)
     {
         const int N = mvMatches12.size();
 
@@ -287,7 +287,7 @@ namespace Position
         return score;
     }
 
-    void ORBPoseEstimation::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
+    void ORBPoseSolver::Normalize(const KeyPtVector &vKeys, vector<cv::Point2f> &vNormalizedPoints, cv::Mat &T)
     {
         float meanX = 0;
         float meanY = 0;
@@ -337,7 +337,7 @@ namespace Position
 
 
 
-    int ORBPoseEstimation::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &vKeys1, const KeyPtVector &vKeys2,
+    int ORBPoseSolver::CheckRT(const cv::Mat &R, const cv::Mat &t, const KeyPtVector &vKeys1, const KeyPtVector &vKeys2,
                                     const MatchPairs &vMatches12, BolVector &vbMatchesInliers,
                                     const cv::Mat &K, Pt3Vector &vP3D, float th2, BolVector &vbGood, float &parallax)
     {
@@ -450,7 +450,7 @@ namespace Position
     }
 
     //从基础矩阵恢复位姿
-    bool ORBPoseEstimation::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
+    bool ORBPoseSolver::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
                   cv::Mat &R21, cv::Mat &t21, Pt3Vector &vP3D, BolVector &vbTriangulated, float minParallax, int minTriangulated)
     {
         int N=0;
@@ -562,7 +562,7 @@ namespace Position
     }
 
     //从单应矩阵恢复位姿
-    bool ORBPoseEstimation::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,
+    bool ORBPoseSolver::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,
                   cv::Mat &R21, cv::Mat &t21, Pt3Vector &vP3D, BolVector &vbTriangulated, float minParallax, int minTriangulated)
     {
         int N=0;
@@ -726,7 +726,7 @@ namespace Position
     }
 
     //单应矩阵计算
-    cv::Mat ORBPoseEstimation::ComputeH21(const PtVector&vP1, const PtVector &vP2)
+    cv::Mat ORBPoseSolver::ComputeH21(const PtVector&vP1, const PtVector &vP2)
     {
         const int N = vP1.size();
 
@@ -768,7 +768,7 @@ namespace Position
     }
 
     //基础矩阵计算
-    cv::Mat ORBPoseEstimation::ComputeF21(const PtVector &vP1, const PtVector &vP2)
+    cv::Mat ORBPoseSolver::ComputeF21(const PtVector &vP1, const PtVector &vP2)
     {
         const int N = vP1.size();
 
@@ -806,7 +806,7 @@ namespace Position
     }
 
     //分解
-    void ORBPoseEstimation::DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat &t)
+    void ORBPoseSolver::DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat &t)
     {
         cv::Mat u,w,vt;
         cv::SVD::compute(E,w,u,vt);
@@ -824,7 +824,7 @@ namespace Position
             R2=-R2;
     } 
 
-    void ORBPoseEstimation::initParams(const MatchVector &matches)
+    void ORBPoseSolver::initParams(const MatchVector &matches)
     {
         if(matches.empty())
             return;
@@ -872,7 +872,7 @@ namespace Position
     }
 
     //估计
-    bool ORBPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
+    bool ORBPoseSolver::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
     {
           assert(mPre && mCur);
         bool bol = false;
@@ -888,8 +888,8 @@ namespace Position
             float SH, SF;
             cv::Mat H, F;
 
-            // thread threadH(&ORBPoseEstimation::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
-            thread threadF(&ORBPoseEstimation::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
+            // thread threadH(&ORBPoseSolver::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
+            thread threadF(&ORBPoseSolver::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
 
             // Wait until both threads have finished
             // threadH.join();
@@ -950,10 +950,10 @@ namespace Position
 
 #pragma endregion 
 
-#pragma region CVPoseEstimation
+#pragma region CVPoseSolver
 
     //推算位姿
-    bool CVPoseEstimation::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
+    bool CVPoseSolver::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
     {
         initParams(matches);
         if(mPrePts.empty() || (mPrePts.size() != mCurPts.size()))
@@ -1018,7 +1018,7 @@ namespace Position
     }
 
     //初始化
-    void CVPoseEstimation::initParams(const MatchVector &matches)
+    void CVPoseSolver::initParams(const MatchVector &matches)
     {
         if(matches.empty())
             return;

@@ -18,7 +18,11 @@ namespace Position
         PFeatureMatcher(float fratio,bool bcheckori = true):mbCheckOrientation(true),mfNNratio(fratio){}
         //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
-        
+        //获取名称
+        virtual std::string name()const 
+        {
+            return _TOSTRING(HANMING);
+        }
     protected:
         bool    mbCheckOrientation;
         float   mfNNratio;
@@ -32,7 +36,11 @@ namespace Position
 
           //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
-
+        //获取名称
+        virtual std::string name()const 
+        {
+            return _TOSTRING(KNN);
+        }
     protected:
         cv::Ptr<DescriptorMatcher> mMatcher;
     };

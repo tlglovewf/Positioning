@@ -58,7 +58,7 @@ find_package(OpenCV 3.0 REQUIRED)
 if(NOT OpenCV_FOUND)
    message(FATAL_ERROR "OpenCV 3.0 not found.")
    find_package(OpenCV 2.4.3 REQUIRED)
-   if(NOT OpenCV_FOUND)
+   if(NOT OpenCV_FOUND) 
       message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
    endif()
 else()
@@ -84,7 +84,7 @@ if (USE_VIEWER)
    add_definitions("-DUSE_VIEW")
 endif()
 
-FILE(GLOB_RECURSE SRC_LIST_CPP ${PROJECT_SOURCE_DIR}/src/*.cpp)
+FILE(GLOB_RECURSE SRC_LIST_CPP ${PROJECT_SOURCE_DIR}/src/*.cpp) 
 
 # recurrence include directories
 function(include_sub_directories_recursively root_dir)

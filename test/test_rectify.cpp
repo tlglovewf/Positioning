@@ -10,7 +10,7 @@ int main(void)
     std::shared_ptr<Position::IData>                pdata(new Position::NewHwProjectData(pcfg));
     std::shared_ptr<Position::IFeature>             pfeature(Position::PFactory::CreateFeature(Position::eFeatureSift,pcfg));
     std::shared_ptr<Position::IFeatureMatcher>      pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
-    std::shared_ptr<Position::IPoseEstimation>      ppose(Position::PFactory::CreatePoseEstimation(Position::ePoseEstCV));
+    std::shared_ptr<Position::IPoseSolver>          ppose(Position::PFactory::CreatePoseSolver(Position::ePSCv));
 
     SETGLOBALCONFIG(pcfg);
     if(pdata->loadDatas())

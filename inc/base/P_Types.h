@@ -42,9 +42,9 @@ namespace Position
 #endif
 
 //log info marco define 
-#define _RECORD_STR(a)              #a
-#define _RECORD_FILE(a)             __FILE__   "(" _RECORD_STR(a) ") : "
-#define _RECORD_LOG(a)              _RECORD_FILE(__LINE__) _RECORD_STR(a)
+#define _TOSTRING(a)              #a
+#define _RECORD_FILE(a)             __FILE__   "(" _TOSTRING(a) ") : "
+#define _RECORD_LOG(a)              _RECORD_FILE(__LINE__) _TOSTRING(a)
 #define _RECORD_TIME_LOG()          _RECORD_FILE(__LINE__) __TIME__
 #define _DATE_LOG_()                __DATE__
 #define _DATE_TIME_LOG()            __TIMESTAMP__

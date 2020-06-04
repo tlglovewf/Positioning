@@ -41,10 +41,10 @@ namespace Position
     /*
      * 位姿估算
      */
-    DEFINEENUM(PoseEstimation)
+    DEFINEENUM(PoseSolver)
     {
-        ePoseEstOrb,
-        ePoseEstCV
+        ePSOrb,
+        ePSCv
     };
 
     /*
@@ -120,7 +120,7 @@ namespace Position
         /*
          * 位姿推算
          */
-        DEFINEFUNC(PoseEstimation)
+        DEFINEFUNC(PoseSolver)
 
         /*
          * 优化

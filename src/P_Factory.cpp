@@ -1,7 +1,7 @@
 #include "P_Factory.h"
 #include "P_BlockMatcher.h"
 #include "P_ORBFeature.h"
-#include "P_PoseEstimation.h"
+#include "P_PoseSolver.h"
 #include "P_Optimizer.h"
 #include "P_Positioner.h"
 #include "P_FeatureMatcher.h"
@@ -42,8 +42,6 @@ namespace Position
         {
             case eFeatureOrb:
                 return new ORBFeature(pcfg);
-            case eFeatureCVOrb:
-                return new PCVORBFeature(pcfg);
             case eFeatureSift:
                 return new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int));
             default:
@@ -54,14 +52,14 @@ namespace Position
     /*
      * 创建位姿推算
      */
-    IPoseEstimation* PFactory::CreatePoseEstimation(ePoseEstimationType type)
+    IPoseSolver* PFactory::CreatePoseSolver(ePoseSolverType type)
     {
         switch(type)
         {
-            case ePoseEstOrb:
-                return new ORBPoseEstimation();
-            case ePoseEstCV:
-                return new CVPoseEstimation();
+            case ePSOrb:
+                return new ORBPoseSolver();
+            case ePSCv:
+                return new CVPoseSolver();
             default:
                 {
                     assert(NULL);

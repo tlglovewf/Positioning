@@ -15,16 +15,21 @@ public:
     //计算特征点
     virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
 
-    void detect(const Mat &img, KeyPtVector &keypts);
-
-    void compute(const Mat &img, KeyPtVector &keypts, Mat &des);
-
     //返回sigma参数(主要用于优化 信息矩阵)
     virtual const FloatVector& getSigma2() const 
     {
         return mSigmaVector;
     }
+    //获取名称
+    virtual std::string name()const 
+    {
+        return _TOSTRING(Uniform);
+    }
 protected:
+    void detect(const Mat &img, KeyPtVector &keypts);
+
+    void compute(const Mat &img, KeyPtVector &keypts, Mat &des);
+
     void createQuadTree(KeyPtVector &keypts);
 
     KeyPtVector distributeQuadTree(const KeyPtVector& vToDistributeKeys, const int &minX,

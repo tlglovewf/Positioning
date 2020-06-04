@@ -4,17 +4,17 @@
  *   add by tu li gen   2020.2.17
  * 
  */
-#ifndef __PPOSEESTIMATION_H_H_
-#define __PPOSEESTIMATION_H_H_
+#ifndef __POSESOLVER_H_H_
+#define __POSESOLVER_H_H_
 #include "P_Interface.h"
 
 namespace Position
 {
     //位姿推算
-    class PPoseEstimation : public IPoseEstimation
+    class PPoseSolver : public IPoseSolver
     {
     public:
-        PPoseEstimation():mPre(NULL),mCur(NULL){}
+        PPoseSolver():mPre(NULL),mCur(NULL){}
          //设置相机参数
         virtual void setCamera(const CameraParam &cam) 
         {
@@ -47,7 +47,7 @@ namespace Position
     };
 
     //cv接口推算位姿
-    class CVPoseEstimation : public PPoseEstimation
+    class CVPoseSolver : public PPoseSolver
     {
     public:
          //推算位姿
@@ -62,12 +62,12 @@ namespace Position
         PtVector mCurPts;
     };
 
-    // 位姿推算
-    class ORBPoseEstimation : public PPoseEstimation
+    //ORBSLAM中 位姿推算
+    class ORBPoseSolver : public PPoseSolver
     {
     public:
         //构造
-        ORBPoseEstimation():mMaxIterations(400),mSigma(2.0),mSigma2(mSigma*mSigma){}
+        ORBPoseSolver():mMaxIterations(400),mSigma(2.0),mSigma2(mSigma*mSigma){}
 
          //推算位姿
         virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts);
