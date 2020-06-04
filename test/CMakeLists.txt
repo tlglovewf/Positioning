@@ -25,3 +25,8 @@ target_link_libraries(test_newdata ${Positioning})
 add_executable(test_weiya
 ${Positioning_SOURCE_DIR}/test/test_weiya.cpp)
 target_link_libraries(test_weiya ${Positioning})
+
+
+add_executable(test_sfm
+${Positioning_SOURCE_DIR}/test/test_sfm.cpp)
+target_link_libraries(test_sfm ${Positioning})
