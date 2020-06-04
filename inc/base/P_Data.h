@@ -12,15 +12,15 @@ namespace Position
 {
 
     //数据对象
-    class PData : public IData
+    class PFrameData : public IFrameData
     {
     public:
-        PData(const std::shared_ptr<IConfig> &pcfg):mpCfg(pcfg)
+        PFrameData(const std::shared_ptr<IConfig> &pcfg):mpCfg(pcfg)
         {
             //add more
         }
 
-        ~PData()
+        ~PFrameData()
         {
            clear();
         }

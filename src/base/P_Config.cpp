@@ -37,12 +37,12 @@ namespace Position
                       PosPath(""),
                       OutPath(""),
                       ViewEnable(1),
-                      ViewerW(0),
-                      ViewerH(0),
-                      ViewptX(0),
-                      ViewptY(0),
-                      ViewptZ(0),
-                      ViewptF(0),
+                    //   ViewerW(0),
+                    //   ViewerH(0),
+                    //   ViewptX(0),
+                    //   ViewptY(0),
+                    //   ViewptZ(0),
+                    //   ViewptF(0),
                       MapSave(0),
                       InitializationMode(0),
                       InitImgLength(0),
@@ -70,12 +70,12 @@ namespace Position
         PUSH_MAP(PosPath);
         PUSH_MAP(OutPath);
         PUSH_MAP(ViewEnable);
-        PUSH_MAP(ViewerW);
-        PUSH_MAP(ViewerH);
-        PUSH_MAP(ViewptX);
-        PUSH_MAP(ViewptY);
-        PUSH_MAP(ViewptZ);
-        PUSH_MAP(ViewptF);
+        // PUSH_MAP(ViewerW);
+        // PUSH_MAP(ViewerH);
+        // PUSH_MAP(ViewptX);
+        // PUSH_MAP(ViewptY);
+        // PUSH_MAP(ViewptZ);
+        // PUSH_MAP(ViewptF);
         PUSH_MAP(MapSave);
         PUSH_MAP(InitializationMode);
         PUSH_MAP(InitImgLength);
@@ -129,12 +129,12 @@ namespace Position
             READ_VALUE(PosPath);
             READ_VALUE(OutPath);
             READ_VALUE(ViewEnable);
-            READ_VALUE(ViewerW);
-            READ_VALUE(ViewerH);
-            READ_VALUE(ViewptX);
-            READ_VALUE(ViewptY);
-            READ_VALUE(ViewptZ);
-            READ_VALUE(ViewptF);
+            // READ_VALUE(ViewerW);
+            // READ_VALUE(ViewerH);
+            // READ_VALUE(ViewptX);
+            // READ_VALUE(ViewptY);
+            // READ_VALUE(ViewptZ);
+            // READ_VALUE(ViewptF);
             READ_VALUE(MapSave);
             READ_VALUE(InitializationMode);
             READ_VALUE(InitImgLength);

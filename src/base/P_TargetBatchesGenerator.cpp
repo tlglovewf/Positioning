@@ -4,7 +4,7 @@
 
 namespace Position
 {
-    PrjBatchVector TargetBatchesGenerator::generate(const std::shared_ptr<IData> &pdata,
+    PrjBatchVector TargetBatchesGenerator::generate(const std::shared_ptr<IFrameData> &pdata,
                                                     TrackerItemVector      &trackitems)
     {
         PrjBatchVector batches;

@@ -10,13 +10,13 @@ int main(int argv, char **argc)
 
     std::shared_ptr<Position::IConfig> pCfg(new WeiyaConfig("../config/config_weiya.yaml"));
 
-    std::shared_ptr<Position::IData>   pData(new WeiyaData(pCfg));
+    std::shared_ptr<Position::IFrameData>   pData(new WeiyaData(pCfg));
 
     LOG_INITIALIZE(pCfg);
     SETGLOBALCONFIG(pCfg);
     SETCFGVALUE(pCfg,ViewEnable,1);
 
-    PMapDisplay mapDisplay(pData,pCfg,2);
+    Position::PMapDisplay mapDisplay(pData,pCfg,2);
     mapDisplay.run();
 // #endif
     return 0;

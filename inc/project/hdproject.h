@@ -27,7 +27,7 @@ class HdConfig : public Position::PConfig
 
 };
 
-class HdData : public Position::PData
+class HdData : public Position::PFrameData
 {
 public:
     HdData(const std::shared_ptr<Position::IConfig> &pcfg);

@@ -42,12 +42,6 @@ MaskEnable: 0
 
 #Visualization
 ViewEnable: 0
-ViewerW:    1080
-ViewerH:    768
-ViewptX:    0
-ViewptY:    -10
-ViewptZ:    -0.1
-ViewptF:    800
 
 #ISerialization
 MapSave: 0

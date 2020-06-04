@@ -122,7 +122,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     Position::PrjBatchVIter it = batches.begin();
     Position::PrjBatchVIter ed = batches.end();
 
-    std::shared_ptr<Position::IData> pData(new HdData(pCfg));
+    std::shared_ptr<Position::IFrameData> pData(new HdData(pCfg));
 
     std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData->getCamera()));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
@@ -270,17 +270,17 @@ int main(void)
 
 #if WEIYA
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<WeiyaConfig>("../config/config_weiya.yaml"); 
-    std::shared_ptr<Position::IData> pData(new WeiyaData(pCfg));
+    std::shared_ptr<Position::IFrameData> pData(new WeiyaData(pCfg));
 #else
     std::shared_ptr<Position::IConfig> pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
-    std::shared_ptr<Position::IData> pData(new HdData(pCfg));
+    std::shared_ptr<Position::IFrameData> pData(new HdData(pCfg));
 #endif
 
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
     if(!sempath.empty())
     {
-        SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
-        SemanticGraph::Instance()->setSemanticPath(sempath);
+        Position::SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
+        Position::SemanticGraph::Instance()->setSemanticPath(sempath);
     }
 
     // MapDisplay(pCfg);
@@ -292,7 +292,7 @@ int main(void)
     // DisplayBatchResult("", pCfg);
 
 #if USECONTROLLER
-    std::unique_ptr<PMapDisplay> system(new PMapDisplay(pData,pCfg));
+    std::unique_ptr<Position::PMapDisplay> system(new Position::PMapDisplay(pData,pCfg));
 
     Position::Time_Interval t;
     t.start();

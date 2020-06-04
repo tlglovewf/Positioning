@@ -162,14 +162,16 @@ namespace Position
         StringConfigParam   OutPath;        //输出路径
         //可视化参数
         IntConfigParam      ViewEnable;     //是否使用可视化
-        IntConfigParam      ViewerW;        //可视窗口宽
-        IntConfigParam      ViewerH;        //可视窗口高
-        FloatConfigParam    ViewptX;
-        FloatConfigParam    ViewptY;
-        FloatConfigParam    ViewptZ;
-        FloatConfigParam    ViewptF;        //视距
+        //暂时注释掉  add by tu  2020.6.4
+        // IntConfigParam      ViewerW;        //可视窗口宽
+        // IntConfigParam      ViewerH;        //可视窗口高
+        // FloatConfigParam    ViewptX;
+        // FloatConfigParam    ViewptY;
+        // FloatConfigParam    ViewptZ;
+        // FloatConfigParam    ViewptF;        //视距
 
         IntConfigParam      MapSave;        //地圖保存
+
         //add more ...
 
     };

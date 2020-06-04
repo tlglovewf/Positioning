@@ -6,8 +6,8 @@
 
 int main(void)
 {
-    std::shared_ptr<Position::IConfig>              pcfg(new Position::ImgAutoConfig("../config/config_new.yaml"));
-    std::shared_ptr<Position::IData>                pdata(new Position::NewHwProjectData(pcfg));
+    std::shared_ptr<Position::IConfig>              pcfg(new ImgAutoConfig("../config/config_new.yaml"));
+    std::shared_ptr<Position::IFrameData>           pdata(new NewHwProjectData(pcfg));
     std::shared_ptr<Position::IFeature>             pfeature(Position::PFactory::CreateFeature(Position::eFeatureSift,pcfg));
     std::shared_ptr<Position::IFeatureMatcher>      pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
     std::shared_ptr<Position::IPoseSolver>          ppose(Position::PFactory::CreatePoseSolver(Position::ePSCv));

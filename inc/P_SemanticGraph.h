@@ -11,154 +11,156 @@
 #include "P_Checker.h"
 #include "P_IOHelper.h"
 #include "P_Mask.h"
-//动态物体
-class SemanticGraph
+namespace Position
 {
-public:
-    typedef map<std::string, cv::Vec3b> Item;
-    typedef Item::const_iterator        ItemIter;
-
-    const std::string defaultsuffix = "png";
-
-    //是否可用
-    inline bool isEnabled()const
+    //动态物体
+    class SemanticGraph
     {
-        return !mObjs.empty();
-    }
+    public:
+        typedef map<std::string, cv::Vec3b> Item;
+        typedef Item::const_iterator ItemIter;
 
-    //设置语义路径
-    inline void setSemanticPath(const std::string &path)
-    {
-        mPath = path;
-    }
+        const std::string defaultsuffix = "png";
 
-    //单例
-    static SemanticGraph* Instance()
-    {
-        static SemanticGraph instance;
-        return &instance;
-    }
-    //加载
-    void loadObjInfos(const std::string &path)
-    {
-        if(!PATHCHECK(path))
+        //是否可用
+        inline bool isEnabled() const
         {
-            LOG_ERROR("Semantice image path error!!!")
+            return !mObjs.empty();
         }
-        try
-        {
-            ifstream segfile;
-            segfile.open(path);
 
-            if(segfile.is_open())
+        //设置语义路径
+        inline void setSemanticPath(const std::string &path)
+        {
+            mPath = path;
+        }
+
+        //单例
+        static SemanticGraph *Instance()
+        {
+            static SemanticGraph instance;
+            return &instance;
+        }
+        //加载
+        void loadObjInfos(const std::string &path)
+        {
+            if (!PATHCHECK(path))
             {
-                LOG_INFO("Begin to load Semantice object infos ...");
-                while(!segfile.eof())
-                {
-                    std::string str;
-                    getline(segfile,str);
-                    trimString(str);//去首尾空格
-                    if(str.empty() || str[0] == '#')
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        int s = str.find_first_of(":");
-                        int v = str.find_first_of("#");//剔除注释
-                        string name = str.substr(0,s);
-                        string result = str.substr(s+1,(v - s)-1);
-                        trimString(result);
-                        int r,g,b;
-                        sscanf( result.c_str(), "%d, %d, %d",&r,&g,&b);
-                        //opencv default bgr
-                        cv::Vec3b vv(b,g,r);
-                        mObjs.insert(std::make_pair(name,vv));
-                    }
-                }
-                LOG_INFO("End.");
+                LOG_ERROR("Semantice image path error!!!")
             }
-            segfile.close();
+            try
+            {
+                ifstream segfile;
+                segfile.open(path);
+
+                if (segfile.is_open())
+                {
+                    LOG_INFO("Begin to load Semantice object infos ...");
+                    while (!segfile.eof())
+                    {
+                        std::string str;
+                        getline(segfile, str);
+                        trimString(str); //去首尾空格
+                        if (str.empty() || str[0] == '#')
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            int s = str.find_first_of(":");
+                            int v = str.find_first_of("#"); //剔除注释
+                            string name = str.substr(0, s);
+                            string result = str.substr(s + 1, (v - s) - 1);
+                            trimString(result);
+                            int r, g, b;
+                            sscanf(result.c_str(), "%d, %d, %d", &r, &g, &b);
+                            //opencv default bgr
+                            cv::Vec3b vv(b, g, r);
+                            mObjs.insert(std::make_pair(name, vv));
+                        }
+                    }
+                    LOG_INFO("End.");
+                }
+                segfile.close();
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << '\n';
+            }
         }
-        catch(const std::exception& e)
+
+        //是否为动态物体
+        bool isDyobj(const Point2f &pt, const std::string &name)
         {
-            std::cerr << e.what() << '\n';
+            // if(!CHECKMASK(pt))
+            //     return true;
+
+            if (!isEnabled())
+                return false;
+
+            if (mCurSem.first != name)
+            {
+                mCurSem.first = name;
+                string str = name;
+                Position::PUtils::ReplaceFileSuffix(str, "jpg", defaultsuffix);
+                mCurSem.second = imread(mPath + str);
+            }
+            else if (mCurSem.second.empty())
+            {
+                // PROMT_S("CUR SEM IMAGE EMPTY");
+                return false;
+            }
+            else
+            {
+                ;
+            }
+            return isDynamicObj(pt, mCurSem.second);
         }
-    }
 
-    //是否为动态物体
-    bool isDyobj(const Point2f &pt, const std::string &name)
-    {
-        // if(!CHECKMASK(pt))
-        //     return true;
+        //是否为动态物体
+        bool isDynamicObj(const Point2f &pt, const Mat &seimg)
+        {
+            if (seimg.empty())
+            {
+                PROMTD_S("NO SEM IMAGE");
+                return false;
+            }
+            cv::Vec3b clr = seimg.at<Vec3b>(pt);
 
-        if(!isEnabled())
+            ItemIter it = mObjs.begin();
+            ItemIter ed = mObjs.end();
+
+            for (; it != ed; ++it)
+            {
+                if (it->second == clr)
+                {
+                    return true;
+                }
+            }
             return false;
-
-        if(mCurSem.first != name)
-        {
-            mCurSem.first = name;
-            string str = name;
-            Position::PUtils::ReplaceFileSuffix(str,"jpg",defaultsuffix);
-            mCurSem.second = imread(mPath + str);
         }
-        else if(mCurSem.second.empty())
+
+    protected:
+        //剔除前后空格
+        void trimString(std::string &str)
         {
-            // PROMT_S("CUR SEM IMAGE EMPTY");
-            return false;
+            if (str.empty())
+                return;
+            int s = str.find_first_not_of(" ");
+            int e = str.find_last_not_of(" ");
+
+            if (s == string::npos ||
+                e == string::npos)
+                return;
+
+            str = str.substr(s, e - s + 1);
         }
-        else
-        {
-            ;
-        }
-        return isDynamicObj(pt,mCurSem.second);   
-    }
 
-    //是否为动态物体
-    bool isDynamicObj(const Point2f &pt,const Mat &seimg)
-    {
-        if(seimg.empty())
-        {
-            PROMTD_S("NO SEM IMAGE");
-            return false;
-        }
-       cv::Vec3b clr = seimg.at<Vec3b>(pt);
-
-       ItemIter it = mObjs.begin();
-       ItemIter ed = mObjs.end();
-
-       for(; it != ed ;++it)
-       {
-           if(it->second == clr)
-           {
-               return true;
-           }
-               
-       }
-       return false;
-    }
-
-protected:
-    //剔除前后空格
-    void trimString(std::string & str )
-    {
-        if(str.empty())
-            return;
-        int s = str.find_first_not_of(" ");
-        int e = str.find_last_not_of(" ");
-
-        if( s == string::npos || 
-            e == string::npos)
-            return;
-
-        str = str.substr(s,e-s+1);
-    }
-    
-protected:
-    map<std::string, cv::Vec3b> mObjs;
-    map<std::string, cv::Mat>   mSemImg;
-    pair<std::string,cv::Mat>   mCurSem;
-    std::string                 mPath;
-};
+    protected:
+        map<std::string, cv::Vec3b> mObjs;
+        map<std::string, cv::Mat> mSemImg;
+        pair<std::string, cv::Mat> mCurSem;
+        std::string mPath;
+    };
+} // namespace Position
 
 #endif

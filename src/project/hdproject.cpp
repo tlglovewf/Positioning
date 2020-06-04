@@ -39,7 +39,7 @@ void HdConfig::loadmore()
 }
 
     
-HdData::HdData(const std::shared_ptr<Position::IConfig> &pcfg):PData(pcfg)
+HdData::HdData(const std::shared_ptr<Position::IConfig> &pcfg):PFrameData(pcfg)
 {
     assert(dynamic_cast<HdConfig*>(pcfg.get()));
     float fx = GETCFGVALUE(pcfg,HdCamFx,float);

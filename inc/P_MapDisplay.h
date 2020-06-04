@@ -10,38 +10,40 @@
 #include "P_PoseEstimator.h"
 #include <thread>
 
-//轨迹地图处理  仅为调试测试
-class PMapDisplay
+namespace Position
 {
-public:
-    //构造函数 
-    //@param eTjtype  1 multi  0 uniform
-    //@param useThread display in thread
-    PMapDisplay(const shared_ptr<Position::IData> &pdata,
-                const shared_ptr<Position::IConfig> &pcfg,
-                int  eTjtype = 1,
-                bool useThread = true);
-    //构造函数,直接可视化轨迹
-    PMapDisplay(const shared_ptr<Position::IConfig> &pcfg,
-                const shared_ptr<Position::IMap> &pmap);
-    //运行 轨迹处理 
-    void run();
+    //轨迹地图处理  仅为调试测试
+    class PMapDisplay
+    {
+    public:
+        //构造函数
+        //@param eTjtype  1 multi  0 uniform
+        //@param useThread display in thread
+        PMapDisplay(const shared_ptr<Position::IFrameData> &pdata,
+                    const shared_ptr<Position::IConfig> &pcfg,
+                    int eTjtype = 1,
+                    bool useThread = true);
+        //构造函数,直接可视化轨迹
+        PMapDisplay(const shared_ptr<Position::IConfig> &pcfg,
+                    const shared_ptr<Position::IMap> &pmap);
+        //运行 轨迹处理
+        void run();
 
-protected:
-    //输出
-    void saveResult();
+    protected:
+        //输出
+        void saveResult();
 
-protected:
-    bool                                        mbUseThread;
-    std::shared_ptr<Position::IConfig>          mpConfig;
-    std::shared_ptr<Position::IData>            mpData;
-#ifdef USE_VIEW
-    std::shared_ptr<Position::IViewer>          mpViewer;
-#endif
-    std::unique_ptr<Position::PoseEstimator>    mpTrajProSelector;
-    std::unique_ptr<Position::IGpsFusion>       mpGpsFunsion;
+    protected:
+        bool mbUseThread;
+        std::shared_ptr<Position::IConfig> mpConfig;
+        std::shared_ptr<Position::IFrameData> mpData;
+    #ifdef USE_VIEW
+        std::shared_ptr<Position::IViewer> mpViewer;
+    #endif
+        std::unique_ptr<Position::PoseEstimator> mpTrajProSelector;
+        std::unique_ptr<Position::IGpsFusion> mpGpsFunsion;
 
-    std::unique_ptr<std::thread>                mptViewer; 
-};
-
+        std::unique_ptr<std::thread> mptViewer;
+    };
+} // namespace Position
 #endif

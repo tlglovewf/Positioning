@@ -204,7 +204,7 @@ namespace Position
 
     
     // data interface
-    class IData : public IBase
+    class IFrameData : public IBase
     {
     public:
         //预处理数据        
@@ -258,7 +258,7 @@ namespace Position
     {
     public:
         //生成批处理对象
-        virtual PrjBatchVector generate(const std::shared_ptr<IData> &pdata,TrackerItemVector &trackers) = 0;
+        virtual PrjBatchVector generate(const std::shared_ptr<IFrameData> &pdata,TrackerItemVector &trackers) = 0;
     };
 
 

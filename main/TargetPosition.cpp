@@ -34,12 +34,12 @@ int main(int argc, char **argv)
 
     PROMTD_V("Config Path",cfgpath.c_str());
 
-    std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig(cfgpath)); 
+    std::shared_ptr<Position::IConfig> pCfg(new ImgAutoConfig(cfgpath)); 
     LOG_INITIALIZE(pCfg)
     SETGLOBALCONFIG(pCfg)
     SETCFGVALUE(pCfg,PrjPath,prjpath);
     SETCFGVALUE(pCfg,CamMatrixPath,string(prjpath + "config/extrinsics.xml"));
-    std::shared_ptr<Position::IData>   pData(new Position::ImgAutoData(pCfg));
+    std::shared_ptr<Position::IFrameData>   pData(new ImgAutoData(pCfg));
 
     if(!pData->loadDatas())
     {

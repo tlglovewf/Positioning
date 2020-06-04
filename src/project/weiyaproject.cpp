@@ -17,7 +17,7 @@ void WeiyaConfig::loadmore()
 }
 
 
-WeiyaData::WeiyaData(const std::shared_ptr<Position::IConfig> &pcfg):Position::PData(pcfg)
+WeiyaData::WeiyaData(const std::shared_ptr<Position::IConfig> &pcfg):Position::PFrameData(pcfg)
 {
     assert(dynamic_cast<WeiyaConfig*>(pcfg.get()));
     const std::string expath = GETCFGVALUE(pcfg,ExtriPath,string);

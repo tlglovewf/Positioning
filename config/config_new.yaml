@@ -6,8 +6,8 @@
 
 
 #util info
-StNo: 20360
-EdNo: 20460
+StNo: 800  #20360
+EdNo: 900  #20460
 
 #camera param
 ImgWd:  1920
@@ -42,12 +42,6 @@ MaskEnable: 0
 
 #Visualization
 ViewEnable: 1
-ViewerW:    1080
-ViewerH:    768
-ViewptX:    0
-ViewptY:    -10
-ViewptZ:    -0.1
-ViewptF:    800
 
 #ISerialization
 MapSave: 0

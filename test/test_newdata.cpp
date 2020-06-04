@@ -13,9 +13,9 @@ int main(int argv, char **argc)
     //     return -1;
     // }
 
-    std::shared_ptr<Position::IConfig> pCfg(new Position::ImgAutoConfig("../config/config_new.yaml"));
+    std::shared_ptr<Position::IConfig> pCfg(new ImgAutoConfig("../config/config_new.yaml"));
 
-    std::shared_ptr<Position::IData>   pData(new Position::NewHwProjectData(pCfg));
+    std::shared_ptr<Position::IFrameData>   pData(new NewHwProjectData(pCfg));
 
     LOG_INITIALIZE(pCfg);
     SETGLOBALCONFIG(pCfg);
@@ -32,7 +32,7 @@ int main(int argv, char **argc)
     const int mklen = 250;
     SETGLOBALMASK(Rect2i(0,height - mklen,width,mklen));
 
-    PMapDisplay mapDisplay(pData,pCfg,1);
+    Position::PMapDisplay mapDisplay(pData,pCfg,1);
     mapDisplay.run();
 
 #else

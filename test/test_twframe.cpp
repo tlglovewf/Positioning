@@ -305,7 +305,7 @@ Mat GernerateMask(const string &sempath,const string &segim, Rect rect)
     return maskim;
 }
 
-void SelectFrameData(const std::shared_ptr<Position::IData> &pdata, Position::FrameData &predata, Position::FrameData &curdata)
+void SelectFrameData(const std::shared_ptr<Position::IFrameData> &pdata, Position::FrameData &predata, Position::FrameData &curdata)
 {
    predata = **pdata->begin();
    curdata = **(pdata->begin() + 2);
@@ -531,7 +531,7 @@ int main(void)
     SemanticGraph::Instance()->loadObjInfos("segraph.config");
 
     std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
-    std::shared_ptr<Position::IData>    pData(new HdData(pCfg));
+    std::shared_ptr<Position::IFrameData>    pData(new HdData(pCfg));
     std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
 
     //new PUniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);

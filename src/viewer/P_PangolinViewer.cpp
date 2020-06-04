@@ -8,8 +8,8 @@ namespace Position
     //构造函数
     Pangolin_Viewer::Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg) : mCfg(pCfg), mbInit(false), mbRender(false)
     {
-        mWinW = GETCFGVALUE(mCfg, ViewerW, int);
-        mWinH = GETCFGVALUE(mCfg, ViewerH, int);
+        mWinW = 1080;   //GETCFGVALUE(mCfg, ViewerW, int);
+        mWinH = 768;    //GETCFGVALUE(mCfg, ViewerH, int);
         mFrameViewer = std::unique_ptr<PFrameViewer>(new PFrameViewer());
     }
     
@@ -31,10 +31,10 @@ namespace Position
 
         menuPanel.SetLayout(pangolin::LayoutEqualHorizontal);
 
-        mViewF = GETCFGVALUE(mCfg, ViewptF, float);
-        mViewX = GETCFGVALUE(mCfg, ViewptX, float);
-        mViewY = GETCFGVALUE(mCfg, ViewptY, float);
-        mViewZ = GETCFGVALUE(mCfg, ViewptZ, float);
+        mViewF = 800;   //GETCFGVALUE(mCfg, ViewptF, float);
+        mViewX = 0;     //GETCFGVALUE(mCfg, ViewptX, float);
+        mViewY = -10;   //GETCFGVALUE(mCfg, ViewptY, float);
+        mViewZ = -0.1;  //GETCFGVALUE(mCfg, ViewptZ, float);
 
         mCam = pangolin::OpenGlRenderState(
             pangolin::ProjectionMatrix(mWinW, mWinH, mViewF, mViewF, (mWinW >> 1), (mWinH >> 1), 0.1, 5000),

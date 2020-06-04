@@ -18,7 +18,7 @@ protected:
 };
 
 //维亚数据处理
-class WeiyaData : public Position::PData
+class WeiyaData : public Position::PFrameData
 {
 public:
     WeiyaData(const std::shared_ptr<Position::IConfig> &pcfg);
