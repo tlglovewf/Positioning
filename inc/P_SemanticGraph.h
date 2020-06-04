@@ -5,11 +5,12 @@
  * 
  */
 #ifndef _SEMANTICGRAPH_H_H_
-#define _SEMANTICGRAPH_H_H_H
+#define _SEMANTICGRAPH_H_H_
 #include "P_Types.h"
 #include "P_Utils.h"
 #include "P_Checker.h"
 #include "P_IOHelper.h"
+#include "P_Mask.h"
 //动态物体
 class SemanticGraph
 {
@@ -88,7 +89,9 @@ public:
     //是否为动态物体
     bool isDyobj(const Point2f &pt, const std::string &name)
     {
-       
+        // if(!CHECKMASK(pt))
+        //     return true;
+
         if(!isEnabled())
             return false;
 

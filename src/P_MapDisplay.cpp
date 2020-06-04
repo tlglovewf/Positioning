@@ -68,6 +68,13 @@ void PMapDisplay::run()
     LOG_INFO_F(">>>>>>>>>> From %d to %d !!! <<<<<<<<<<",stNo,edNo);
     Position::FrameDataPtrVIter it = mpData->begin() + stNo;
     Position::FrameDataPtrVIter ed = mpData->begin() + edNo;
+    
+    if(it > mpData->end())
+    {
+        LOG_CRIT("StNo Out Of Datas Numbers.");
+        exit(-1);
+    }
+
     if(ed > mpData->end() || stNo == edNo)
     {
         ed = mpData->end();
@@ -109,15 +116,17 @@ void PMapDisplay::run()
 
 void PMapDisplay::saveResult()
 {
-    LOG_INFO_F("Save Result %d",GETCFGVALUE(mpConfig, MapSave, int))
     if (GETCFGVALUE(mpConfig, MapSave, int))
     {
+        LOG_INFO_F("Begin To Save Map...",GETCFGVALUE(mpConfig, MapSave, int))
         SETMAPSERIALIZATIONMAP(mpTrajProSelector->getMap());
 
         const std::string path = GETCFGVALUE(mpConfig, OutPath, string) + "/";
-
+        
+        LOG_INFO("Save Frames ...");
         SAVEMAPFRAME(path + "frames.txt");
-        SAVEMAPFRAME(path + "points.txt");
+        LOG_INFO("Save Points ...");
+        SAVEMAPPOINTS(path + "points.txt");
 
         LOG_INFO("Save Result Finished.");
     }

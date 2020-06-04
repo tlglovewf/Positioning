@@ -264,34 +264,35 @@ namespace Position
 
     void ORBFrame::UndistortKeyPoints()
     {
-        if( mDistCoef.empty() || mDistCoef.at<MATTYPE>(0)==0.0)
-        {
-            mvKeysUn=mvKeys;
-            return;
-        }
+        mvKeysUn = mvKeys;
+        // if( mDistCoef.empty() || mDistCoef.at<MATTYPE>(0)==0.0)
+        // {
+        //     mvKeysUn=mvKeys;
+        //     return;
+        // }
 
-        // Fill matrix with points
-        cv::Mat mat(N,2,MATCVTYPE);
-        for(int i=0; i<N; i++)
-        {
-            mat.at<MATTYPE>(i,0)=mvKeys[i].pt.x;
-            mat.at<MATTYPE>(i,1)=mvKeys[i].pt.y;
-        }
+        // // Fill matrix with points
+        // cv::Mat mat(N,2,MATCVTYPE);
+        // for(int i=0; i<N; i++)
+        // {
+        //     mat.at<MATTYPE>(i,0)=mvKeys[i].pt.x;
+        //     mat.at<MATTYPE>(i,1)=mvKeys[i].pt.y;
+        // }
 
-        // Undistort points
-        mat=mat.reshape(2);
-        cv::undistortPoints(mat,mat,mK,mDistCoef,cv::Mat(),mK);
-        mat=mat.reshape(1);
+        // // Undistort points
+        // mat=mat.reshape(2);
+        // cv::undistortPoints(mat,mat,mK,mDistCoef,cv::Mat(),mK);
+        // mat=mat.reshape(1);
 
-        // Fill undistorted keypoint vector
-        mvKeysUn.resize(N);
-        for(int i=0; i<N; i++)
-        {
-            cv::KeyPoint kp = mvKeys[i];
-            kp.pt.x=mat.at<MATTYPE>(i,0);
-            kp.pt.y=mat.at<MATTYPE>(i,1);
-            mvKeysUn[i]=kp;
-        }
+        // // Fill undistorted keypoint vector
+        // mvKeysUn.resize(N);
+        // for(int i=0; i<N; i++)
+        // {
+        //     cv::KeyPoint kp = mvKeys[i];
+        //     kp.pt.x=mat.at<MATTYPE>(i,0);
+        //     kp.pt.y=mat.at<MATTYPE>(i,1);
+        //     mvKeysUn[i]=kp;
+        // }
     }
 
     void ORBFrame::ComputeImageBounds(const cv::Mat &imLeft)

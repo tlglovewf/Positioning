@@ -27,19 +27,12 @@ endif()
 OPTION(USE_VIEWER            "Build with pangolin"   ON)
 message("USE_VIEWER          option is ${USE_VIEWER}")
 
-OPTION(USE_XFEATURE          "Build with sift"       ON)
-message("USE_XFEATURE        option is ${USE_XFEATURE}")
-
 OPTION(BUILD_TEST_PROGRAMS   "Build test program"    ON) 
-message("BUILD_TEST_PROGRAMS option is ${BUILD_TEST_PROGRAMS}")
+message("BUILD_TEST_PROGRAMS option is ${BUILD_TEST_PROGRAMS}") 
 
 OPTION(BUILD_TOOL_PROGRAMS   "Build tool program"    ON)
 message("BUILD_TOOL_PROGRAMS option is ${BUILD_TOOL_PROGRAMS}")
 
-
-if (USE_XFEATURE)
-   add_definitions(-DUSE_CVXFEATURE)
-endif()
 
 #Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
@@ -47,7 +40,7 @@ CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX11)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
-   add_definitions(-DCOMPILEDWITHC11)
+   add_definitions(-DCOMPILEDWITHC11)  
    message(STATUS "Using flag -std=c++11.")
 elseif(COMPILER_SUPPORTS_CXX0X)
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
@@ -122,7 +115,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 #build library 
 
-set(Positioning "position")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+   set(Positioning "position")
+else()
+   set(Positioning "positiond")
+endif()
 
 add_library(${Positioning} SHARED ${SRC_LIST_CPP})
 
@@ -152,21 +149,23 @@ if(CMAKE_HOST_APPLE)
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
       FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.dylib ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
-      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.dylib)
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}*.dylib)
    else()
       FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.dylib ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
-      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.dylib)
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}*.dylib)
    endif()
 else()
    if(CMAKE_BUILD_TYPE STREQUAL "Release")
       FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.so)
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.so)
    else()
       FILE(GLOB DEPEND_LIBS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*d.so ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/*.a)
       #remove target so name 
+      LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}.so)
       LIST(REMOVE_ITEM DEPEND_LIBS   ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/lib${Positioning}d.so)
    endif()
 endif()
@@ -186,7 +185,7 @@ install(TARGETS TargetPosition ${Positioning}
 
 message("Depdents on :")
 FOREACH(src ${DEPEND_LIBS})
-MESSAGE( ${src} )
+MESSAGE( ${src} ) 
 ENDFOREACH() 
 
 #ARCHIVE DESTINATION

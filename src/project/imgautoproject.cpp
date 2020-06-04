@@ -75,10 +75,10 @@ namespace Position
 
             camera.D = cv::Mat(4,1,MATCVTYPE);
 
-            camera.D.at<MATTYPE>(0) = fK1/10;
-            camera.D.at<MATTYPE>(1) = fK2/10;
-            camera.D.at<MATTYPE>(2) = fP1/10;
-            camera.D.at<MATTYPE>(3) = fP2/10;
+            camera.D.at<MATTYPE>(0) = fK1;
+            camera.D.at<MATTYPE>(1) = fK2;
+            camera.D.at<MATTYPE>(2) = fP1;
+            camera.D.at<MATTYPE>(3) = fP2;
 
             if(fabs(fK3) > 1e-6)
             {

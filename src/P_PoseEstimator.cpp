@@ -1,15 +1,15 @@
 #include "P_PoseEstimator.h"
 #include "P_Factory.h"
-
+#include "P_IOHelper.h"
 namespace Position
 {
     PoseEstimator::PoseEstimator(const std::shared_ptr<IConfig> &pCfg, const CameraParam &cam, int eType /*= 1*/)
     {
-        if(0 == eType)
+        // if(0 == eType)
         {
              mpUniformVTrajPro   = std::shared_ptr<ITrajProcesser>(PFactory::CreateTrajProcesser(eTjUniformSpeed, pCfg, cam));
         }
-        else
+        // else
         {
             /* code */
         }
@@ -37,6 +37,17 @@ namespace Position
                 data->_img = imread(imgpath + "/" + data->_name, IMREAD_UNCHANGED);
             }
         }
+
+        // if(datas.size() < 10)
+        // {
+            // LOG_INFO("Use MultiView Traj Process.");
+            // mpCurrentTrajPro = mpSimpleTrajPro;
+        // }
+        // else
+        // {
+        //     LOG_INFO("Use Uniform Traj Process.");
+        //     mpCurrentTrajPro = mpUniformVTrajPro;
+        // }
 
         return mpCurrentTrajPro->process(datas);
     }

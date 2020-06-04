@@ -6,7 +6,8 @@ namespace Position
     PFrameViewer::PFrameViewer():mStatus(eTrackNoImage),mTrackPts(0)
     {
         cv::namedWindow(FRAMENAME,CV_WINDOW_NORMAL);
-        resizeWindow(FRAMENAME,Size(1080,720));
+        cv::resizeWindow(FRAMENAME,Size(1080,720));
+        cv::moveWindow(FRAMENAME,0,0);
         setWindowProperty(FRAMENAME,CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
     }
 
@@ -14,8 +15,8 @@ namespace Position
     {
         assert(pkf);
         size_t N = pkf->getKeys().size();
-        const MapPtVector &pts = pkf->getWorldPoints(); 
-        const KeyPtVector keypts = pkf->getKeys();
+        const MapPtVector &pts      = pkf->getWorldPoints(); 
+        const KeyPtVector keypts    = pkf->getKeys();
         assert(N == pts.size());
 
         const float r           = 8.0;

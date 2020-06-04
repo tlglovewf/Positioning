@@ -118,11 +118,43 @@ namespace Position
 
     protected:
         //写项目
-        void writeItem(const std::string &name, const cv::Mat &pose);
-
+        virtual void writeItem(const std::string &name, const cv::Mat &pose);
+        //读项目
+        virtual void readItem(const std::string &line, std::string &name, cv::Mat &pose);
     protected:
         fstream mfile;
     };
+
+
+    //项目列表读写帮助类
+    class PrjWRHelper : public DefaultWRNode
+    {
+    public:
+        //单例
+        static PrjWRHelper* Instance()
+        {
+            static PrjWRHelper helper;
+            return &helper;
+        }
+
+        //设置项目列表
+        void setPrjList(const std::shared_ptr<IProjList> &list)
+        {
+            mpPrjList = list;
+        }
+
+        //加载项目结果路径
+        std::shared_ptr<IMap> loadPrjResult(const string &path);
+
+        //写出信息结果
+        void writePrjResult(const string &path);
+    protected:
+        std::shared_ptr<IProjList> mpPrjList;
+
+    protected:
+        PrjWRHelper()=default;
+    };
+
 
     //轨迹持久化
     class PMapTraceSer : public PMapSer,public DefaultWRNode

@@ -141,57 +141,6 @@ void featureMatch(eFeatureMType etype, const Mat &des1, const Mat &des2, vector<
     }
 }
 
-//特征接口
-// class SiftFeature : public Position::IFeature
-// {
-// public:
-//     //（1）nfeatures，保留的最佳特性的数量。特征按其得分进行排序(以SIFT算法作为局部对比度进行测量)；
-//     //（2）nOctavelLayers，高斯金字塔最小层级数，由图像自动计算出；
-//     //（3）constrastThreshold，对比度阈值用于过滤区域中的弱特征。阈值越大，检测器产生的特征越少。；
-//     //（4）edgeThreshold ，用于过滤掉类似边缘特征的阈值。 请注意，其含义与contrastThreshold不同，即edgeThreshold越大，滤出的特征越少；
-//     //（5）sigma，高斯输入层级， 如果图像分辨率较低，则可能需要减少数值。
-//     SiftFeature():mSift(SIFT::create(250,4,0.05,15,1.4))
-//     {
-//         Position::FloatVector  mvScaleFactor(4,0);
-//         Position::FloatVector  mvLevelSigma2(4,0);
-//         mSigmaVector.resize(4);
-//         mvLevelSigma2[0]= 1.0f;
-//         mSigmaVector[0] = 1.0f;
-
-//         for(int i=1; i < 4; i++)
-//         {
-//             mvScaleFactor[i]=mvScaleFactor[i-1]*1.4;
-//             mvLevelSigma2[i]= 1.0 /(mvScaleFactor[i]*mvScaleFactor[i]);
-//         }
-
-//     }
-
-//     //计算特征点
-//     virtual bool detect(const Position::FrameData &frame,Position::KeyPtVector &keys, Mat &descript) 
-//     {
-//         // Mat mask = Mat::zeros(out.size(),CV_8UC1);
-    
-//         // //提出图片中间部分的匹配点
-//         // int w = out.cols * 0.35;
-//         // int h = out.rows * 0.35;
-//         // Rect roi(w,h, w, w);
-//         // mask.setTo(255);
-//         // mask(roi).setTo(0);
-
-//         mSift->detect(frame._img,keys);//,mask);
-//         mSift->compute(frame._img,keys,descript);
-
-//     }
-//     //返回sigma参数(主要用于优化 信息矩阵)
-//     virtual const Position::FloatVector& getSigma2() const
-//     {
-//         return mSigmaVector;
-//     }
-// protected:
-//     Position::FloatVector mSigmaVector;
-//     Ptr<SIFT> mSift;
-// };
-
 
 float CheckFundamental(const Position::KeyPtVector &pt1s,const Position::KeyPtVector &pt2s,
                        const Position::MatchVector &mvMatches12, 

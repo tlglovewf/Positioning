@@ -27,8 +27,9 @@ namespace Position
      */
     DEFINEENUM(Feature)
     {
-        eFeatureOrb,    //orbslam 
-        eFeatureCVOrb   //cv orb
+        eFeatureOrb,     //orbslam 
+        eFeatureCVOrb,   //cv orb
+        eFeatureSift     //cv sift(add uniform dist)
     };
 
     DEFINEENUM(FeatureMatcher)

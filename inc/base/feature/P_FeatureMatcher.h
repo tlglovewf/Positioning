@@ -10,7 +10,7 @@
 
 namespace Position
 {
-    //特征匹配对象
+    //特征匹配对象 汉明距离
     class PFeatureMatcher : public IFeatureMatcher
     {
     public:
@@ -24,7 +24,7 @@ namespace Position
         float   mfNNratio;
     };
 
-    //cv 匹配  汉明距离 knn近临匹配
+    //cv 匹配  knn近临匹配
     class PKnnMatcher : public IFeatureMatcher
     {
     public:  

@@ -362,6 +362,9 @@ namespace Position
     public:
         
         //匹配  返回匹配对
+        //@param preframe   前帧
+        //@param curframe   后帧
+        //@param windowsize 搜索过滤范围(像素)
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize) = 0;
 
     };

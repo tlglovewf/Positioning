@@ -1,10 +1,9 @@
 #include "P_UniformDistriFeature.h"
 #include "P_Utils.h"
+#include "P_SiftFeature.h"
 #define EDGE_THRESHOLD 16
 #define COLGRIDNUMBER 4
 #define ROWGRIDNUMBER 3
-
-#ifdef USE_CVXFEATURE
 
 PUniformDistriFeature::PUniformDistriFeature(int nFeatures):mMaxFeatures(nFeatures)
 {
@@ -23,15 +22,6 @@ PUniformDistriFeature::PUniformDistriFeature(int nFeatures):mMaxFeatures(nFeatur
 
 void PUniformDistriFeature::detect(const Mat &img, KeyPtVector &keypts)
 {
-#if 0
-    if(!mFeature)
-        mFeature = cv::xfeatures2d::SIFT::create(mMaxFeatures,4,0.05,15,1.4);
-    mFeature->detect(img,keypts);
-    // static int index = 0;
-    // Mat outimg = Position::PUtils::DrawKeyPoints(img,keypts);
-    // imwrite("/media/tlg/work/tlgfiles/HDData/result/normal_" + std::to_string(index++) + ".jpg",outimg);
-#else
-
     const int nCols = COLGRIDNUMBER;
     const int nRows = ROWGRIDNUMBER;
 
@@ -53,7 +43,7 @@ void PUniformDistriFeature::detect(const Mat &img, KeyPtVector &keypts)
    
 
     if(!mFeature)
-        mFeature = cv::xfeatures2d::SIFT::create(mMaxFeatures / ((nRows - 1) * nCols) ,4,0.05,15,1.4);
+        mFeature = PSIFT::create(mMaxFeatures / ((nRows - 1) * nCols) ,4,0.04,10,1.6);
 
     //在每个格子内进行fast特征检测
     for(int i=0; i<nRows; i++)
@@ -112,13 +102,6 @@ void PUniformDistriFeature::detect(const Mat &img, KeyPtVector &keypts)
         keypts[i].pt.x+=minBorderX;
         keypts[i].pt.y+=minBorderY;
     }
-    //  Mat outimg = img.clone();
-    // keypts.swap(keypoints);
-    // static int index = 0;
-    // outimg = Position::PUtils::DrawKeyPoints(img, keypts);
-    // imwrite("/media/tlg/work/tlgfiles/HDData/result/quad_" + std::to_string(index++) + ".jpg",outimg);
-#endif
-   
 }
 
 
@@ -330,7 +313,7 @@ KeyPtVector PUniformDistriFeature::distributeQuadTree(const KeyPtVector& vToDist
         // if((int)lNodes.size()>=N || (int)lNodes.size()==prevSize)
         if((int)lNodes.size()==prevSize)
         {
-            cout << "finish . " << vToDistributeKeys.size() <<  endl;
+            // cout << "finish . " << vToDistributeKeys.size() <<  endl;
             // cout << lNodes.size() << " " << prevSize << endl;
             bFinish = true;
         }
@@ -443,6 +426,3 @@ void PUniformDistriFeature::createQuadTree(KeyPtVector &keypts)
 {
 
 }
-
-
-#endif

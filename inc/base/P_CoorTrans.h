@@ -30,23 +30,41 @@ public:
     //大地坐标->地心地固空间直角坐标系
     static XYZCoordinate BLH_to_XYZ(const BLHCoordinate &blh, Datum dt = WGS84Datum)
     {
+#if 0
         double a = dt.r_max;
-        double e = dt.e2; //sqrt(a * a - b * b) / a;
+        double e = dt.e2;
         double r_lat = D2R(blh.lat);
         double r_lon = D2R(blh.lon);
-        double N = a / sqrt(1 - e * sin(r_lat) * sin(r_lat));
-        double WGS84_X = (N + blh.alt) * cos(r_lat) * cos(r_lon);
-        double WGS84_Y = (N + blh.alt) * cos(r_lat) * sin(r_lon);
-        double WGS84_Z = (N * (1 - e) + blh.alt) * sin(r_lat);
+        double slat  = sin(r_lat);
+        double clat  = cos(r_lat);
+        double N = a / sqrt(1 - e * slat * slat);
+        double WGS84_X = (N + blh.alt) * clat * cos(r_lon);
+        double WGS84_Y = (N + blh.alt) * clat * sin(r_lon);
+        double WGS84_Z = (N * (1 - e) + blh.alt) * slat;
+#else
+        double clat = cos(D2R(blh.lat));
+        double slat = sin(D2R(blh.lat));
+        double clon = cos(D2R(blh.lon));
+        double slon = sin(D2R(blh.lon));
 
+        double a2   = dt.r_max * dt.r_max;
+        double b2   = dt.r_min * dt.r_min;
+
+        double L    = 1.0/sqrt(a2 * clat * clat + b2 * slat * slat);
+
+        double WGS84_X = (a2 * L + blh.alt) * clat * clon;
+        double WGS84_Y = (a2 * L + blh.alt) * clat * slon;
+        double WGS84_Z = (b2 * L + blh.alt) * slat;
+#endif
         return {WGS84_X, WGS84_Y, WGS84_Z};
     }
     //地心地固坐标系->大地坐标系
     static BLHCoordinate XYZ_to_BLH(const XYZCoordinate &pt, Datum dt = WGS84Datum)
     {
+#if 0
         double f, f1, f2;
         double p, zw, nnq;
-        double b, l, h;
+        double bb, l, h;
 
         double a = dt.r_max;
         double eq = dt.e2;
@@ -67,12 +85,25 @@ public:
             f2 = f;
             f = f1;
         } while (!(abs(f2 - f1) < 10E-10));
-        b = R2D(f);
+        bb = R2D(f);
         l = R2D(atan(y / x));
         if (l < 0)
             l += 180.0;
         h = sqrt(ddp) / cos(f1) - a / sqrt(1 - eq * sin(f1) * sin(f1));
-        return {b, l, h};
+#else
+        double a2 = dt.r_max * dt.r_max;
+        double b = sqrt( a2 * (1 - dt.e2));
+        double ep = sqrt((a2 - b * b) /(b * b));
+        double p = hypot(pt.x,pt.y);
+        double th = atan2(dt.r_max * pt.z,b * p);
+        double l = atan2(pt.y,pt.x);
+        double bb = atan2((pt.z + ep * ep * b * pow(sin(th),3)), (p - dt.e2 * dt.r_max * pow(cos(th),3)));
+        double N = dt.r_max / sqrt(1 - dt.e2 * sin(bb) * sin(bb));
+        double h     = p / cos(bb) - N;
+        bb = R2D(bb);
+        l = R2D(l);
+#endif
+        return {bb, l, h};
     }
 
     //计算 xyz坐标系转enu坐标系 旋转矩阵

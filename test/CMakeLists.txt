@@ -1,27 +1,12 @@
 
 message(STATUS "------Build Test Programs---------")
-
-#build test_trace # XXX_SOURCE_DIR   XXX stand for projectname
-add_executable(test_trace
-${Positioning_SOURCE_DIR}/test/test_trace.cpp)
-target_link_libraries(test_trace ${Positioning})
-
-#build test_twframe
-if(USE_XFEATURE)
-add_executable(test_twframe
-${Positioning_SOURCE_DIR}/test/test_twframe.cpp 
-)
-target_link_libraries(test_twframe ${Positioning})
-endif()
+#Read All Test Files And Build Test Program
+FILE(GLOB TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
+FOREACH(TEST_FILE ${TEST_FILES})
+    STRING(REGEX REPLACE ".*/(.*)/(.*)/*.cpp" "\\2" TEST_NAME ${TEST_FILE})
+    MESSAGE("BUILD TEST PROGRAM " ${TEST_NAME})
+    add_executable(${TEST_NAME}
+    ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp)
+    target_link_libraries(${TEST_NAME} ${Positioning})
+ENDFOREACH()
  
-add_executable(test_cpp
-${Positioning_SOURCE_DIR}/test/test_cpp.cpp)
-target_link_libraries(test_cpp ${Positioning})
-
-add_executable(test_newdata
-${Positioning_SOURCE_DIR}/test/test_newdata.cpp)
-target_link_libraries(test_newdata ${Positioning})
-
-add_executable(test_weiya
-${Positioning_SOURCE_DIR}/test/test_weiya.cpp)
-target_link_libraries(test_weiya ${Positioning})

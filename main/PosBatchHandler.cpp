@@ -17,7 +17,7 @@ PosBatchHandler::PosBatchHandler(const std::shared_ptr<IConfig>           &pcfg 
 mpConfig(pcfg),
 mPrjList(prjlist),
 mPositioner(positioner),
-mPoseEstimator(pcfg,cam),
+mPoseEstimator(pcfg,cam,0),
 mCamera(cam)
 {
      assert(pcfg);
@@ -48,9 +48,27 @@ void PosBatchHandler::saveResult(const std::string &path)
     LOG_INFO("Save result ...");
     mPrjList->save(path);
     LOG_INFO_F("Result have been saved to %s",path.c_str());
-
 }
-const int test_count = 1;
+
+
+void PosBatchHandler::savePose(const std::string &path)
+{
+    try
+    {
+        LOG_INFO_F("Begin To Save Pose :%s",path.c_str());
+
+        Position::PrjWRHelper::Instance()->setPrjList(mPrjList);
+
+        Position::PrjWRHelper::Instance()->writePrjResult(path);
+
+        LOG_INFO("Pose Saved Successfully.");
+    }
+    catch(const std::exception& e)
+    {
+        LOG_ERROR_F("Save Pose Error : %s",e.what());
+    }
+}
+
 //估算batch 位姿
 void PosBatchHandler::poseEstimate()
 {
@@ -67,9 +85,6 @@ void PosBatchHandler::poseEstimate()
 
     for(size_t i = 0; i < targets.size(); ++i)
     {
-    //    if(i >= test_count)
-    //        break;
-
        if(NULL == targets[i].batch)
        {
            LOG_WARNING("Target Batch Empty.");
@@ -84,13 +99,12 @@ void PosBatchHandler::poseEstimate()
        {//仅在位姿估算成功后,进行量测定位 
            if(mPoseEstimator.process(targets[i].batch->_fmsdata,imgpath))
            {//位姿估算成功,对batch中每个位姿进行赋值
-                cout << "..... DISPLAY" << endl;
 #if USE_VIEW
             cout << "DISPLAY ...." << endl;
-            s_Viewer->renderLoop();
+            // s_Viewer->renderLoop();
 #endif
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();
-              
+               cout << "FmSize:" << frames.size() << " " << targets[i].batch->_fmsdata.size() << endl;
                assert(frames.size() == targets[i].batch->_fmsdata.size());
                for(size_t m = 0; m < frames.size(); ++m)
                {

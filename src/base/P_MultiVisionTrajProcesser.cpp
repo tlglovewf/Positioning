@@ -14,7 +14,7 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
                                                          const CameraParam &cam):mCam(cam)
                    {
-#if 1
+#if 0
                         mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int)));
                         mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,GETCFGVALUE(pcfg,MatchRatio,float)));
 #else
@@ -63,9 +63,9 @@ namespace Position
             Position::KeyFrameVector keyframes(mpMap->getAllFrames());
             Position::MapPtVector    mappts(mpMap->getAllMapPts());
             bool pBstop = false;
-            LOG_DEBUG_F("Begin Global opt:%d",keyframes.size());
+            LOG_DEBUG_F("Begin Global Opt:%d-%d",keyframes.size(),mappts.size());
             mpOptimizer->bundleAdjustment(keyframes,mappts,mpFeature->getSigma2(),5, &pBstop);
-            LOG_DEBUG("Global opt Finished.");
+            LOG_DEBUG("Global Opt Finished.");
 
             return true;
         }

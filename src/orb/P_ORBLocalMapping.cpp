@@ -646,7 +646,7 @@ void ORBLocalMapping::KeyFrameCulling()
         //当前帧关联的有效地图点 有90%的点至少有三个关联有效帧  则认为此帧为无效帧
         if(nRedundantObservations>0.9*nMPs)
         {
-            PROMT_V("Set Bad From RedundataObs",pKF->getData()->_name.c_str());
+            // PROMT_V("Set Bad From RedundataObs",pKF->getData()->_name.c_str());
             // pKF->setBadFlag();
         }
             
@@ -655,9 +655,9 @@ void ORBLocalMapping::KeyFrameCulling()
 
 cv::Mat ORBLocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
 {
-    return (cv::Mat_<MATTYPE>(3,3) <<             0, -v.at<MATTYPE>(2), v.at<MATTYPE>(1),
-            v.at<MATTYPE>(2),               0,-v.at<MATTYPE>(0),
-            -v.at<MATTYPE>(1),  v.at<MATTYPE>(0),              0);
+    return (cv::Mat_<MATTYPE>(3,3) << 0, -v.at<MATTYPE>(2), v.at<MATTYPE>(1),
+                                      v.at<MATTYPE>(2),  0,-v.at<MATTYPE>(0),
+                                     -v.at<MATTYPE>(1),v.at<MATTYPE>(0),  0);
 }
 
 void ORBLocalMapping::RequestReset()

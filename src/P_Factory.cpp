@@ -13,6 +13,9 @@
 
 #include "P_IOHelper.h"
 
+#include "P_UniformDistriFeature.h"
+
+
 namespace Position
 {
      /*
@@ -40,6 +43,8 @@ namespace Position
                 return new ORBFeature(pcfg);
             case eFeatureCVOrb:
                 return new PCVORBFeature(pcfg);
+            case eFeatureSift:
+                return new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int));
             default:
                 return NULL;
         }

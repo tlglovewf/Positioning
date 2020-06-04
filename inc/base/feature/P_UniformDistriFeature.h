@@ -1,19 +1,15 @@
 #ifndef  _PUNIFORMDISTRIFEATURE_H_H
 #define  _PUNIFORMDISTRIFEATURE_H_H
 
-#ifdef USE_CVXFEATURE
-
-#include "P_Interface.h"
-#include <opencv2/xfeatures2d.hpp>
+#include "P_Feature.h"
 
 using namespace Position;
 
 //均匀分布特征  分块提取 + 四叉树过滤
-class PUniformDistriFeature : public Position::IFeature
+class PUniformDistriFeature : public Position::PFeature
 {
 
 public:
-    
     PUniformDistriFeature(int nFeatures);
     ~PUniformDistriFeature(){}
     //计算特征点
@@ -29,7 +25,6 @@ public:
         return mSigmaVector;
     }
 protected:
-
     void createQuadTree(KeyPtVector &keypts);
 
     KeyPtVector distributeQuadTree(const KeyPtVector& vToDistributeKeys, const int &minX,
@@ -39,8 +34,5 @@ protected:
     Position::FloatVector   mSigmaVector;
     int                     mMaxFeatures;
 };
-
-#endif
-
 
 #endif

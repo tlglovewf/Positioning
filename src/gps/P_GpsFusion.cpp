@@ -24,7 +24,7 @@ namespace  Position
         const std::string opath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
         const std::string strori = opath + "/ori.txt";
         const std::string strfus = opath + "/est.txt";
-        cout << "gps save : " << opath.c_str() << endl;
+        cout << "Gps Save to: " << opath.c_str() << endl;
         std::ofstream fori;
         fori.open(strori);
 

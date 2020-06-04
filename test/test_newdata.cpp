@@ -2,6 +2,7 @@
 #include "P_IOHelper.h"
 #include "P_Factory.h"
 #include "P_MapDisplay.h"
+#include "P_Mask.h"
 int main(int argv, char **argc)
 {
 // #if USE_VIEW
@@ -22,6 +23,15 @@ int main(int argv, char **argc)
     SETCFGVALUE(pCfg,ViewEnable,1);
 
 #if 1
+
+    int width  = GETCFGVALUE(pCfg,ImgWd,int);
+    int height = GETCFGVALUE(pCfg,ImgHg,int);
+    //set global mask
+    INITGLOBALMASK(Size2i(width, height));
+
+    const int mklen = 250;
+    SETGLOBALMASK(Rect2i(0,height - mklen,width,mklen));
+
     PMapDisplay mapDisplay(pData,pCfg,1);
     mapDisplay.run();
 
@@ -39,7 +49,7 @@ int main(int argv, char **argc)
             undistort(img,oimg,pData->getCamera().K,pData->getCamera().D);
             resize(oimg,oimg,Size(oimg.cols >> 1, oimg.rows >> 1));
             imshow("test",oimg);
-            imwrite("/media/tu/Work/Datas/9-200524-00/Output/" + (*it)->_name,oimg);
+            // imwrite("/media/tu/Work/Datas/9-200524-00/Output/" + (*it)->_name,oimg);
             waitKey(100);
         }
     }

@@ -115,7 +115,14 @@ cv::Mat ORBTracking::InitMode(const FrameDataPtrVector &framedatas, const int im
 
 cv::Mat ORBTracking::track(FrameData *data)
 {
-    mImGray = data->_img;
+    if(!mDistCoef.empty())
+    {
+        undistort(data->_img,mImGray,mK,mDistCoef);
+    }
+    else
+    {
+        mImGray = data->_img;
+    }
 
     if(data->_img.channels()==3)
     {
@@ -323,7 +330,7 @@ void ORBTracking::MonocularInitialization()
         // Check if there are enough correspondences
         if(nmatches < 80)
         {
-            PROMTD_V("initalize Number of points",nmatches)
+            PROMTD_V("Initalize Number Of Points",nmatches)
             PROMTD_S("not enough for initializing. retry.")
             delete mpInitializer;
             mpInitializer = static_cast<Initializer*>(NULL);

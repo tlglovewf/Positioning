@@ -2,6 +2,7 @@
 #include "P_Converter.h"
 #include "P_Utils.h"
 #include "P_Frame.h"
+#include "P_Map.h"
 #include "P_Checker.h"
 
 //log4cpp
@@ -32,13 +33,131 @@ namespace Position
 
     void DefaultWRNode::writeItem(const std::string &name, const cv::Mat &pose)
     {
-        std::string str = PConverter::toString(pose);
         if(!name.empty())
         {
-            str = name + ":" + str;
+            //name  R3x3  T3X1
+            mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right) 
+                  << setw(30) << name.c_str() 
+                  << std::setw(15) << pose.at<MATTYPE>(0,0)
+                  << std::setw(15) << pose.at<MATTYPE>(0,1)
+                  << std::setw(15) << pose.at<MATTYPE>(0,2)
+                  << std::setw(15) << pose.at<MATTYPE>(1,0)
+                  << std::setw(15) << pose.at<MATTYPE>(1,1)
+                  << std::setw(15) << pose.at<MATTYPE>(1,2)
+                  << std::setw(15) << pose.at<MATTYPE>(2,0)
+                  << std::setw(15) << pose.at<MATTYPE>(2,1)
+                  << std::setw(15) << pose.at<MATTYPE>(2,2)
+                  << std::setw(15) << pose.at<MATTYPE>(0,3)
+                  << std::setw(15) << pose.at<MATTYPE>(1,3)
+                  << std::setw(15) << pose.at<MATTYPE>(2,3)
+                  << endl;
         }
-        mfile << str << endl;
+        else
+        {
+            //pose
+            std::string str = PConverter::toString(pose);
+            mfile << str.c_str() << endl;
+        }
+       
     }
+
+    void DefaultWRNode::readItem(const std::string &line, std::string &name, cv::Mat &pose)
+    {
+        pose = Mat::eye(4,4,MATCVTYPE);
+        char filename[255] = {0};
+        sscanf(line.c_str(),"%s %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+               filename,&pose.at<MATTYPE>(0,0),&pose.at<MATTYPE>(0,1),&pose.at<MATTYPE>(0,2),
+                        &pose.at<MATTYPE>(1,0),&pose.at<MATTYPE>(1,1),&pose.at<MATTYPE>(1,2),
+                        &pose.at<MATTYPE>(2,0),&pose.at<MATTYPE>(2,1),&pose.at<MATTYPE>(2,2),
+                        &pose.at<MATTYPE>(0,3),&pose.at<MATTYPE>(1,3),&pose.at<MATTYPE>(2,3));
+        name = filename;
+    }
+
+
+    //加载项目结果路径
+    std::shared_ptr<IMap> PrjWRHelper::loadPrjResult(const string &path)
+    {
+        if(!PATHCHECK(path))
+        {
+            LOG_CRIT_F("%s Not Found!!!",path.c_str());
+            exit(-1);
+        }
+        else
+        {
+            if(open(path,ios::in))
+            {
+                std::shared_ptr<Position::IMap> pmap(new Position::PMap());
+                //每个batch 间隔的空隙
+                Mat spaceLen = Mat::zeros(4,4,MATCVTYPE);
+                int index = 0;
+                while (!mfile.eof())
+                {
+                    string line;
+                    getline(mfile,line);
+                    if(line.empty())
+                        continue;
+                    char batchnm[255] = {0};
+                    int  sz = 0;
+                    sscanf(line.c_str(),"%s %d",batchnm, &sz);
+                    spaceLen.at<MATTYPE>(0,3) = 10 * index++;
+                    
+                    for(int i = 0; i < sz ; ++i)
+                    {
+                        getline(mfile,line);
+                        Position::FrameData *fdata = new Position::FrameData();
+                        Mat pose;
+                        readItem(line,fdata->_name,pose);  
+                        Position::IMap::CreateKeyFrame(pmap,fdata,spaceLen + pose);
+                            
+                    }
+
+                }
+                return pmap;
+            }
+            else
+            {
+                LOG_CRIT("File Open Failed!!!");
+                exit(-1);
+            }
+        }
+    }
+
+    //写出信息结果
+    void PrjWRHelper::writePrjResult(const string &path)
+    {
+        if(!mpPrjList)
+        {
+            LOG_ERROR("Please Set PrjList!!!");
+            return;
+        }
+
+        if(open(path,ios::out))
+        {
+            Position::PrjBatchVector &batchvtr =  mpPrjList->getPrjList();
+
+            //save every batch poses
+            for(size_t i = 0; i < batchvtr.size() ; ++i)
+            {
+                if(batchvtr[i]->_poses.empty())
+                    continue;
+
+                mfile << batchvtr[i]->_btname.c_str() << " " << batchvtr[i]->_n << endl;
+                assert(batchvtr[i]->_fmsdata.size() == batchvtr[i]->_poses.size());
+                assert(batchvtr[i]->_fmsdata.size() == batchvtr[i]->_n);
+                for(size_t j = 0; j < batchvtr[i]->_n; ++j)
+                {
+                    const Mat pose = batchvtr[i]->_poses[j];
+                    writeItem(batchvtr[i]->_fmsdata[j]->_name,batchvtr[i]->_poses[j]);
+                }
+            }
+        }
+        else
+        {
+            LOG_ERROR_F("%s Write Error!!!",path.c_str());
+        }
+    }
+
+
 
     //加载地图轨迹
     void PMapTraceSer::loadMap(const std::string &path) 
@@ -65,12 +184,11 @@ namespace Position
                 getline(mfile,line);
                 if(line.empty())
                     continue;
-                StringVector svs = PUtils::SplitString(line,":");
-                assert(svs.size() == 2);
                 FrameData *data = new FrameData();
-                data->_name = svs[0];
+                Mat pose;
+                readItem(line,data->_name,pose);
                 IFrame *pf = new PFrame(data,mpMap->frameCount());
-                pf->setPose(PConverter::str2CVMat(svs[1]));
+                pf->setPose(pose);
                 IKeyFrame *pkf = mpMap->createKeyFrame(pf);
                 mpMap->addKeyFrame(pkf);
             }
@@ -78,7 +196,7 @@ namespace Position
         }
         else
         {
-            LOG_ERROR("It's not a avilable trace file.");
+            LOG_ERROR("It's not a available trace file.");
         }
         ENDFILEREGION()
     }

@@ -116,9 +116,9 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
     if(!bRet)
     {
-        PROMTD_V("Pose recover error!",CurrentFrame.getData()->_name.c_str());
+        LOG_WARNING_F("%s Pose Recover Error!!!", CurrentFrame.getData()->_name.c_str());
 
-#if 0
+#if 1
         Position::MatchVector matches;
 
         for(int i = 0; i < 8; ++i)
@@ -138,7 +138,13 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
         putText(mm, resultstr , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
 
         static int iidx = 0;
-        imwrite("/media/tlg/work/tlgfiles/HDData/result/init_" + CurrentFrame.getData()->_name + ".jpg",mm);
+        // imwrite("/media/tlg/work/tlgfiles/HDData/result/init_" + CurrentFrame.getData()->_name + ".jpg",mm);
+        cv::namedWindow("test",CV_WINDOW_NORMAL);
+        cv::resizeWindow("test",Size(1080,720));
+        cv::moveWindow("test",0,0);
+        setWindowProperty("test",CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
+        imshow("test",mm);
+
 #endif
     }
 

@@ -67,8 +67,7 @@ namespace Position
             {
                 for(size_t i = 0; i < framedatas.size(); ++i)
                 {
-                    //track(framedatas, i);
-                    
+
                     track(framedatas[i]);
 
                     if(mpViewer)
@@ -126,14 +125,14 @@ namespace Position
         {
             mpLocalMapper->RequestFinish();
             mptLocalMapping->join();
-            LOG_DEBUG("local mapping thread over.");
+            LOG_DEBUG("Local Mapping Thread Over.");
         }
         
         if(mptLoopClosing && mptLoopClosing->joinable())
         {
             mpLoopCloser->RequestFinish();
             mptLoopClosing->join();
-            LOG_DEBUG("closing thread over.");
+            LOG_DEBUG("Closing Thread Over.");
         }
     }
 }

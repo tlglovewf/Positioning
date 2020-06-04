@@ -36,6 +36,9 @@ public:
     //保存结果
     void saveResult(const std::string &path);
     
+     //保存位姿
+    void savePose(const std::string &path);
+
     //估算batch 位姿
     void poseEstimate();
 

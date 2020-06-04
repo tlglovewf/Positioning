@@ -11,9 +11,9 @@ int main(int argc, char **argv)
 {
     if(2 != argc)
     {
-        PROMTD_S("Paramer's size error!");
-        PROMTD_S("Please input absolutely path");
-        PROMTD_V("Format","TargetPosition \"PROJROOTPATH\" ");
+        PROMT_S("Params Error!!!");
+        PROMT_V("Usage",argv[0], "\'ProjectRootPath\'");
+        PROMT_S("Please Retry.");
         return -1;
     }
 
@@ -88,10 +88,14 @@ int main(int argc, char **argv)
     {
         //先计算位姿
         poshandler.poseEstimate();
+
+        const std::string outpath = "pose.txt";
+        poshandler.savePose(outpath);
+
         //目标定位 
-        poshandler.targetPositioning();
-        //结果输出
-        poshandler.saveResult(trackerpath + "tracker_rst.txt");
+        // poshandler.targetPositioning();
+        // //结果输出
+        // poshandler.saveResult(trackerpath + "tracker_rst.txt");
     }
 #endif
     return 0;

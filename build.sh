@@ -60,4 +60,4 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=$COMTYPE .. 
 make -j4
-#../output/Positioning
+

@@ -25,6 +25,7 @@ namespace Position
         //设置显示地图
         virtual void setMap(const std::shared_ptr<IMap> &pMap) 
         {
+            assert(pMap);
             mMap = pMap;
             mFrameViewer->setMap(mMap);
         }

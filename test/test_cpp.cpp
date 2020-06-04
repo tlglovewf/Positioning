@@ -1,8 +1,12 @@
 #include "P_Interface.h"
 #include "P_IOHelper.h"
 #include "P_Checker.h"
+#include "P_CoorTrans.h"
+#include "P_Utils.h"
 #include "project/newhwproject.h"
 #include "Thirdparty/sqlite3/sqlite3.h"
+#include "P_SemanticGraph.h"
+#include "P_Mask.h"
 // #include "log4cpp/Category.hh"
 // #include "log4cpp/PatternLayout.hh"
 // #include "log4cpp/OstreamAppender.hh"
@@ -43,33 +47,20 @@ typedef int L4;
 int main()
 {
 
-    return -1;
-    sqlite3 *pDB = NULL;
-    sqlite3_open("/media/tu/Work/Datas/9-200524-00/Output/NI00001-CalibrationDatabase-0512.sdb", &pDB);
+    Mat im = imread("/media/tu/Work/Datas/newdata/0-059377-531-0000301.jpg");
+    
+    INITGLOBALMASK(im.size());
 
-    int nrow = 0;
-    int ncol = 0;
-    char *perror = NULL;
-    char **result = NULL;
+    
+    SETGLOBALMASK(Rect2i(0,im.rows - 250,im.cols,250));
 
-    int ret = sqlite3_get_table(pDB, "select * from TypeCCameraInternal", &result, &nrow, &ncol, &perror);
+    cout << CHECKMASK(Point2f(500,500)) << endl;
+    cout << CHECKMASK(Point2f(500, im.rows-100)) << endl;
 
-    if (ret == SQLITE_OK)
-    {
-        for (size_t i = 0; i < nrow; ++i)
-        {
-            cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-            cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;
-            cout << result[ncol++] << endl;
-        }
-    }
+    // const int catlen = 250;
+    // im(Rect2i(0,im.rows - catlen,im.cols,catlen)).setTo(0);
+    // imwrite("/media/tu/Work/Datas/newdata/2.jpg",im);
 
-    sqlite3_close(pDB);
     // ifstream ifile("/media/tu/Work/Datas/1014-0-08C00001-200524/RawData/IMUData/1014008C00001200524.imu");
 
     // string line;
