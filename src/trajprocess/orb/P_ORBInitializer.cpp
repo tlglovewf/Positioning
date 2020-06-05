@@ -5,6 +5,7 @@
 #include "P_ORBOptimizer.h"
 #include "P_ORBmatcher.h"
 #include "P_IOHelper.h"
+#include "P_Utils.h"
 #include<thread>
 
 namespace Position
@@ -120,7 +121,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
 
 #if 1
         Position::MatchVector matches;
-
+       
         for(int i = 0; i < 8; ++i)
         {           
             DMatch item;
@@ -129,22 +130,27 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
             item.distance = 0;
             matches.push_back(item);
         }
-
         Mat mm;
         cv::drawMatches(refImg,mvKeys1,CurrentFrame.getData()->_img,mvKeys2,matches,mm,CV_RGB(255,0,0));
-        std::string resultstr = CurrentFrame.getData()->_name + "\n";
-        resultstr.append(std::string("RH:") + std::to_string(RH) + "\n");
-        resultstr += "Score:" + std::to_string(SF / (mvMatches12.size()));
-        putText(mm, resultstr , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
 
-        static int iidx = 0;
-        // imwrite("/media/tlg/work/tlgfiles/HDData/result/init_" + CurrentFrame.getData()->_name + ".jpg",mm);
-        cv::namedWindow("test",CV_WINDOW_NORMAL);
-        cv::resizeWindow("test",Size(1080,720));
-        cv::moveWindow("test",0,0);
-        setWindowProperty("test",CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
-        imshow("test",mm);
+        Mat epline ;
+        cvtColor(CurrentFrame.getData()->_img, epline, CV_GRAY2BGR);
+        for(size_t i = 0; i < matches.size(); ++i)
+        {
+           EpLine line = PUtils::ComputeEpLine(F,mvKeys1[matches[i].queryIdx].pt);
+           PUtils::DrawEpiLine(line,mvKeys2[matches[i].trainIdx].pt, epline);
+        }
 
+        // std::string resultstr = CurrentFrame.getData()->_name + "\n";
+        // resultstr.append(std::string("RH:") + std::to_string(RH) + "\n");
+        // resultstr += "Score:" + std::to_string(SF / (mvMatches12.size()));
+        // putText(mm, resultstr , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
+        
+        cv::namedWindow("epline",CV_WINDOW_NORMAL);
+        cv::resizeWindow("epline",Size(1080,720));
+        cv::moveWindow("epline",0,0);
+        setWindowProperty("epline",CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
+        imshow("epline",epline);
 #endif
     }
 

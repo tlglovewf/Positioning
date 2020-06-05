@@ -31,12 +31,12 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     mMinFrames = 0;
     mMaxFrames = camparam.fps;
 
-    mbRGB = camparam.rgb;
+    mbRGB = 1;// camparam.rgb;
 
-    if(mbRGB)
-        PROMTD_S("- color order: RGB (ignored if grayscale)")
-    else
-        PROMTD_S("- color order: BGR (ignored if grayscale)")
+    // if(mbRGB)
+    //     PROMTD_S("- color order: RGB (ignored if grayscale)")
+    // else
+    //     PROMTD_S("- color order: BGR (ignored if grayscale)")
 
     // Load ORB parameters
 
@@ -49,7 +49,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     int     fIniThFAST      = 20;
     int     fMinThFAST      = 7;
 
-    mfForInitRatio =  GETCFGVALUE(pcfg,MatchRatio,float);
+    mfForInitRatio =  0.9;// GETCFGVALUE(pcfg,MatchRatio,float);
 
     mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 

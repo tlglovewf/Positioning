@@ -24,11 +24,11 @@ namespace Position
                       ImgWd(0),  
                       ImgHg(0),
                       ImgFps(1),
-                      ImgRgb(1),
+                    //   ImgRgb(1),
                       FeatureCnt(2000),
                       PyramidLevel(8),
                       ScaleFactor(1.2),
-                      MatchRatio(0.8),
+                    //   MatchRatio(0.8),
                       SearchRadius(200),
                       LogPath(""),
                       LogPrio("DEBUG"),
@@ -57,12 +57,12 @@ namespace Position
         PUSH_MAP(ImgWd);
         PUSH_MAP(ImgHg);
         PUSH_MAP(ImgFps);
-        PUSH_MAP(ImgRgb);
+        // PUSH_MAP(ImgRgb);
         PUSH_MAP(FeatureCnt);
         PUSH_MAP(PyramidLevel);
         PUSH_MAP(SearchRadius);
         PUSH_MAP(ScaleFactor);
-        PUSH_MAP(MatchRatio);
+        // PUSH_MAP(MatchRatio);
         PUSH_MAP(LogPath);
         PUSH_MAP(LogPrio);
         PUSH_MAP(ImgPath);
@@ -116,12 +116,12 @@ namespace Position
             READ_VALUE(ImgWd);
             READ_VALUE(ImgHg);
             READ_VALUE(ImgFps);
-            READ_VALUE(ImgRgb);
+            // READ_VALUE(ImgRgb);
             READ_VALUE(FeatureCnt);
             READ_VALUE(PyramidLevel);
             READ_VALUE(SearchRadius);
             READ_VALUE(ScaleFactor);
-            READ_VALUE(MatchRatio);
+            // READ_VALUE(MatchRatio);
             READ_VALUE(LogPath);
             READ_VALUE(LogPrio);
             READ_VALUE(ImgPath);

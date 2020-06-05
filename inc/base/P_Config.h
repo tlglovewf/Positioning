@@ -144,14 +144,14 @@ namespace Position
         IntConfigParam      ImgWd;          //图像宽度
         IntConfigParam      ImgHg;          //图像长度
         IntConfigParam      ImgFps;         //图像帧率
-        IntConfigParam      ImgRgb;         //图像色彩
+        // IntConfigParam      ImgRgb;         //图像色彩
 
         IntConfigParam      FeatureCnt;     //特征点数量
         IntConfigParam      PyramidLevel;   //金字塔层数
         IntConfigParam      SearchRadius;   //搜索半径
 
         FloatConfigParam    ScaleFactor;    //金字塔缩放比例
-        FloatConfigParam    MatchRatio;     //匹配比例
+        // FloatConfigParam    MatchRatio;     //匹配比例
 
         //字符参数
         StringConfigParam   LogPath;        //Log路径

@@ -91,8 +91,8 @@ namespace Position
         //是否为动态物体
         bool isDyobj(const Point2f &pt, const std::string &name)
         {
-            // if(!CHECKMASK(pt))
-            //     return true;
+            if(!CHECKMASK(pt))
+                return true;
 
             if (!isEnabled())
                 return false;

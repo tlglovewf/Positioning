@@ -117,11 +117,11 @@ void ImgAutoData::loadCameraParams(const std::string &path)
             mCamera.TCam2Imu.convertTo(mCamera.TCam2Imu, MATCVTYPE);
         }
         mCamera.fps = GETCFGVALUE(mpCfg, ImgFps, int);
-        mCamera.rgb = GETCFGVALUE(mpCfg, ImgRgb, int);
+        // mCamera.rgb = GETCFGVALUE(mpCfg, ImgRgb, int);
         PROMT_S("Camera params >>>>>>>>>>>>>>>>>>>>>>>>>");
         PROMT_V("K", mCamera.K);
         PROMT_V("Fps ", (int)mCamera.fps);
-        PROMT_V("Rgb ", (int)mCamera.rgb);
+        // PROMT_V("Rgb ", (int)mCamera.rgb);
         PROMT_S("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         //add
     }

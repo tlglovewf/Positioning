@@ -79,6 +79,8 @@ namespace Position
         //检查
         bool check(const Point2f& pt)
         {
+            if(mMask.empty())
+                return true;
             return mMask.at<uchar>(pt) != 0;
         }
     protected:

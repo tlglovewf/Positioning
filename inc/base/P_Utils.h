@@ -396,7 +396,7 @@ public:
     }
 
     //根据基础矩阵 推算直线 ax + by + c = 0
-    static inline void CalcEpiline(const Mat &F21,const Point2f &prept,MATTYPE &a,MATTYPE &b,MATTYPE &c)
+    static inline EpLine ComputeEpLine(const Mat &F21,const Point2f &prept)
     {
             const MATTYPE f11 = F21.at<MATTYPE>(0,0);
             const MATTYPE f12 = F21.at<MATTYPE>(0,1);
@@ -408,24 +408,12 @@ public:
             const MATTYPE f32 = F21.at<MATTYPE>(2,1);
             const MATTYPE f33 = F21.at<MATTYPE>(2,2);
 
-            a = f11 * prept.x + f12 * prept.y + f13;
-            b = f21 * prept.x + f22 * prept.y + f23;
-            c = f31 * prept.x + f32 * prept.y + f33;
+            EpLine epline;
+            epline.a = f11 * prept.x + f12 * prept.y + f13;
+            epline.b = f21 * prept.x + f22 * prept.y + f23;
+            epline.c = f31 * prept.x + f32 * prept.y + f33;
+            return epline;
     }
-
-    //根据基础矩阵 创建 ax + by + c = 0 极线
-    // static void CreateEpiline(const cv::Mat &F, cv::Point2f pt, double &a, double &b, double &c)
-    // {
-    //     std::vector<cv::Point2f> selPoints1;
-    //     selPoints1.push_back(pt);
-    //     std::vector<cv::Vec3f> epline;
-
-    //     cv::computeCorrespondEpilines(cv::Mat(selPoints1), 1, F, epline);
-
-    //     a = epline[0][0];
-    //     b = epline[0][1];
-    //     c = epline[0][2];
-    // }
 
     //通过R,t 计算极线（内参越准,计算结果越准）
     static inline EpLine ComputeEpLine(const cv::Mat &R, const cv::Mat &t,const CameraParam &cam, const cv::Point2f &pt)
@@ -435,10 +423,7 @@ public:
 
         cv::Mat F = PUtils::ComputeFFromRT(R,t,cam.K);
 
-        double a,b,c;
-        PUtils::CalcEpiline(F,pt,a,b,c);
-        
-        return EpLine(a,b,c);
+        return PUtils::ComputeEpLine(F,pt);
     }
 
     //反投 依赖Frame的姿态 rpy

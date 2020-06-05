@@ -536,7 +536,7 @@ int main(void)
 
     //new PUniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
-    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,GETCFGVALUE(pCfg,MatchRatio,float)));
+    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
 #ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
@@ -650,9 +650,9 @@ int main(void)
         const Point2f prept = preframe->getKeys()[good_matches[i].queryIdx].pt;
         const Point2f curpt = curframe->getKeys()[good_matches[i].trainIdx].pt;
 
-        Position::PUtils::CalcEpiline(F,prept,a,b,c);
+        Position::EpLine epline = Position::PUtils::ComputeEpLine(F,prept);
         
-        Position::PUtils::DrawEpiLine(a,b,c,curpt, out);
+        Position::PUtils::DrawEpiLine(epline,curpt, out);
     }
 
 

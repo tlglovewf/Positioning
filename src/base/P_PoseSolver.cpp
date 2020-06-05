@@ -935,9 +935,9 @@ namespace Position
                     const Point2f prept = mPre->getKeys()[matches[i].queryIdx].pt;
                     const Point2f curpt = mCur->getKeys()[matches[i].trainIdx].pt;
               
-                    Position::PUtils::CalcEpiline(F,prept,a,b,c);
+                    Position::EpLine epline = Position::PUtils::ComputeEpLine(F,prept);
                     
-                    Position::PUtils::DrawEpiLine(a,b,c,curpt, out);
+                    Position::PUtils::DrawEpiLine(epline,curpt, out);
                 }
                 std::string outpath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
                 imwrite( outpath + "/orbepline.jpg",out);
