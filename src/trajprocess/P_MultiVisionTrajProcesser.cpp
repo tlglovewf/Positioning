@@ -11,24 +11,23 @@
 namespace Position
 {
      //构造
-    PMultiVisionTrajProcesser::PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
-                                                         const CameraParam &cam):mCam(cam)
+    PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
 #if 1
-                        int featureCnt   = min(GETCFGVALUE(pcfg,FeatureCnt,int),300);
-                        mpFeature        = std::shared_ptr<IFeature>(new PUniformDistriFeature(featureCnt));
-                        mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,0.5));
+                        int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),300);
+                        mpFeature        = std::shared_ptr<IFeature>(new UniformDistriFeature(featureCnt));
+                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(Knn));
 #else
-                        mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
-                        mpFeatureMatcher = std::unique_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
+                        mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,GETGLOBALCONFIG()));
+                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
 #endif
-                        mpEst            = std::unique_ptr<IPoseSolver>(Position::PFactory::CreatePoseSolver(Position::ePSCv)); 
-                        // mpEst            = std::unique_ptr<IPoseSolver>(Position::PFactory::CreatePoseSolver(Position::ePoseEstOrb));
-                        mpOptimizer      = std::unique_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER(CVPoseSolver));
+                        // mpEst            = std::shared_ptr<IPoseSolver>(Position::PFactory::CreatePoseSolver(Position::ePoseEstOrb));
+                        mpOptimizer      = std::shared_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
                        
-                        Position::FrameHelper::initParams(GETCFGVALUE(pcfg,ImgWd,int),GETCFGVALUE(pcfg,ImgHg,int),&mCam);
+                        Position::FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(),ImgWd,int),GETCFGVALUE(GETGLOBALCONFIG(),ImgHg,int),&mCam);
                         
-                        mFtSearchRadius = GETCFGVALUE(pcfg,SearchRadius,int);
+                        mFtSearchRadius = GETCFGVALUE(GETGLOBALCONFIG(),SearchRadius,int);
                         mpEst->setCamera(mCam);
                         mpOptimizer->setCamera(mCam);    
                    }

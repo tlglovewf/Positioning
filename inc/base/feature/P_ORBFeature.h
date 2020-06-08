@@ -18,16 +18,10 @@ class ORBextractor;
 class ORBFeature : public PFeature
 {
 public:
-    ORBFeature(const std::shared_ptr<IConfig> &pcfg) : PFeature(pcfg) {}
     //计算特征点 以及 描述子
     virtual bool detect(const FrameData &frame, KeyPtVector &keys, Mat &descript);
     //返回sigma参数(主要用于优化 信息矩阵)
     virtual const FloatVector &getSigma2() const;
-    //获取名称
-    virtual std::string name()const 
-    {
-        return _TOSTRING(ORB);
-    }
 protected:
     //初始化
     virtual void init();
@@ -130,6 +124,9 @@ protected:
 #pragma endregion //ORBextrator
 
 #pragma endregion //ORBFEATURE
+
+
+DECLAREIFACTORY(IFeature, ORBFeature,Orb)
 
 } // namespace Position
 

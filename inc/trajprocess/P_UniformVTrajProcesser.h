@@ -17,27 +17,28 @@ namespace Position
     class ORBLoopClosing;
     class ORBKeyFrameDatabase;
 
-    //匀速跟踪
+    //! 匀速跟踪
     class PUniformVTrajProcesser : public PTrajProcesser
     {
     public:
-        //构造
-        PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg, const CameraParam &cam);
+        //! 构造
+        PUniformVTrajProcesser();
         ~PUniformVTrajProcesser();
-         //跟踪
+        //! 跟踪
         virtual cv::Mat track(FrameData *data);
         virtual cv::Mat track(const FrameDataPtrVector &framedatas, const int initnum);
-        //处理
+        //! 处理
         virtual bool process(const FrameDataPtrVector &framedatas);
 
-        //重置
+        //! 重置
         virtual void reset();
 
-        //结束
+        //! 结束
         virtual void over();
 
-        //等待
+        //! 等待
         virtual void wait();
+
     private:
 
        std::unique_ptr<std::thread>         mptLocalMapping;
@@ -51,6 +52,8 @@ namespace Position
        
        bool                 mbReset;
     };
+
+    DECLAREIFACTORY(ITrajProcesser, PUniformVTrajProcesser,UniformTraj)
 }
 
 #endif

@@ -596,7 +596,7 @@ public:
 
     /* get distance from two frames
      */
-    static inline double GetDistanceFormBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2);
+    static inline double ComputeDistBetBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2);
 
     /* get gauss project error
     */

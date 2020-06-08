@@ -17,6 +17,13 @@ namespace Position
     {
         g_globaleConfig = pinstance;
     }
+
+    //! 生成一个默认参数
+    std::shared_ptr<IConfig> IConfig::CreateDefaultInstance()
+    {
+        g_globaleConfig = shared_ptr<IConfig>(new PConfig());
+    }
+
     //构造
     PConfig::PConfig():
                       StNo(0), 

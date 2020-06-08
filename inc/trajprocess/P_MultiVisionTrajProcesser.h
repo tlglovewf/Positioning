@@ -13,16 +13,16 @@ namespace Position
     class PMultiVisionTrajProcesser : public PTrajProcesser
     {
     public:
-         //构造
-         PMultiVisionTrajProcesser(const std::shared_ptr<IConfig> &pcfg,
-                                   const CameraParam &cam);
+        //! 构造
+        PMultiVisionTrajProcesser();
 
-         //跟踪
+        //! 跟踪
         virtual cv::Mat track( FrameData *data);
 
 
-         //处理
+        //! 处理
         virtual bool process(const FrameDataPtrVector &framedatas);
+
     protected:
         //关键帧创建
         virtual bool needCreateNewKeyFrame()
@@ -35,11 +35,11 @@ namespace Position
 
     protected:
         std::shared_ptr<IFeature>            mpFeature;
-        std::unique_ptr<IFeatureMatcher>     mpFeatureMatcher;
-        std::unique_ptr<IPoseSolver>         mpEst;
-        std::unique_ptr<IOptimizer>          mpOptimizer;
+        std::shared_ptr<IFeatureMatcher>     mpFeatureMatcher;
+        std::shared_ptr<IPoseSolver>         mpEst;
+        std::shared_ptr<IOptimizer>          mpOptimizer;
         CameraParam                          mCam;
         int                                  mFtSearchRadius;
     };
-    
+    DECLAREIFACTORY(ITrajProcesser, PMultiVisionTrajProcesser,MViewsTraj)
 } // namespace Position

@@ -32,7 +32,7 @@ message("BUILD_TEST_PROGRAMS option is ${BUILD_TEST_PROGRAMS}")
 
 OPTION(BUILD_TOOL_PROGRAMS   "Build tool program"    ON)
 message("BUILD_TOOL_PROGRAMS option is ${BUILD_TOOL_PROGRAMS}")
-
+ 
 
 #Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)

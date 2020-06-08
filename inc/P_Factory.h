@@ -21,32 +21,6 @@ namespace Position
         eBMSAD,
         eBMSSD
     }; 
-
-    /*
-     * 特征提取类型
-     */
-    DEFINEENUM(Feature)
-    {
-        eFeatureOrb,     //orbslam 
-        eFeatureCVOrb,   //cv orb
-        eFeatureSift     //cv sift(add uniform dist)
-    };
-
-    DEFINEENUM(FeatureMatcher)
-    {
-        eFMDefault,
-        eFMKnnMatch
-    };
-
-    /*
-     * 位姿估算
-     */
-    DEFINEENUM(PoseSolver)
-    {
-        ePSOrb,
-        ePSCv
-    };
-
     /*
      * 优化类型
      */
@@ -56,34 +30,12 @@ namespace Position
     };
 
     /*
-     * 定位类型
-     */
-    DEFINEENUM(Positioning)
-    {
-        ePSingleImage,
-        ePMultiImage,
-        ePDepthImage
-    };
-
-    /*
      * 可视化类型
      */
     DEFINEENUM(Viewer)
     {
         eVPangolin
     };
-
-    /*
-     * 跟踪类型
-     */
-    DEFINEENUM(TrajProcesser)
-    {
-        eTjUniformSpeed,   //匀速运动模型
-        eTjMultiVision,    //多视图场景
-        eTjSfmVision       //sfm场景 
-    };
-
-    class IOptimizer;
     //工厂对象
     class PFactory
     {
@@ -93,97 +45,132 @@ namespace Position
          * 创建对象
          */
         static IBlockMatcher* CreateBlockMatcher(eBlockMatcherType type,const Mat &img, const Point2f &pt);
-
-        /*
-         * 特征点
-         */
-        static IFeature* CreateFeature(eFeatureType type,const std::shared_ptr<IConfig> &pcfg);
-
-        /*
-         * 创建特征匹配对象
-         */
-        static IFeatureMatcher* CreateFeatureMatcher(eFeatureMatcherType type, float ratio, bool bcheckori = true);
-        
+    
 #ifdef USE_VIEW
         /*
          * 创建可视化
          */
         static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg);
 #endif
-        /*
-         * 创建轨迹处理对象
-         */
-        static ITrajProcesser* CreateTrajProcesser(eTrajProcesserType type, 
-                                                   const std::shared_ptr<IConfig> &pcfg,
-                                                   const CameraParam &cam);
-
-        /*
-         * 位姿推算
-         */
-        DEFINEFUNC(PoseSolver)
 
         /*
          * 优化
          */
         DEFINEFUNC(Optimizer)
-
     };
 
-    //持久化 轨迹枚举
+    /*
+     *  持久化 轨迹枚举
+     */
     enum eMapTraceSerType
     {
         eDefaultTraceSer
     };
 
-    //持久化 地图点
+    /*
+    *  持久化 地图点
+    */
     enum eMapPointSerType
     {
         eDefaultPtSer
     };
 
-    //地图持久化管理类
+     /*
+     *  持久化 地图管理类
+     */
     class MapSerManager
     {
     public:
         MapSerManager();
-        //单例
+        //! 单例
         static MapSerManager* Instance()
         {
             static MapSerManager mgr;
             return &mgr;
         }
 
-        //设置地图
+        //! 设置地图
         void setMap(const std::shared_ptr<Position::IMap> &pmap)
         {
             mpTracSer->setMap(pmap);
             mpPtSer->setMap(pmap);
         }
 
-        //设置持久化类型
+        //! 设置持久化类型
         void SetSerType(eMapTraceSerType trtype, eMapPointSerType epttype);
 
-        //获取轨迹持久化指针
+        //! 获取轨迹持久化指针
         ISerialization* tracSerPtr()
         {
             return  mpTracSer;
         }
-        //获取地图点持久化指针
+        //! 获取地图点持久化指针
         ISerialization* mpPtSerPtr()
         {
             return mpPtSer;
         }
 
-        //显示地图
+        //! 显示地图
         void displayMap(const std::shared_ptr<IConfig> &pCfg, const std::string &trac,const std::string &mpts);
 
-        //融合地图  secMap -> baseMap
+        //! 融合地图  secMap -> baseMap
         void combineMap(std::shared_ptr<IMap> &baseMap, const std::shared_ptr<IMap> &secMap);
     protected:
         ISerialization *mpTracSer;
         ISerialization *mpPtSer;
     };
 
+    template<typename F>
+    //! 基础工厂方法
+    class BaseFactoryMethod
+    {
+    public: 
+        //！ 创建相关
+        std::shared_ptr<F>  create(const std::string &name)
+        {
+            assert(mItems.find(name) != mItems.end());
+            return mItems[name]->create();
+        }
+
+    protected:
+        NameMap(IBaseFactory<F>)  mItems;
+    };
+// 工厂定义
+#define FACTORYDECLARE(F) \
+            class F##Factory : public BaseFactoryMethod<F>\
+            {\
+            public:\
+                F##Factory();\
+                static F##Factory* Instance();\
+            };
+
+    /* 
+     * 特征点工厂 "Orb" "Sift" "Uniform"
+     */
+    FACTORYDECLARE(IFeature)
+    /*
+     * 特征匹配工厂 "HanMing" "Knn"
+     */
+    FACTORYDECLARE(IFeatureMatcher)
+    /*
+     * 位姿估计类 "CVPoseSolver" "ORBPoseSolver"
+     */
+    FACTORYDECLARE(IPoseSolver)
+    /*
+     * 轨迹处理类 "MViewsTraj" "UniformTraj" "SfmTraj"
+     */
+    FACTORYDECLARE(ITrajProcesser )
+  
+#undef FACTORYDECLARE
+
+/*
+ * 获取工厂实例（F工厂类型 N名称)
+ */
+#define CREATEFACTORYINSTANCE(F,N)  Position::I##F##Factory::Instance()->create(_TOSTRING(N))
+#define GETFEATURE(N)               CREATEFACTORYINSTANCE(Feature,N)
+#define GETFEATUREMATCHER(N)        CREATEFACTORYINSTANCE(FeatureMatcher,N)
+#define GETPOSESOLVER(N)            CREATEFACTORYINSTANCE(PoseSolver,N)
+#define GETTRJPROCESSER(N)          CREATEFACTORYINSTANCE(TrajProcesser,N)
 
 #define   SETMAPSERIALIZATIONMAP(MAP)  Position::MapSerManager::Instance()->setMap(MAP);
 #define   SAVEMAPFRAME(path)           Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path);

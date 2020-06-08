@@ -1,12 +1,12 @@
+#include "test.h"
 #include "project/weiyaproject.h"
 #include "P_IOHelper.h"
 #include "P_Factory.h"
 #include "P_MapDisplay.h"
 #include "P_Factory.h"
 
-int main(int argv, char **argc)
-{
-// #if USE_VIEW
+TESTBEGIN()
+#if USE_VIEW
 
     std::shared_ptr<Position::IConfig> pCfg(new WeiyaConfig("../config/config_weiya.yaml"));
 
@@ -18,6 +18,5 @@ int main(int argv, char **argc)
 
     Position::PMapDisplay mapDisplay(pData,pCfg,1);
     mapDisplay.run();
-// #endif
-    return 0;
-}
+#endif
+TESTEND()

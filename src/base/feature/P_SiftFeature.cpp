@@ -2,50 +2,20 @@
 #include <opencv2/core/hal/hal.hpp>
 namespace Position
 {
-    class SIFT_Impl : public PSIFT
+
+    SiftFeature::SiftFeature():SiftFeature(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int))
     {
-    public:
-        explicit SIFT_Impl(int nfeatures = 0, int nOctaveLayers = 3,
-                        double contrastThreshold = 0.04, double edgeThreshold = 10,
-                        double sigma = 1.6);
 
-        //! returns the descriptor size in floats (128)
-        int descriptorSize() const;
+    }
 
-        //! returns the descriptor type
-        int descriptorType() const;
-
-        //! returns the default norm type
-        int defaultNorm() const;
-
-        //! finds the keypoints and computes descriptors for them using SIFT algorithm.
-        //! Optionally it can compute descriptors for the user-provided keypoints
-        void detectAndCompute(InputArray img, InputArray mask,
-                            std::vector<KeyPoint> &keypoints,
-                            OutputArray descriptors,
-                            bool useProvidedKeypoints = false);
-
-        void buildGaussianPyramid(const Mat &base, std::vector<Mat> &pyr, int nOctaves) const;
-        void buildDoGPyramid(const std::vector<Mat> &pyr, std::vector<Mat> &dogpyr) const;
-        void findScaleSpaceExtrema(const std::vector<Mat> &gauss_pyr, const std::vector<Mat> &dog_pyr,
-                                std::vector<KeyPoint> &keypoints) const;
-
-    protected:
-        CV_PROP_RW int nfeatures;
-        CV_PROP_RW int nOctaveLayers;
-        CV_PROP_RW double contrastThreshold;
-        CV_PROP_RW double edgeThreshold;
-        CV_PROP_RW double sigma;
-    };
-
-    Ptr<PSIFT> PSIFT::create(int _nfeatures, int _nOctaveLayers,
+    Ptr<SiftFeature> SiftFeature::create(int _nfeatures, int _nOctaveLayers,
                         double _contrastThreshold, double _edgeThreshold, double _sigma)
     {
-        return makePtr<SIFT_Impl>(_nfeatures, _nOctaveLayers, _contrastThreshold, _edgeThreshold, _sigma);
+        return makePtr<SiftFeature>(_nfeatures, _nOctaveLayers, _contrastThreshold, _edgeThreshold, _sigma);
     }
 
      //计算特征点
-    bool PSIFT::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
+    bool SiftFeature::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
     {
         Feature2D::detect(frame._img,keys);
         this->compute(frame._img,keys,descript);
@@ -137,7 +107,7 @@ namespace Position
         }
     }
 
-    void SIFT_Impl::buildGaussianPyramid(const Mat &base, std::vector<Mat> &pyr, int nOctaves) const
+    void SiftFeature::buildGaussianPyramid(const Mat &base, std::vector<Mat> &pyr, int nOctaves) const
     {
         std::vector<double> sig(nOctaveLayers + 3);
         pyr.resize(nOctaves * (nOctaveLayers + 3));
@@ -210,7 +180,7 @@ namespace Position
         std::vector<Mat> &dogpyr;
     };
 
-    void SIFT_Impl::buildDoGPyramid(const std::vector<Mat> &gpyr, std::vector<Mat> &dogpyr) const
+    void SiftFeature::buildDoGPyramid(const std::vector<Mat> &gpyr, std::vector<Mat> &dogpyr) const
     {
         int nOctaves = (int)gpyr.size() / (nOctaveLayers + 3);
         dogpyr.resize(nOctaves * (nOctaveLayers + 2));
@@ -592,7 +562,7 @@ namespace Position
     //
     // Detects features at extrema in DoG scale space.  Bad features are discarded
     // based on contrast and ratio of principal curvatures.
-    void SIFT_Impl::findScaleSpaceExtrema(const std::vector<Mat> &gauss_pyr, const std::vector<Mat> &dog_pyr,
+    void SiftFeature::findScaleSpaceExtrema(const std::vector<Mat> &gauss_pyr, const std::vector<Mat> &dog_pyr,
                                         std::vector<KeyPoint> &keypoints) const
     {
         const int nOctaves = (int)gauss_pyr.size() / (nOctaveLayers + 3);
@@ -982,29 +952,29 @@ namespace Position
 
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    SIFT_Impl::SIFT_Impl(int _nfeatures, int _nOctaveLayers,
+    SiftFeature::SiftFeature(int _nfeatures, int _nOctaveLayers,
                         double _contrastThreshold, double _edgeThreshold, double _sigma)
         : nfeatures(_nfeatures), nOctaveLayers(_nOctaveLayers),
         contrastThreshold(_contrastThreshold), edgeThreshold(_edgeThreshold), sigma(_sigma)
     {
     }
 
-    int SIFT_Impl::descriptorSize() const
+    int SiftFeature::descriptorSize() const
     {
         return SIFT_DESCR_WIDTH * SIFT_DESCR_WIDTH * SIFT_DESCR_HIST_BINS;
     }
 
-    int SIFT_Impl::descriptorType() const
+    int SiftFeature::descriptorType() const
     {
         return CV_32F;
     }
 
-    int SIFT_Impl::defaultNorm() const
+    int SiftFeature::defaultNorm() const
     {
         return NORM_L2;
     }
 
-    void SIFT_Impl::detectAndCompute(InputArray _image, InputArray _mask,
+    void SiftFeature::detectAndCompute(InputArray _image, InputArray _mask,
                                     std::vector<KeyPoint> &keypoints,
                                     OutputArray _descriptors,
                                     bool useProvidedKeypoints)

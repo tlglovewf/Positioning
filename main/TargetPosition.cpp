@@ -80,8 +80,8 @@ int main(int argc, char **argv)
 
     std::shared_ptr<Position::IProjList> prjList(new ImgAutoPrjList(pData));
     prjList->setBatcherGenerator(shared_ptr<IBatchesGenerator>(new TargetBatchesGenerator));
-    std::shared_ptr<IVisualPositioner>  pPositioner(new BatchVisualPositioner(pData->getCamera()));
-    PosBatchHandler poshandler(pCfg,prjList,pPositioner,pData->getCamera());
+    std::shared_ptr<IVisualPositioner>  pPositioner(new BatchVisualPositioner(pCfg->getCamera()));
+    PosBatchHandler poshandler(pCfg,prjList,pPositioner,pCfg->getCamera());
 
     const std::string trackerpath = prjpath + "tracker/";
     if(poshandler.loadTrackerInfos(trackerpath + "tracker.txt"))

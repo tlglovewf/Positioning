@@ -1,3 +1,4 @@
+#include "test.h"
 #include "P_Utils.h"
 #include "P_SemanticGraph.h"
 #include "P_Map.h"
@@ -285,7 +286,7 @@ bool CheckUnique(const Position::KeyPtVector &pts, const cv::KeyPoint &keypt)
 Mat GernerateMask(const string &sempath,const string &segim, Rect rect)
 {
     string str = segim;
-    Position::PUtils::ReplaceFileSuffix(str,"jpg", SemanticGraph::Instance()->defaultsuffix);
+    Position::PUtils::ReplaceFileSuffix(str,"jpg", Position::SemanticGraph::Instance()->defaultsuffix);
     cv::Mat seg = imread(sempath + str);
     if(seg.empty())
     {
@@ -297,7 +298,7 @@ Mat GernerateMask(const string &sempath,const string &segim, Rect rect)
         for(size_t j = 0; j<seg.cols; j++)
         {
             Point pt = Point(j,i);
-            if(SemanticGraph::Instance()->isDynamicObj(pt,seg)||rect.contains(pt))
+            if(Position::SemanticGraph::Instance()->isDynamicObj(pt,seg)||rect.contains(pt))
             {
                 maskim.at<uchar>(pt) = 0;
             }           
@@ -380,16 +381,15 @@ void readKeyPoints(const std::string &path, Position::KeyPtVector &keypts1, Posi
     }
 }
 
-int main(void)
-{
-
+TESTBEGIN()
     Mat im1 = imread("/media/tu/Work/Datas/test/689_L.jpg");
     Mat im2 = imread("/media/tu/Work/Datas/test/691_L.jpg");
     Mat im3 = imread("/media/tu/Work/Datas/test/693_L.jpg");
 
     std::shared_ptr<Position::IConfig>  pcfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
-    std::shared_ptr<Position::IFeature> pfeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pcfg));
-    std::shared_ptr<Position::IFeatureMatcher> pmatch(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,0.5));
+    SETGLOBALCONFIG(pcfg);
+    std::shared_ptr<Position::IFeature> pfeature(GETFEATURE(Orb));   
+    std::shared_ptr<Position::IFeatureMatcher> pmatch(GETFEATUREMATCHER(Knn));
     Position::FrameData fm1;
     Position::FrameData fm2;
     Position::FrameData fm3;
@@ -528,34 +528,34 @@ int main(void)
 
 
     return 0;
-    SemanticGraph::Instance()->loadObjInfos("segraph.config");
+    Position::SemanticGraph::Instance()->loadObjInfos("segraph.config");
 
-    std::shared_ptr<Position::IConfig>  pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
-    std::shared_ptr<Position::IFrameData>    pData(new HdData(pCfg));
-    std::shared_ptr<Position::IFeature> pFeature(Position::PFactory::CreateFeature(Position::eFeatureOrb,pCfg));
+    std::shared_ptr<Position::IConfig>      pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
+    std::shared_ptr<Position::IFrameData>   pData(new HdData(pCfg));
+    std::shared_ptr<Position::IFeature>     pFeature(GETFEATURE(Orb));
 
-    //new PUniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
+    //new UniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
-    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
+    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(GETFEATUREMATCHER(HanMing));
     std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
 #ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
 #endif
-    std::shared_ptr<Position::IPoseSolver>  poseest(Position::PFactory::CreatePoseSolver(Position::ePSOrb));//  ePoseEstCV));
+    std::shared_ptr<Position::IPoseSolver>  poseest(GETPOSESOLVER(CVPoseSolver));
     
 
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
     if(!sempath.empty())
     {
-        SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
-        SemanticGraph::Instance()->setSemanticPath(sempath);
+        Position::SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
+        Position::SemanticGraph::Instance()->setSemanticPath(sempath);
     }
 
 #ifdef USE_VIEW
     pv->setMap(pmap);
 #endif
     pData->loadDatas();
-    pOptimizer->setCamera(pData->getCamera());
+    pOptimizer->setCamera(pcfg->getCamera());
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
 
@@ -567,7 +567,7 @@ int main(void)
     std::string picname1 = predata._name;  //"0_14166";//"0_11370.jpg";
     std::string picname2 = curdata._name;  //"0_14167";//"0_11371.jpg";
 
-    Position::CameraParam cam = pData->getCamera();
+    Position::CameraParam cam = pcfg->getCamera();
   
      //加mask
     int maskUse = GETCFGVALUE(pCfg,MaskEnable,int);
@@ -723,8 +723,4 @@ int main(void)
 #endif
 
     }
-
-
-    
-    return 0;
-}
+TESTEND()

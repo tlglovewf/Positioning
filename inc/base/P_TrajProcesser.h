@@ -11,7 +11,7 @@
 namespace Position
 {
 
-    //跟踪对象
+    //! 跟踪对象
     class PTrajProcesser : public ITrajProcesser
     {
     public:
@@ -21,43 +21,43 @@ namespace Position
 
         }
 
-        //构造
+        //! 构造
         PTrajProcesser():
         mpMap(new PMap()),mStatus(eTrackNoImage),mpCurrent(NULL),
         mpLast(NULL),mpCurrentKeyFm(NULL),mpLastKeyFm(NULL)
         {
 
         }
-        //获取地图
+        //! 获取地图
         virtual const std::shared_ptr<IMap>& getMap() 
         {
             return mpMap;
         }
-        //跟踪
+        //! 跟踪
         virtual cv::Mat track( FrameData *data)
         {
             assert(NULL);
             return cv::Mat();
         }
 
-        //状态
+        //! 状态
         virtual eTrackStatus status()const
         {
             return mStatus;
         }
 
-         //当前帧
+        //! 当前帧
         virtual IKeyFrame* current()const
         {
             return mpCurrentKeyFm;
         }
-        //上一帧
+        //! 上一帧
         virtual IKeyFrame* last()const 
         {
             return mpLastKeyFm;
         }
 
-        //重置
+        //! 重置
         virtual void reset()
         {//重置 地图清空 状态复位
             mStatus         = eTrackNoImage;
@@ -69,13 +69,13 @@ namespace Position
             mpMap->clear();
         }
 
-        //结束
+        //! 结束
         virtual void over() 
         {
             // add more...
         }
 
-         //处理
+        //! 处理
         virtual bool process(const FrameDataPtrVector &framedatas) 
         {
             if(framedatas.size() < 2)
@@ -97,14 +97,14 @@ namespace Position
                 return true;
             }
         }
-         //设置可视接口
+        //! 设置可视接口
         virtual void setViewer(const std::shared_ptr<IViewer> &viewer) 
         {   
             mpViewer = viewer;
             mpViewer->setMap(mpMap);
         }
 
-        //等待
+        //! 等待
         virtual void wait()
         {
             //add more

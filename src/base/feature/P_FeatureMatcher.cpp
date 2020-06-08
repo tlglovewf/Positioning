@@ -71,7 +71,7 @@ namespace Position
     }
 
     //匹配  返回匹配对
-    MatchVector PFeatureMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
+    MatchVector HanMingMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
         assert(preframe && curframe);
         int nmatches = 0;
@@ -195,13 +195,13 @@ namespace Position
         return matches;
     }
 
-    PKnnMatcher::PKnnMatcher():mMatcher(new cv::FlannBasedMatcher())
+    KnnMatcher::KnnMatcher(float fratio /*= 0.5*/):mMatcher(new cv::FlannBasedMatcher()),mfNNratio(fratio)
     {
 
     }
 
     //匹配  返回匹配对
-    MatchVector PKnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
+    MatchVector KnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
         assert(preframe);
         assert(curframe);
@@ -214,7 +214,7 @@ namespace Position
 
         MatchVector goods;
 
-        const float minRatio = 0.5; //
+        const float minRatio = mfNNratio; //
         const int k = 2;
         
         std::vector<std::vector<DMatch> > knnMatches;

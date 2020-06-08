@@ -50,7 +50,7 @@ namespace Position
     class CVPoseSolver : public PPoseSolver
     {
     public:
-         //推算位姿
+         //! 推算位姿
         virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts);
 
      protected:
@@ -71,7 +71,6 @@ namespace Position
 
          //推算位姿
         virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts);
-
 
         //计算单应矩阵
         void FindHomography (BolVector &vbInliers, float &score, cv::Mat &H21);
@@ -114,6 +113,8 @@ namespace Position
         vector< SzVector >    mvSets;
     };
 
+    DECLAREIFACTORY(IPoseSolver, CVPoseSolver    ,CVPoseSolver)
+    DECLAREIFACTORY(IPoseSolver, ORBPoseSolver   ,ORBPoseSolver)
 
 }
 

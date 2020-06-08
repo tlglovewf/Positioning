@@ -36,21 +36,30 @@ namespace Position
 #define CFGVALUE(v,type) (*reinterpret_cast<type*>(v->data()))
 #define GETCFGVALUE(v,str,type) CFGVALUE((*v)[#str],type)
 #define SETCFGVALUE(v,str,d)    (GETCFGVALUE(v,str,decltype(d))) = d
-    // config interface
+    //! config interface
     class IConfig : public IBase
     {
     public:
-        // 加载配置文件
+        //! 加载配置文件
         virtual void load(const std::string &path) = 0;
 
-        // 获取值
+        //! 获取值
         virtual IConfigParam* operator[](const std::string &name) = 0;
         
-        //获取单例
+        //! 设置相机参数
+        virtual void setCamera(const CameraParam &cam) = 0;
+
+        //! 获取相机参数
+        virtual const CameraParam& getCamera()const = 0; 
+
+        //! 获取单例
         static std::shared_ptr<IConfig>& Instance();
 
-        //设置单例
+        //! 设置单例
         static void SetInstance(const std::shared_ptr<IConfig> &pinstance);
+
+        //! 生成一个默认参数
+        static std::shared_ptr<IConfig> CreateDefaultInstance();
     };
 
 #define SETGLOBALCONFIG(X) Position::IConfig::SetInstance(X);
@@ -219,9 +228,6 @@ namespace Position
         //数据总量
         virtual size_t size()const = 0;
 
-        // 获取相机参数 default(0)  left    1 right 
-        virtual const CameraParam& getCamera(int index = 0)const = 0;
-
         //根据图像名取时间(天秒)
         virtual double getTimeFromName(const std::string &name) = 0;
     };
@@ -346,7 +352,6 @@ namespace Position
         //计算特征点
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript) = 0;
         //获取名称
-        virtual std::string name()const = 0;
         //返回sigma参数(主要用于优化 信息矩阵)
         virtual const FloatVector& getSigma2() const = 0;
     };
@@ -361,9 +366,6 @@ namespace Position
         //@param curframe   后帧
         //@param windowsize 搜索过滤范围(像素)
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize) = 0;
-
-        //获取名称
-        virtual std::string name()const = 0;
     };
 
     //跟踪状态
@@ -379,25 +381,25 @@ namespace Position
     class ITrajProcesser : public IBase
     {
     public:
-        //设置可视接口
+        //! 设置可视接口
         virtual void setViewer(const std::shared_ptr<IViewer> &viewer) = 0;
-        //获取地图
+        //! 获取地图
         virtual const std::shared_ptr<IMap>& getMap() = 0;
-        //处理
+        //! 处理
         virtual bool process(const FrameDataPtrVector &framedatas) = 0;
-        //跟踪
+        //! 跟踪
         virtual cv::Mat track(FrameData *data) = 0;
-        //状态
+        //! 状态
         virtual eTrackStatus status()const = 0;
-        //重置
+        //! 重置
         virtual void reset() = 0;
-        //结束
+        //! 结束
         virtual void over() = 0;
-        //等待处理
+        //! 等待处理
         virtual void wait() = 0;
-        //当前帧
+        //! 当前帧
         virtual IKeyFrame* current()const = 0;
-        //上一帧
+        //! 上一帧
         virtual IKeyFrame* last()const = 0;
     };
 
@@ -436,14 +438,14 @@ namespace Position
     };
 
     //位姿推算
-    class IPoseSolver
+    class IPoseSolver : public IBase
     {
     public:
-        //设置相机参数
+        //! 设置相机参数
         virtual void setCamera(const CameraParam &cam) = 0;
-        //设置帧
+        //! 设置帧
         virtual void setFrames( IFrame *pre, IFrame *cur) = 0;
-        //推算位姿
+        //! 推算位姿
         virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts) = 0;
     };
 
@@ -455,6 +457,42 @@ namespace Position
         //融合
         virtual bool fuse(const std::shared_ptr<IMap> &pmap, const CameraParam &cam) = 0;
     };
+
+
+    //!名称节点
+    class INameNode : public IBase
+    {
+    public:
+        //! 获取名称
+        virtual string name()const = 0;
+    };
+
+    //！特征工厂
+    template<typename B>
+    class IBaseFactory : public INameNode
+    {
+    public:
+        //! 构建
+        virtual std::shared_ptr<B> create() 
+        {
+            assert(NULL);
+        }
+    };
+#define FEATUREFACTORY          IBaseFactory<IFeature>          
+#define FEATUREMATCHERFACTORY   IBaseFactory<IFeatureMatcher>   
+#define POSESOLVERFACTORY       IBaseFactory<IPoseSolver>       
+#define TRAJPROCESSERFACTORY    IBaseFactory<ITrajProcesser>    
+
+#define DECLAREIFACTORY(B,F,N)\
+        class F##Factory : public IBaseFactory<B>\
+        {\
+        public:\
+            virtual string name()const{return _TOSTRING(N);}\
+            virtual std::shared_ptr<B> create() \
+            {\
+                return std::shared_ptr<B>(new F());\
+            }\
+        };
 
 } // namespace Position
 

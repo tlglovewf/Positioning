@@ -5,15 +5,22 @@
  * 
  */
 
-#ifndef __PSIFT_H_H_
-#define __PSIFT_H_H_
+#ifndef __SIFTFEATURE_H_H_
+#define __SIFTFEATURE_H_H_
 #include "P_Feature.h"
 
 namespace Position
 {
-    class PSIFT : public Feature2D, public PFeature
+    class SiftFeature : public Feature2D, public PFeature
     {
     public:
+        //! 构造函数
+        SiftFeature();
+
+        //! 计算特征点
+        virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
+
+        public:
         /**
         @param nfeatures The number of best features to retain. The features are ranked by their scores
         (measured in SIFT algorithm as the local contrast)
@@ -31,19 +38,43 @@ namespace Position
         @param sigma The sigma of the Gaussian applied to the input image at the octave \#0. If your image
         is captured with a weak camera with soft lenses, you might want to reduce the number.
         */
-        static Ptr<PSIFT> create( int nfeatures = 0, int nOctaveLayers = 3,
+        static Ptr<SiftFeature> create( int nfeatures = 0, int nOctaveLayers = 3,
                                 double contrastThreshold = 0.04, double edgeThreshold = 10,
                                 double sigma = 1.6);
 
-         //计算特征点
-        virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
+        explicit SiftFeature(int nfeatures, int nOctaveLayers = 3,
+                        double contrastThreshold = 0.04, double edgeThreshold = 10,
+                        double sigma = 1.6);
 
-        //获取名称
-        virtual std::string name()const 
-        {
-            return _TOSTRING(SIFT);
-        }
+        //! returns the descriptor size in floats (128)
+        int descriptorSize() const;
+
+        //! returns the descriptor type
+        int descriptorType() const;
+
+        //! returns the default norm type
+        int defaultNorm() const;
+
+        //! finds the keypoints and computes descriptors for them using SIFT algorithm.
+        //! Optionally it can compute descriptors for the user-provided keypoints
+        void detectAndCompute(InputArray img, InputArray mask,
+                            std::vector<KeyPoint> &keypoints,
+                            OutputArray descriptors,
+                            bool useProvidedKeypoints = false);
+
+        void buildGaussianPyramid(const Mat &base, std::vector<Mat> &pyr, int nOctaves) const;
+        void buildDoGPyramid(const std::vector<Mat> &pyr, std::vector<Mat> &dogpyr) const;
+        void findScaleSpaceExtrema(const std::vector<Mat> &gauss_pyr, const std::vector<Mat> &dog_pyr,
+                                std::vector<KeyPoint> &keypoints) const;
+
+    protected:
+        CV_PROP_RW int nfeatures;
+        CV_PROP_RW int nOctaveLayers;
+        CV_PROP_RW double contrastThreshold;
+        CV_PROP_RW double edgeThreshold;
+        CV_PROP_RW double sigma;
     };
+    DECLAREIFACTORY(IFeature, SiftFeature,Sift)
 }
 
 #endif

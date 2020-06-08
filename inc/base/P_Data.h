@@ -47,11 +47,6 @@ namespace Position
         {
             return mFrameDatas.size();
         }
-        // 获取相机参数 default(0)  left    1 right 
-        virtual const CameraParam& getCamera(int index = 0)const
-        {
-            return mCamera;
-        }
 
         //根据图像名取时间(天秒)
         virtual double getTimeFromName(const std::string &name) 
@@ -70,12 +65,10 @@ namespace Position
             }
             mFrameDatas.shrink_to_fit();
         }
-
     protected:
         std::shared_ptr<IConfig>    mpCfg;
 
         FrameDataPtrVector          mFrameDatas;
-        CameraParam                 mCamera;
     };
     // add more ..
 } // namespace Position

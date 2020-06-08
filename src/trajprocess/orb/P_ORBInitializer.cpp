@@ -118,7 +118,6 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     if(!bRet)
     {
         LOG_WARNING_F("%s Pose Recover Error!!!", CurrentFrame.getData()->_name.c_str());
-
 #if 1
         Position::MatchVector matches;
        

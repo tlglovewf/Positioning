@@ -118,6 +118,20 @@ namespace Position
         {
             return mConfigParams[name];
         }
+
+            //! 设置相机参数
+        virtual void setCamera(const CameraParam &cam)
+        {
+            mCamera = cam;
+        }
+        
+        //! 获取相机参数
+        virtual const CameraParam& getCamera()const
+        {
+            assert(!mCamera.K.empty());
+            return mCamera;
+        } 
+
     protected:
 
         //其他信息加载
@@ -171,7 +185,8 @@ namespace Position
         // FloatConfigParam    ViewptF;        //视距
 
         IntConfigParam      MapSave;        //地圖保存
-
+        
+        CameraParam         mCamera;        //相机
         //add more ...
 
     };

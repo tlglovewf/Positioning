@@ -13,7 +13,7 @@
 namespace Position
 {
     //构造函数
-    PUniformVTrajProcesser::PUniformVTrajProcesser(const std::shared_ptr<IConfig> &pcfg,const CameraParam &cam):PTrajProcesser(std::make_shared<ORBMap>()),mbReset(false)
+    PUniformVTrajProcesser::PUniformVTrajProcesser():PTrajProcesser(std::make_shared<ORBMap>()),mbReset(false)
     {
         mpVocabulary = std::make_shared<ORBVocabulary>();
         const string path = "ORBvoc.bin";
@@ -33,7 +33,7 @@ namespace Position
 
         mpKeyFrameDatabase = std::make_shared<ORBKeyFrameDatabase>(mpVocabulary);
 
-        mpTracker = std::make_shared<ORBTracking>(mpVocabulary,mpMap,mpKeyFrameDatabase,pcfg,cam);
+        mpTracker = std::make_shared<ORBTracking>(mpVocabulary,mpMap,mpKeyFrameDatabase,GETGLOBALCONFIG(),GETGLOBALCONFIG()->getCamera());
 
         mpLocalMapper = std::make_shared<ORBLocalMapping>(mpMap);
         mptLocalMapping = std::unique_ptr<thread>( new thread(&Position::ORBLocalMapping::Run,mpLocalMapper.get()));

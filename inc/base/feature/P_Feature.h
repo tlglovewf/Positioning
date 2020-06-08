@@ -14,13 +14,6 @@ namespace Position
     class PFeature : public IFeature
     {
     public:
-        PFeature(){}
-
-        //设置配置文件
-        PFeature(const std::shared_ptr<IConfig> &pcfg):mCfg(pcfg)
-        {
-        }
-
         //计算特征点
         virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
         {
@@ -34,8 +27,6 @@ namespace Position
             static FloatVector fvt;
             return fvt;
         }
-    protected:
-        std::shared_ptr<IConfig> mCfg;
     };
 }
 

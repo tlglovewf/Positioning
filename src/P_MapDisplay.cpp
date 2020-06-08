@@ -41,7 +41,7 @@ namespace Position
             exit(-1);
         }
 
-        mpTrajProSelector = std::unique_ptr<Position::PoseEstimator>(new Position::PoseEstimator(pcfg, pdata->getCamera(), eTjtype));
+        mpTrajProSelector = std::unique_ptr<Position::PoseEstimator>(new Position::PoseEstimator(pcfg, pcfg->getCamera(), eTjtype));
 
     #ifdef USE_VIEW
         if (GETCFGVALUE(mpConfig, ViewEnable, int))
@@ -90,7 +90,7 @@ namespace Position
             return;
         }
 
-        mpGpsFunsion->fuse(mpTrajProSelector->getMap(), mpData->getCamera());
+        mpGpsFunsion->fuse(mpTrajProSelector->getMap(), mpConfig->getCamera());
     #ifdef USE_VIEW
         if (mpViewer)
         { //如果有可视接口 显示该段

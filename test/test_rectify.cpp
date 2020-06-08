@@ -1,16 +1,17 @@
+#include "test.h"
 #include "P_Interface.h"
 #include "P_Utils.h"
 #include "P_Factory.h"
 #include "P_Frame.h"
 #include "project/newhwproject.h"
 
-int main(void)
-{
+TESTBEGIN()
     std::shared_ptr<Position::IConfig>              pcfg(new ImgAutoConfig("../config/config_new.yaml"));
     std::shared_ptr<Position::IFrameData>           pdata(new NewHwProjectData(pcfg));
-    std::shared_ptr<Position::IFeature>             pfeature(Position::PFactory::CreateFeature(Position::eFeatureSift,pcfg));
-    std::shared_ptr<Position::IFeatureMatcher>      pmatcher(Position::PFactory::CreateFeatureMatcher(Position::eFMKnnMatch,0.5));
-    std::shared_ptr<Position::IPoseSolver>          ppose(Position::PFactory::CreatePoseSolver(Position::ePSCv));
+    SETGLOBALCONFIG(pcfg);
+    std::shared_ptr<Position::IFeature>             pfeature(GETFEATURE(Sift));
+    std::shared_ptr<Position::IFeatureMatcher>      pmatcher(GETFEATUREMATCHER(Knn));
+    std::shared_ptr<Position::IPoseSolver>          ppose(GETPOSESOLVER(CVPoseSolver));
 
     SETGLOBALCONFIG(pcfg);
     if(pdata->loadDatas())
@@ -28,7 +29,7 @@ int main(void)
 
         Position::MatchVector matches = pmatcher->match(pf1,pf2,10);
 
-        Position::CameraParam cam = pdata->getCamera();
+        const Position::CameraParam &cam = pcfg->getCamera();
         ppose->setCamera(cam);
         ppose->setFrames(pf1,pf2);
         Mat R;
@@ -67,7 +68,4 @@ int main(void)
         }
 
     }
-
-
-    return 0;
-}
+TESTEND()

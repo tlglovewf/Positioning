@@ -11,39 +11,33 @@
 namespace Position
 {
     //特征匹配对象 汉明距离
-    class PFeatureMatcher : public IFeatureMatcher
+    class HanMingMatcher : public IFeatureMatcher
     {
     public:
         //構造函數  fratio閾值 越大匹配約束越小 checkori 是否檢查旋轉
-        PFeatureMatcher(float fratio,bool bcheckori = true):mbCheckOrientation(true),mfNNratio(fratio){}
+        HanMingMatcher(float fratio = 0.8):mbCheckOrientation(true),mfNNratio(fratio){}
         //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
-        //获取名称
-        virtual std::string name()const 
-        {
-            return _TOSTRING(HANMING);
-        }
     protected:
         bool    mbCheckOrientation;
         float   mfNNratio;
     };
 
     //cv 匹配  knn近临匹配
-    class PKnnMatcher : public IFeatureMatcher
+    class KnnMatcher : public IFeatureMatcher
     {
     public:  
-        PKnnMatcher();
+        KnnMatcher(float fratio = 0.5);
 
           //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
-        //获取名称
-        virtual std::string name()const 
-        {
-            return _TOSTRING(KNN);
-        }
     protected:
         cv::Ptr<DescriptorMatcher> mMatcher;
+        float   mfNNratio;
     };
+    
+    DECLAREIFACTORY(IFeatureMatcher, HanMingMatcher,HanMing)
+    DECLAREIFACTORY(IFeatureMatcher, KnnMatcher    ,Knn)
 }
 
 #endif

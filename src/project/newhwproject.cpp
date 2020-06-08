@@ -33,7 +33,8 @@ void NewHwProjectData::loadCameraParams(const std::string &path)
 {
     if (mCameraDB.open(path))
     {
-        mCamera = mCameraDB.getCameraParams();
+        Position::CameraParam mCamera = mCameraDB.getCameraParams();
+        mpCfg->setCamera(mCamera);
         PROMT_S("Camera params >>>>>>>>>>>>>>>>>>>>>>>>>");
         PROMT_V("K", mCamera.K);
         PROMT_V("D", mCamera.D);

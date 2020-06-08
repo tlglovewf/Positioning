@@ -103,6 +103,7 @@ void ImgAutoData::loadCameraParams(const std::string &path)
     }
     //read camera matrix
     FileStorage intr(path, FileStorage::READ);
+    Position::CameraParam mCamera;
     if (intr.isOpened())
     {
         intr["P1"] >> mCamera.K;
@@ -123,6 +124,7 @@ void ImgAutoData::loadCameraParams(const std::string &path)
         PROMT_V("Fps ", (int)mCamera.fps);
         // PROMT_V("Rgb ", (int)mCamera.rgb);
         PROMT_S("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        mpCfg->setCamera(mCamera);
         //add
     }
     else

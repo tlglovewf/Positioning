@@ -124,7 +124,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::IFrameData> pData(new HdData(pCfg));
 
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData->getCamera()));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(GETTRJPROCESSER(MViewsTraj)); 
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     
@@ -159,7 +159,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
         if(pTraj->process(framedatas))
         {
             //gps 融合
-            // gpsfusion->fuse(pTraj->getMap(),pData->getCamera());
+            // gpsfusion->fuse(pTraj->getMap(),pCfg->getCamera());
             cout << "Save Batch " << (*it)->_btname.c_str() << "pose info" << endl;
             Position::KeyFrameVector frames = map->getAllFrames();
 
@@ -304,7 +304,7 @@ int main(void)
     pData->loadDatas();
     const string imgpath = GETCFGVALUE(pCfg,ImgPath ,string) + "/";
     const string outpath = GETCFGVALUE(pCfg,OutPath ,string) + "/";
-    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pData->getCamera()));
+    std::shared_ptr<Position::ITrajProcesser> pTraj(Position::PFactory::CreateTrajProcesser(Position::eTjMultiVision,pCfg,pCfg->getCamera()));
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     Position::FrameDataPtrVector datas;
     Position::FrameDataPtrVIter iter = pData->begin();

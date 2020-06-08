@@ -47,6 +47,8 @@ HdData::HdData(const std::shared_ptr<Position::IConfig> &pcfg):PFrameData(pcfg)
     float cx = GETCFGVALUE(pcfg,HdCamCx,float);
     float cy = GETCFGVALUE(pcfg,HdCamCy,float);
 
+    Position::CameraParam mCamera;
+
     mCamera.K = (Mat_<MATTYPE>(3,3) << fx, 0 , cx,
                                        0 , fy, cy,
                                        0 , 0 ,  1);
@@ -72,6 +74,7 @@ HdData::HdData(const std::shared_ptr<Position::IConfig> &pcfg):PFrameData(pcfg)
         mCamera.D.resize(5);
         mCamera.D.at<MATTYPE>(4) = k3;
     }
+    mpCfg->setCamera(mCamera);
 }
 
 //预处理数据

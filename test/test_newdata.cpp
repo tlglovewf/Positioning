@@ -1,11 +1,11 @@
+#include "test.h"
 #include "project/newhwproject.h"
 #include "P_IOHelper.h"
 #include "P_Factory.h"
 #include "P_MapDisplay.h"
 #include "P_Mask.h"
-int main(int argv, char **argc)
-{
-// #if USE_VIEW
+TESTBEGIN()
+#if USE_VIEW
     // if(argv < 2)
     // {
     //     PROMT_S("Params Not Enough!!!");
@@ -32,7 +32,7 @@ int main(int argv, char **argc)
     const int mklen = 250;
     SETGLOBALMASK(Rect2i(0,height - mklen,width,mklen));
 
-    Position::PMapDisplay mapDisplay(pData,pCfg,0);
+    Position::PMapDisplay mapDisplay(pData,pCfg,1);
     mapDisplay.run();
 
 #else
@@ -43,10 +43,10 @@ int main(int argv, char **argc)
         Mat img = imread(imgpath + "/" + (*it)->_name);
         cout <<  (*it)->_name.c_str()  << endl;
         if( !img.empty() && 
-            !pData->getCamera().D.empty())
+            !pCfg->getCamera().D.empty())
         {
             Mat oimg;
-            undistort(img,oimg,pData->getCamera().K,pData->getCamera().D);
+            undistort(img,oimg,pCfg->getCamera().K,pCfg->getCamera().D);
             resize(oimg,oimg,Size(oimg.cols >> 1, oimg.rows >> 1));
             imshow("test",oimg);
             // imwrite("/media/tu/Work/Datas/9-200524-00/Output/" + (*it)->_name,oimg);
@@ -58,6 +58,5 @@ int main(int argv, char **argc)
 
     
     
-// #endif
-    return 0;
-}
+#endif
+TESTEND()

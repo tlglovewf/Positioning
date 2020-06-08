@@ -24,6 +24,7 @@ WeiyaData::WeiyaData(const std::shared_ptr<Position::IConfig> &pcfg):Position::P
     const std::string bspath = GETCFGVALUE(pcfg,BsPath,string);
 	FileStorage intr(expath, FileStorage::READ);
 	FileStorage bs  (bspath, FileStorage::READ);
+    Position::CameraParam mCamera;
 	if (intr.isOpened() && bs.isOpened())
 	{
 		intr["P1"] >> mCamera.K;
@@ -54,6 +55,7 @@ WeiyaData::WeiyaData(const std::shared_ptr<Position::IConfig> &pcfg):Position::P
 	{
         PROMT_S("Read config failed!!!")
 	}
+    mpCfg->setCamera(mCamera);
 }
 //根据图像名取时间(天秒)
 double WeiyaData::getTimeFromName(const std::string &name) 

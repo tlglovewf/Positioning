@@ -280,6 +280,7 @@ typedef MapPtVector::iterator               MapPtVIter;
 typedef std::set<IMapPoint*>                MapPtSet;
 typedef MapPtSet::iterator                  MapPtSetIter;
 
+
 typedef std::vector<cv::KeyPoint>           KeyPtVector;
 
 typedef std::vector<cv::Point2f>            PtVector;
@@ -298,6 +299,11 @@ typedef pair<int,int>                       MatchPair;
 typedef std::vector<MatchPair>              MatchPairs;
 
 typedef vector<string>                      StringVector;
+
+
+#define NameMap(T)                          std::map<std::string, std::shared_ptr<T> > 
+
+
 } // namespace Position
 
 #endif

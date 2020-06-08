@@ -1,3 +1,4 @@
+#include "test.h"
 #include "P_Interface.h"
 #include "P_IOHelper.h"
 #include "P_Checker.h"
@@ -7,14 +8,7 @@
 #include "Thirdparty/sqlite3/sqlite3.h"
 #include "P_SemanticGraph.h"
 #include "P_Mask.h"
-// #include "log4cpp/Category.hh"
-// #include "log4cpp/PatternLayout.hh"
-// #include "log4cpp/OstreamAppender.hh"
-// #include <log4cpp/Appender.hh>
-// #include <log4cpp/FileAppender.hh>
-// #include <log4cpp/Priority.hh>
-// #include <log4cpp/RollingFileAppender.hh>
-// #include <log4cpp/PropertyConfigurator.hh>
+#include "P_ORBFeature.h"
 template <typename T>
 inline void display(T items)
 {
@@ -45,24 +39,37 @@ typedef int L4;
 // int (*callback)(void *, int, char **, char **)
 
 
-#define MSG(X) #X
-
-
-int main()
+template<typename T>
+class IFactory
 {
-    cout << MSG(TEST) << endl;
+public:
+    // template<size_t Index>
+    // using type = typename std::tuple_element<Index,std::tuple<Args...> >::type;
 
-    // Mat im = imread("/media/tu/Work/Datas/newdata/0-059377-531-0000301.jpg");
-    
-    // INITGLOBALMASK(im.size());
+    virtual string name()const = 0;
+};
 
-    
-    // SETGLOBALMASK(Rect2i(0,im.rows - 250,im.cols,250));
+class IFeatureFactory : public IFactory<Position::IFeature>
+{
+public:
 
-    // cout << CHECKMASK(Point2f(500,500)) << endl;
-    // cout << CHECKMASK(Point2f(500, im.rows-100)) << endl;
+};
+
+#define IFEATUREFACTORYDECLARE(F,D) \
+        class I##F##Factory : public IFeatureFactory<F>\
+        {\
+        public:\
+            virtual shared_ptr<F> create(const D &d){assert(NULL);}\
+            virtual string name()const {return #F;}\
+        };
 
 
 
-    return -1;
-}
+TESTBEGIN()
+   
+//add more code
+    // ORBFeatureFactory orbf;
+    // shared_ptr<IFeature> pf = orbf.create();
+
+
+TESTEND()

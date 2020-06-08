@@ -1,10 +1,16 @@
 #include "P_Factory.h"
+
 #include "P_BlockMatcher.h"
 #include "P_ORBFeature.h"
+#include "P_SiftFeature.h"
+#include "P_UniformDistriFeature.h"
+
+#include "P_FeatureMatcher.h"
+
 #include "P_PoseSolver.h"
 #include "P_Optimizer.h"
 #include "P_Positioner.h"
-#include "P_FeatureMatcher.h"
+
 #include "P_Checker.h"
 
 #include "P_PangolinViewer.h"
@@ -13,8 +19,6 @@
 #include "P_SfmVisonTrajProcesser.h"
 
 #include "P_IOHelper.h"
-
-#include "P_UniformDistriFeature.h"
 
 
 namespace Position
@@ -30,42 +34,6 @@ namespace Position
                 //add more
             default:
                 return NULL;
-        }
-    }
-
-    /*
-    * 特征点
-    */
-    IFeature* PFactory::CreateFeature(eFeatureType type,const std::shared_ptr<IConfig> &pcfg)
-    {
-        switch(type)
-        {
-            case eFeatureOrb:
-                return new ORBFeature(pcfg);
-            case eFeatureSift:
-                return new PUniformDistriFeature(GETCFGVALUE(pcfg,FeatureCnt,int));
-            default:
-                return NULL;
-        }
-    }
-
-    /*
-     * 创建位姿推算
-     */
-    IPoseSolver* PFactory::CreatePoseSolver(ePoseSolverType type)
-    {
-        switch(type)
-        {
-            case ePSOrb:
-                return new ORBPoseSolver();
-            case ePSCv:
-                return new CVPoseSolver();
-            default:
-                {
-                    assert(NULL);
-                    return NULL;
-                }
-                
         }
     }
 
@@ -86,24 +54,6 @@ namespace Position
          }
      }
 
-    /*
-     * 创建匹配器
-     */
-     IFeatureMatcher* PFactory::CreateFeatureMatcher(eFeatureMatcherType type, float ratio, bool bcheckori /* =true */)
-     {
-         switch(type)
-         {
-             case eFMDefault:
-                return new PFeatureMatcher(ratio,bcheckori);
-             case eFMKnnMatch:
-                return new PKnnMatcher();
-            default:
-                {
-                    assert(NULL);
-                    return NULL;
-                }
-         }
-     }
 #ifdef USE_VIEW
     /*
      * 创建可视化
@@ -123,25 +73,6 @@ namespace Position
     }
 #endif
 
-    /*
-     * 创建跟踪对象
-     */
-    ITrajProcesser* PFactory::CreateTrajProcesser(eTrajProcesserType type, 
-                                                  const std::shared_ptr<IConfig> &pcfg,
-                                                  const CameraParam &cam)
-    {
-        switch(type)
-        {
-            case eTjUniformSpeed:
-                return new PUniformVTrajProcesser(pcfg,cam);
-            case eTjMultiVision:
-                return new PMultiVisionTrajProcesser(pcfg,cam);
-            case eTjSfmVision:
-                return new PSfmVisonTrajProcesser(pcfg,cam);
-            default:
-                return new PTrajProcesser();
-        }
-    }
 
     /******************************************************/
     /****************** ISerialization ********************/
@@ -212,5 +143,55 @@ namespace Position
             mapts[i]->setWorldPos( pt + pLast->getCameraCenter());
             baseMap->addMapPoint(mapts[i]);
         }
-    }                   
+    }  
+
+
+#define FACTORYINSTANCEDECLARE(F)  F##Factory* F##Factory::Instance(){\
+        static F##Factory item;\
+        return &item;}
+
+
+    FACTORYINSTANCEDECLARE(IFeature)
+    FACTORYINSTANCEDECLARE(IFeatureMatcher)
+    FACTORYINSTANCEDECLARE(IPoseSolver)
+    FACTORYINSTANCEDECLARE(ITrajProcesser)
+
+#define INSERT_FEATURE_ITEM(F) { std::shared_ptr<FEATUREFACTORY> p(new F##Factory()); \
+        mItems.insert(make_pair(p->name(),p));}
+
+    IFeatureFactory::IFeatureFactory()
+    {
+        INSERT_FEATURE_ITEM(Position::ORBFeature)
+        INSERT_FEATURE_ITEM(Position::SiftFeature)
+        INSERT_FEATURE_ITEM(Position::UniformDistriFeature)
+    }
+#undef INSERT_FEATURE_ITEM
+
+#define INSERT_MATCHER_ITEM(F) { std::shared_ptr<FEATUREMATCHERFACTORY> p(new F##Factory()); \
+        mItems.insert(make_pair(p->name(),p));}
+    IFeatureMatcherFactory::IFeatureMatcherFactory()
+    {
+        INSERT_MATCHER_ITEM(Position::HanMingMatcher)
+        INSERT_MATCHER_ITEM(Position::KnnMatcher    )
+    }
+#undef INSERT_MATCHER_ITEM
+
+#define INSERT_POSESOLVER_ITEM(F) { std::shared_ptr<POSESOLVERFACTORY> p(new F##Factory()); \
+        mItems.insert(make_pair(p->name(),p));}
+    IPoseSolverFactory::IPoseSolverFactory()
+    {
+        INSERT_POSESOLVER_ITEM(Position::CVPoseSolver);
+        INSERT_POSESOLVER_ITEM(Position::ORBPoseSolver);
+    }
+#undef INSERT_POSESOLVER_ITEM
+
+#define INSERT_TRJPROCESSER_ITEM(F) { std::shared_ptr<TRAJPROCESSERFACTORY> p(new F##Factory()); \
+        mItems.insert(make_pair(p->name(),p));}
+    ITrajProcesserFactory::ITrajProcesserFactory()
+    {
+        INSERT_TRJPROCESSER_ITEM(Position::PUniformVTrajProcesser   )
+        INSERT_TRJPROCESSER_ITEM(Position::PMultiVisionTrajProcesser)
+        INSERT_TRJPROCESSER_ITEM(Position::PSfmVisonTrajProcesser   )
+    }
+#undef INSERT_TRJPROCESSER_ITEM
 }

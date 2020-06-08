@@ -237,7 +237,7 @@ namespace Position
 
     /* get distance from two frames
      */
-    double PUtils::GetDistanceFormBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2)
+    double PUtils::ComputeDistBetBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2)
     {
         double radlon1 = D2R(blh1.lon);
         double radlat1 = D2R(blh1.lat);
