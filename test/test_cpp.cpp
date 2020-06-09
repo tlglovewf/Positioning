@@ -34,36 +34,6 @@ LINE_LOG() ":" X
 
 typedef unsigned int U4;
 typedef int L4;
-// typedef
-
-// int (*callback)(void *, int, char **, char **)
-
-
-template<typename T>
-class IFactory
-{
-public:
-    // template<size_t Index>
-    // using type = typename std::tuple_element<Index,std::tuple<Args...> >::type;
-
-    virtual string name()const = 0;
-};
-
-class IFeatureFactory : public IFactory<Position::IFeature>
-{
-public:
-
-};
-
-#define IFEATUREFACTORYDECLARE(F,D) \
-        class I##F##Factory : public IFeatureFactory<F>\
-        {\
-        public:\
-            virtual shared_ptr<F> create(const D &d){assert(NULL);}\
-            virtual string name()const {return #F;}\
-        };
-
-
 
 TESTBEGIN()
    

@@ -350,7 +350,7 @@ namespace Position
     {
     public:
         //计算特征点
-        virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript) = 0;
+        virtual bool detect(const FrameData &frame,FeatureInfo &info) = 0;
         //获取名称
         //返回sigma参数(主要用于优化 信息矩阵)
         virtual const FloatVector& getSigma2() const = 0;
@@ -366,6 +366,7 @@ namespace Position
         //@param curframe   后帧
         //@param windowsize 搜索过滤范围(像素)
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize) = 0;
+        virtual MatchVector match(const FeatureInfo &pre,const FeatureInfo &cur, int windowsize) = 0;
     };
 
     //跟踪状态

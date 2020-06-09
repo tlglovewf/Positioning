@@ -18,6 +18,7 @@ namespace Position
         HanMingMatcher(float fratio = 0.8):mbCheckOrientation(true),mfNNratio(fratio){}
         //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
+        virtual MatchVector match(const FeatureInfo &pre,const FeatureInfo &cur, int windowsize);
     protected:
         bool    mbCheckOrientation;
         float   mfNNratio;
@@ -31,6 +32,7 @@ namespace Position
 
           //匹配  返回匹配对
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize); 
+        virtual MatchVector match(const FeatureInfo &pre,const FeatureInfo &cur, int windowsize);
     protected:
         cv::Ptr<DescriptorMatcher> mMatcher;
         float   mfNNratio;

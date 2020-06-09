@@ -246,6 +246,19 @@ typedef std::vector<std::vector<MatchVector> >  MatchMatrix;
 
 typedef std::vector<cv::KeyPoint>               KeyPtVector;
 
+
+//! 特征提取信息
+struct FeatureInfo
+{
+    string      _name;
+    KeyPtVector _keys;
+    Mat         _des;
+    FeatureInfo(const std::string &name):_name(name){}
+    FeatureInfo(const std::string &name,
+                const KeyPtVector &keys,
+                const Mat         &des):_name(name),_keys(keys),_des(des){}
+};
+
  //! 姿态估计组
 struct InputPair
 {
@@ -256,7 +269,6 @@ struct InputPair
               const KeyPtVector &train,
               const MatchVector &match):_query(query),_train(train),_match(match){}
 };
-
 
 //! 姿态结果
 struct PoseResult

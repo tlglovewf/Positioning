@@ -14,7 +14,7 @@ namespace Position
         UniformDistriFeature(int nFeatures);
         ~UniformDistriFeature() {}
         //计算特征点
-        virtual bool detect(const FrameData &frame, KeyPtVector &keys, Mat &descript);
+        virtual bool detect(const FrameData &frame, FeatureInfo &info);
 
         //返回sigma参数(主要用于优化 信息矩阵)
         virtual const FloatVector &getSigma2() const

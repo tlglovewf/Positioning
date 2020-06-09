@@ -3,11 +3,11 @@
 #include "P_SemanticGraph.h"
 namespace Position
 {
-#define HISTO_LENGTH    30
-#define TH_LOW          60  //50
-#define TH_HIGH         120 //100
+#define HISTO_LENGTH 30
+#define TH_LOW 60   //50
+#define TH_HIGH 120 //100
 
-#define SEARCHLEVEL     0    //匹配搜索层级
+#define SEARCHLEVEL 0 //匹配搜索层级
 
     //计算orb描述子的汉明距离
     static int DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
@@ -70,6 +70,10 @@ namespace Position
         }
     }
 
+    MatchVector HanMingMatcher::match(const FeatureInfo &pre, const FeatureInfo &cur, int windowsize)
+    {
+       assert(NULL);
+    }
     //匹配  返回匹配对
     MatchVector HanMingMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
@@ -95,7 +99,7 @@ namespace Position
                 continue;
 
             //根据范围在帧中搜索
-            SzVector vIndices2 = FrameHelper::getFrameFeaturesInArea( curframe, preframe->getKeys()[i1].pt.x, preframe->getKeys()[i1].pt.y, windowsize, level1, level1);
+            SzVector vIndices2 = FrameHelper::getFrameFeaturesInArea(curframe, preframe->getKeys()[i1].pt.x, preframe->getKeys()[i1].pt.y, windowsize, level1, level1);
 
             if (vIndices2.empty())
                 continue;
@@ -188,67 +192,72 @@ namespace Position
         {
             if (vnMatches12[i] >= 0)
             {
-                matches.push_back(cv::DMatch(i,vnMatches12[i], 0.0) );
+                matches.push_back(cv::DMatch(i, vnMatches12[i], 0.0));
             }
         }
 
         return matches;
     }
 
-    KnnMatcher::KnnMatcher(float fratio /*= 0.5*/):mMatcher(new cv::FlannBasedMatcher()),mfNNratio(fratio)
+    KnnMatcher::KnnMatcher(float fratio /*= 0.5*/) : mMatcher(new cv::FlannBasedMatcher()), mfNNratio(fratio)
     {
-
+        
     }
 
-    //匹配  返回匹配对
-    MatchVector KnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
+    MatchVector KnnMatcher::match(const FeatureInfo &pre, const FeatureInfo &cur, int windowsize)
     {
-        assert(preframe);
-        assert(curframe);
-        
-        const Mat &descriptorLeft = preframe->getDescript();
-        const Mat &descriptorRight= curframe->getDescript();
-        
-        const KeyPtVector &prekey = preframe->getKeys();
-        const KeyPtVector &curkey = curframe->getKeys();
+        const Mat &descriptorLeft = pre._des;
+        const Mat &descriptorRight = cur._des;
+
+        const KeyPtVector &prekey = pre._keys;
+        const KeyPtVector &curkey = cur._keys;
 
         MatchVector goods;
 
         const float minRatio = mfNNratio; //
         const int k = 2;
-        
-        std::vector<std::vector<DMatch> > knnMatches;
+
+        std::vector<std::vector<DMatch>> knnMatches;
         mMatcher->knnMatch(descriptorLeft, descriptorRight, knnMatches, k);
-        if(knnMatches.size() < 10)
+        if (knnMatches.size() < 10)
             return MatchVector();
         MatchVector matches;
         PtVector pts1;
         PtVector pts2;
-        for (size_t i = 0; i < knnMatches.size(); i++) {
-            const DMatch& bestMatch = knnMatches[i][0];
-            const DMatch& betterMatch = knnMatches[i][1];
-            
-            float  distanceRatio = bestMatch.distance / betterMatch.distance;
+        for (size_t i = 0; i < knnMatches.size(); i++)
+        {
+            const DMatch &bestMatch = knnMatches[i][0];
+            const DMatch &betterMatch = knnMatches[i][1];
+
+            float distanceRatio = bestMatch.distance / betterMatch.distance;
             if (distanceRatio < minRatio)
             {
                 matches.push_back(bestMatch);
-                pts1.push_back(preframe->getKeys()[bestMatch.queryIdx].pt);
-                pts2.push_back(curframe->getKeys()[bestMatch.trainIdx].pt);
-            }               
-        }   
+                pts1.push_back(pre._keys[bestMatch.queryIdx].pt);
+                pts2.push_back(cur._keys[bestMatch.trainIdx].pt);
+            }
+        }
         //根据基础矩阵筛选
         vector<u8> stats;
-        Mat F = cv::findFundamentalMat(pts1,pts2,stats,FM_RANSAC,windowsize);
+        Mat F = cv::findFundamentalMat(pts1, pts2, stats, FM_RANSAC, windowsize);
         goods.reserve(matches.size());
-        for(size_t i = 0; i < matches.size(); ++i)
+        for (size_t i = 0; i < matches.size(); ++i)
         {
-            if(stats[i]&& !SemanticGraph::Instance()->isDyobj(pts1[i],preframe->getData()->_name))
+            if (stats[i] && !SemanticGraph::Instance()->isDyobj(pts1[i], pre._name))
             {
                 goods.emplace_back(matches[i]);
             }
         }
 
-
         return goods;
+    }
+
+    //匹配  返回匹配对
+    MatchVector KnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
+    {
+        FeatureInfo pre(preframe->getData()->_name,preframe->getKeys(),curframe->getDescript());
+        FeatureInfo cur(curframe->getData()->_name,curframe->getKeys(),curframe->getDescript());
+
+        return match(pre,cur,windowsize);
     }
 } // namespace Position

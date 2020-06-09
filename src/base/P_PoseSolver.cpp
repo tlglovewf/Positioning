@@ -964,8 +964,15 @@ namespace Position
         PoseResult result;
         
         const size_t len = input._match.size();
-        if(len < 8)
+        if( len < 8 )
         {
+            LOG_WARNING("Match Points Not Enough!!!");    
+            return result;
+        }
+
+        if(mCam.K.empty())
+        {
+            LOG_WARNING("Please Check CameraParam Setting.");
             return result;
         }
 
@@ -984,6 +991,7 @@ namespace Position
         //三角化的点要与第一帧的特征数一致
         result._vpts.resize(input._query.size());
         Mat mask;
+       
         Mat E = findEssentialMat(prePts, curPts, mCam.K, CV_FM_8POINT,
                              0.999, 1.0, mask);
         recoverPose(E, prePts, curPts, mCam.K, result._R, result._t, mask);

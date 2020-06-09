@@ -19,7 +19,7 @@ namespace Position
         friend class FrameHelper;
         //构造函数 主要用于持久可视化
         PFrame(FrameData *data,int index):mData(data),mN(0),mIndex(index){}
-        //构造函数 retainimg(是否保存图片资源 默认释放)
+        //构造函数 
         PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index, int cameraIndex = 0);
         ~PFrame();
          //获取数据

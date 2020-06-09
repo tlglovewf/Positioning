@@ -408,10 +408,10 @@ namespace Position
         return vResultKeys;
     }
 
-    bool UniformDistriFeature::detect(const FrameData &frame, KeyPtVector &keys, Mat &descript)
+    bool UniformDistriFeature::detect(const FrameData &frame, FeatureInfo &info)
     {
-        detect(frame._img, keys);
-        compute(frame._img, keys, descript);
+        detect(frame._img, info._keys);
+        compute(frame._img,info._keys, info._des);
         return true;
     }
 

@@ -13,7 +13,7 @@ namespace Position
      //构造
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
-#if 1
+#if 0
                         int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
                         mpFeature        = std::shared_ptr<IFeature>(new UniformDistriFeature(featureCnt));
                         mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(Knn));

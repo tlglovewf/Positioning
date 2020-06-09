@@ -132,7 +132,10 @@ bool   FrameHelper::mInit = false;
         mCamIdx(cameraIndex),mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
-        pFeature->detect(*data,mKeypts,mDescript);
+        FeatureInfo info(data->_name);
+        pFeature->detect(*data,info);
+        mKeypts     = std::move(info._keys);
+        mDescript   = std::move(info._des);
         
         mN = mKeypts.size();
         mbOutlier = U8Vector(mN,false);

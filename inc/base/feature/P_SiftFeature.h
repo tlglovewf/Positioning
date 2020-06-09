@@ -18,7 +18,7 @@ namespace Position
         SiftFeature();
 
         //! 计算特征点
-        virtual bool detect(const FrameData &frame,KeyPtVector &keys, Mat &descript);
+        virtual bool detect(const FrameData &frame,FeatureInfo &info);
 
         public:
         /**

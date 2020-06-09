@@ -18,7 +18,7 @@ const int EDGE_THRESHOLD = 19;
         mpExtractor = std::unique_ptr<ORBextractor>(new ORBextractor(nfeatures,scale,nlevel,20,7));
     }
     //计算特征点
-    bool ORBFeature::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
+    bool ORBFeature::detect(const FrameData &frame,FeatureInfo &info)
     {
         if(frame._img.empty())
             return false;
@@ -26,7 +26,7 @@ const int EDGE_THRESHOLD = 19;
         {
             init();
         }
-        (*mpExtractor)(frame._img,Mat(),keys,descript);
+        (*mpExtractor)(frame._img,Mat(),info._keys,info._des);
         return true;
     }
      //返回sigma参数(主要用于优化 信息矩阵)

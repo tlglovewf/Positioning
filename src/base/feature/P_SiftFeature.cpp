@@ -15,10 +15,10 @@ namespace Position
     }
 
      //计算特征点
-    bool SiftFeature::detect(const FrameData &frame,KeyPtVector &keys, Mat &descript)
+    bool SiftFeature::detect(const FrameData &frame,FeatureInfo &info)
     {
-        Feature2D::detect(frame._img,keys);
-        this->compute(frame._img,keys,descript);
+        Feature2D::detect(frame._img,info._keys);
+        this->compute(frame._img,info._keys,info._des);
     }
 
     /******************************* Defs and macros *****************************/
