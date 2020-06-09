@@ -33,13 +33,20 @@ public:
 };
 
 
+// class Task
+// {
+// public:
+//     Task()
+// };
+
+
 
 TESTBEGIN()
     std::shared_ptr<Position::IConfig>          pcfg(new ImgAutoConfig("../config/config_new.yaml"));
     SETGLOBALCONFIG(pcfg);
 
-    std::shared_ptr<Position::IFeature>         pfeature(CREATEFACTORYINSTANCE(Feature,Sift));
-    std::shared_ptr<Position::IFeatureMatcher>  pMatcher(CREATEFACTORYINSTANCE(FeatureMatcher,Knn));
+    std::shared_ptr<Position::IFeature>         pfeature(GETFEATURE(Sift));
+    std::shared_ptr<Position::IFeatureMatcher>  pMatcher(GETFEATUREMATCHER(Knn));
     std::shared_ptr<Position::IFrameData>       pdata(new NewHwProjectData(pcfg));
     Position::FrameData frame;
     pdata->loadDatas();
@@ -51,5 +58,7 @@ TESTBEGIN()
     Mat des;
     pfeature->detect(frame,keys,des);
     cout << keys.size() << endl;
+    Position::MatchVector matches;
+    
 
 TESTEND()

@@ -14,14 +14,14 @@ namespace Position
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
 #if 1
-                        int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),300);
+                        int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
                         mpFeature        = std::shared_ptr<IFeature>(new UniformDistriFeature(featureCnt));
                         mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(Knn));
 #else
-                        mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,GETGLOBALCONFIG()));
-                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
+                        mpFeature        = std::shared_ptr<IFeature>(GETFEATURE(Orb));
+                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(HanMing));
 #endif
-                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER(CVPoseSolver));
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER(ORBPoseSolver)); //CVPoseSolver));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                        
                         Position::FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(),ImgWd,int),GETCFGVALUE(GETGLOBALCONFIG(),ImgHg,int),&mCam);
@@ -150,15 +150,15 @@ namespace Position
             imwrite(outname,oimg);
 #endif
     
-            mpEst->setFrames(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm));
-            Mat R,t;
-            Position::Pt3Vector pts;
+            InputPair input(mpLastKeyFm->getKeys(),mpCurrentKeyFm->getKeys(),matches);
 
-            if(mpEst->estimate(R,t, matches,pts))
+            PoseResult posresult = mpEst->estimate(input);
+
+            if(!posresult._match.empty())
             {//推算位姿
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
-                R.copyTo(pose.rowRange(0,3).colRange(0,3));
-                t.copyTo(pose.rowRange(0,3).col(3));
+                posresult._R.copyTo(pose.rowRange(0,3).colRange(0,3));
+                posresult._t.copyTo(pose.rowRange(0,3).col(3));
 
                 Mat wdpose = pose * mpLastKeyFm->getPose() ;
                 mpCurrentKeyFm->setPose(wdpose);
@@ -167,7 +167,7 @@ namespace Position
                     Position::IMapPoint *mppt = NULL;
                     if(!mpLastKeyFm->hasMapPoint(item.queryIdx))
                     {
-                        const Point3f fpt = pts[item.queryIdx];
+                        const Point3f fpt = posresult._vpts[item.queryIdx];
                         Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
 
                         mpt = mpLastKeyFm->getPose().inv() * mpt;

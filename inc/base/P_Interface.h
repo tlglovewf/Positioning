@@ -437,16 +437,15 @@ namespace Position
         virtual double score(const Mat &cur,const Point2f &pt) = 0;
     };
 
+   
     //位姿推算
     class IPoseSolver : public IBase
     {
     public:
         //! 设置相机参数
         virtual void setCamera(const CameraParam &cam) = 0;
-        //! 设置帧
-        virtual void setFrames( IFrame *pre, IFrame *cur) = 0;
-        //! 推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts) = 0;
+        //! 估算
+        virtual PoseResult estimate(const InputPair &input) = 0;
     };
 
 

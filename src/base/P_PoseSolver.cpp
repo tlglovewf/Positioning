@@ -27,8 +27,8 @@ namespace Position
         // Normalize coordinates
         vector<cv::Point2f> vPn1, vPn2;
         cv::Mat T1, T2;
-        Normalize(mPre->getKeys(),vPn1, T1);
-        Normalize(mCur->getKeys(),vPn2, T2);
+        Normalize(mpInput->_query,vPn1, T1);
+        Normalize(mpInput->_train,vPn2, T2);
         cv::Mat T2inv = T2.inv();
 
         // Best Results variables
@@ -79,8 +79,8 @@ namespace Position
         vector<cv::Point2f> vPn1, vPn2;
         cv::Mat T1, T2;
         
-        Normalize(mPre->getKeys(),vPn1, T1);
-        Normalize(mCur->getKeys(),vPn2, T2);
+        Normalize(mpInput->_query,vPn1, T1);
+        Normalize(mpInput->_train,vPn2, T2);
         cv::Mat T2t = T2.t();
 
         // Best Results variables
@@ -157,8 +157,8 @@ namespace Position
         {
             bool bIn = true;
 
-            const cv::KeyPoint &kp1 = mPre->getKeys()[mvMatches12[i].first];
-            const cv::KeyPoint &kp2 = mCur->getKeys()[mvMatches12[i].second];
+            const cv::KeyPoint &kp1 = mpInput->_query[mvMatches12[i].first];
+            const cv::KeyPoint &kp2 = mpInput->_train[mvMatches12[i].second];
 
             const float u1 = kp1.pt.x;
             const float v1 = kp1.pt.y;
@@ -234,8 +234,8 @@ namespace Position
         {
             bool bIn = true;
 
-            const cv::KeyPoint &kp1 = mPre->getKeys()[mvMatches12[i].first];
-            const cv::KeyPoint &kp2 = mCur->getKeys()[mvMatches12[i].second];
+            const cv::KeyPoint &kp1 = mpInput->_query[mvMatches12[i].first];
+            const cv::KeyPoint &kp2 = mpInput->_train[mvMatches12[i].second];
 
             const float u1 = kp1.pt.x;
             const float v1 = kp1.pt.y;
@@ -453,6 +453,7 @@ namespace Position
     bool ORBPoseSolver::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
                   cv::Mat &R21, cv::Mat &t21, Pt3Vector &vP3D, BolVector &vbTriangulated, float minParallax, int minTriangulated)
     {
+        assert(mpInput);
         int N=0;
         for(size_t i=0, iend = vbMatchesInliers.size() ; i<iend; i++)
             if(vbMatchesInliers[i])
@@ -473,11 +474,11 @@ namespace Position
         vector<cv::Point3f> vP3D1, vP3D2, vP3D3, vP3D4;
         BolVector vbTriangulated1,vbTriangulated2,vbTriangulated3, vbTriangulated4;
         float parallax1,parallax2, parallax3, parallax4;
-
-        int nGood1 = CheckRT(R1,t1,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D1, 4 * mSigma2, vbTriangulated1, parallax1);
-        int nGood2 = CheckRT(R2,t1,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D2, 4 * mSigma2, vbTriangulated2, parallax2);
-        int nGood3 = CheckRT(R1,t2,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D3, 4 * mSigma2, vbTriangulated3, parallax3);
-        int nGood4 = CheckRT(R2,t2,mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K, vP3D4, 4 * mSigma2, vbTriangulated4, parallax4);
+        
+        int nGood1 = CheckRT(R1,t1,mpInput->_query,mpInput->_train,mvMatches12,vbMatchesInliers,K, vP3D1, 4 * mSigma2, vbTriangulated1, parallax1);
+        int nGood2 = CheckRT(R2,t1,mpInput->_query,mpInput->_train,mvMatches12,vbMatchesInliers,K, vP3D2, 4 * mSigma2, vbTriangulated2, parallax2);
+        int nGood3 = CheckRT(R1,t2,mpInput->_query,mpInput->_train,mvMatches12,vbMatchesInliers,K, vP3D3, 4 * mSigma2, vbTriangulated3, parallax3);
+        int nGood4 = CheckRT(R2,t2,mpInput->_query,mpInput->_train,mvMatches12,vbMatchesInliers,K, vP3D4, 4 * mSigma2, vbTriangulated4, parallax4);
 
         int maxGood = max(nGood1,max(nGood2,max(nGood3,nGood4)));
 
@@ -565,6 +566,7 @@ namespace Position
     bool ORBPoseSolver::ReconstructH(BolVector &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,
                   cv::Mat &R21, cv::Mat &t21, Pt3Vector &vP3D, BolVector &vbTriangulated, float minParallax, int minTriangulated)
     {
+        assert(mpInput);
         int N=0;
         for(size_t i=0, iend = vbMatchesInliers.size() ; i<iend; i++)
             if(vbMatchesInliers[i])
@@ -694,7 +696,7 @@ namespace Position
             vector<cv::Point3f> vP3Di;
             BolVector vbTriangulatedi;
 
-            int nGood = CheckRT(vR[i],vt[i],mPre->getKeys(),mCur->getKeys(),mvMatches12,vbMatchesInliers,K,vP3Di, mSigma2, vbTriangulatedi, parallaxi);
+            int nGood = CheckRT(vR[i],vt[i],mpInput->_query,mpInput->_train,mvMatches12,vbMatchesInliers,K,vP3Di, mSigma2, vbTriangulatedi, parallaxi);
 
             if(nGood>bestGood)
             {
@@ -872,9 +874,16 @@ namespace Position
     }
 
     //估计
-    bool ORBPoseSolver::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
+    PoseResult ORBPoseSolver::estimate(const InputPair &input)
     {
-          assert(mPre && mCur);
+        mpInput = &input;
+
+        PoseResult result;
+        if(input._match.size() < 8)
+        {
+            return result;
+        }
+
         bool bol = false;
         const int maxInterator = 10;//最大迭代次数
         int interator = 0;
@@ -882,7 +891,7 @@ namespace Position
         {
             if(interator++ > maxInterator)
                 break;
-            initParams(matches);
+            initParams(input._match);
             // Launch threads to compute in parallel a fundamental matrix and a homography
             BolVector vbMatchesInliersH, vbMatchesInliersF;
             float SH, SF;
@@ -904,25 +913,22 @@ namespace Position
 
             BolVector bTriangle;
             // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
-            if(RH > 0.45)
-                bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
-            else //if(pF_HF>0.6)
-                bol = ReconstructF(vbMatchesInliersF,F,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
+            // if(RH > 0.45)
+            //     bol = ReconstructH(vbMatchesInliersH,H,mCam.K,R,t,vPts,bTriangle,minParallax,minTriangle);
+            // else //if(pF_HF>0.6)
+                bol = ReconstructF(vbMatchesInliersF,F,mCam.K,result._R,result._t,result._vpts,bTriangle,minParallax,minTriangle);
 
             PROMTD_V("reconstruct >> ",RH, "Ret : ", bol);
 
             if(bol)
             {//剔除三角化失败的点
-                MatchVector::iterator it = matches.begin();
-                for(;it !=  matches.end();)
+                result._match.reserve(input._match.size());
+                MatchVector::const_iterator it = input._match.begin();
+                for(;it !=  input._match.end();++it)
                 {
-                    if(!bTriangle[it->queryIdx] )
+                    if(!bTriangle[it->queryIdx])
                     {
-                        it = matches.erase(it);
-                    }
-                    else
-                    {
-                        ++it;
+                        result._match.emplace_back(*it);
                     }
                 }
                 
@@ -945,7 +951,7 @@ namespace Position
 #endif
             }
         }
-        return bol;
+        return result;
     }
 
 #pragma endregion 
@@ -953,43 +959,59 @@ namespace Position
 #pragma region CVPoseSolver
 
     //推算位姿
-    bool CVPoseSolver::estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts)
+    PoseResult CVPoseSolver::estimate(const InputPair &input)
     {
-        initParams(matches);
-        if(mPrePts.empty() || (mPrePts.size() != mCurPts.size()))
-            return false;
+        PoseResult result;
+        
+        const size_t len = input._match.size();
+        if(len < 8)
+        {
+            return result;
+        }
 
+        PtVector prePts;
+        PtVector curPts;
+        prePts.reserve(len);
+        curPts.reserve(len);
+        mvMatches12.clear();
+        for(size_t i = 0; i < len;++i)
+        {
+            prePts.emplace_back(input._query[input._match[i].queryIdx].pt);
+            curPts.emplace_back(input._train[input._match[i].trainIdx].pt);
+            mvMatches12.push_back(make_pair(input._match[i].queryIdx,input._match[i].trainIdx));
+        }
+        
         //三角化的点要与第一帧的特征数一致
-        vPts.resize(mPre->getKeySize());
+        result._vpts.resize(input._query.size());
         Mat mask;
-        Mat E = findEssentialMat(mPrePts, mCurPts, mCam.K, CV_FM_8POINT,
+        Mat E = findEssentialMat(prePts, curPts, mCam.K, CV_FM_8POINT,
                              0.999, 1.0, mask);
-        recoverPose(E, mPrePts, mCurPts, mCam.K, R, t, mask);
+        recoverPose(E, prePts, curPts, mCam.K, result._R, result._t, mask);
 
         Mat K1 = (Mat_<MATTYPE>(3,4) << 1,0,0,0,
                                         0,1,0,0,
                                         0,0,1,0);
 
         Mat K2 = (Mat_<MATTYPE>(3,4) <<
-                                        R.at<MATTYPE>(0,0),R.at<MATTYPE>(0,1),R.at<MATTYPE>(0,2),t.at<MATTYPE>(0,0) ,
-                                        R.at<MATTYPE>(1,0),R.at<MATTYPE>(1,1),R.at<MATTYPE>(1,2),t.at<MATTYPE>(1,0) ,
-                                        R.at<MATTYPE>(2,0),R.at<MATTYPE>(2,1),R.at<MATTYPE>(2,2),t.at<MATTYPE>(2,0) );
+                                        result._R.at<MATTYPE>(0,0),result._R.at<MATTYPE>(0,1),result._R.at<MATTYPE>(0,2),result._t.at<MATTYPE>(0,0) ,
+                                        result._R.at<MATTYPE>(1,0),result._R.at<MATTYPE>(1,1),result._R.at<MATTYPE>(1,2),result._t.at<MATTYPE>(1,0) ,
+                                        result._R.at<MATTYPE>(2,0),result._R.at<MATTYPE>(2,1),result._R.at<MATTYPE>(2,2),result._t.at<MATTYPE>(2,0) );
 
         Mat out;
         vector<Point2d> pts_1, pts_2;
-        pts_1.reserve(mPrePts.size());
-        pts_2.reserve(mCurPts.size());
-        for(int i = 0;i < mPrePts.size(); ++i)
+        pts_1.reserve(prePts.size());
+        pts_2.reserve(curPts.size());
+        for(int i = 0;i < prePts.size(); ++i)
         {
-            pts_1.emplace_back(PUtils::Pixel2Cam(mPrePts[i],mCam.K));
-            pts_2.emplace_back(PUtils::Pixel2Cam(mCurPts[i],mCam.K));
+            pts_1.emplace_back(PUtils::Pixel2Cam(prePts[i],mCam.K));
+            pts_2.emplace_back(PUtils::Pixel2Cam(curPts[i],mCam.K));
         }
         cv::triangulatePoints(K1,K2,pts_1,pts_2,out);
-        assert(mvMatches12.size() == mPrePts.size());
+        
         BolVector bols;
-        bols.resize(vPts.size());
+        bols.resize(result._vpts.size());
 
-        for(size_t i = 0; i < mPrePts.size(); ++i)
+        for(size_t i = 0; i < prePts.size(); ++i)
         {
             Mat x = out.col(i);
             x = x/x.at<MATTYPE>(3,0);
@@ -998,39 +1020,21 @@ namespace Position
                 bols[ mvMatches12[i].first ] = true;
                 continue;
             }
-            vPts[ mvMatches12[i].first ] = (Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
+            result._vpts[ mvMatches12[i].first ] = (Point3f(x.at<MATTYPE>(0,0),x.at<MATTYPE>(1,0),x.at<MATTYPE>(2,0)));
         }
 
-        MatchVector::iterator it = matches.begin();
-        for(;it !=  matches.end();)
+        MatchVector::const_iterator it = input._match.begin();
+        result._match.reserve(input._match.size());
+        for(;it != input._match.end();++it)
         {//剔除错误点
-            if(bols[it->queryIdx] )
+
+            if(!bols[it->queryIdx] )
             {
-                it = matches.erase(it);
-            }
-            else
-            {
-                ++it;
+               result._match.emplace_back(*it);
             }
         }
 
-        return true;
-    }
-
-    //初始化
-    void CVPoseSolver::initParams(const MatchVector &matches)
-    {
-        if(matches.empty())
-            return;
-        mPrePts.clear();
-        mCurPts.clear();
-        mvMatches12.clear();
-        for(auto item : matches)
-        {
-            mPrePts.push_back(mPre->getKeys()[item.queryIdx].pt);
-            mCurPts.push_back(mCur->getKeys()[item.trainIdx].pt);
-            mvMatches12.push_back(std::make_pair(item.queryIdx,item.trainIdx));
-        }
+        return result;
     }
 
 #pragma endregion

@@ -2,8 +2,8 @@
 #include "P_Utils.h"
 #include "P_SiftFeature.h"
 #define EDGE_THRESHOLD 16
-#define COLGRIDNUMBER 4
-#define ROWGRIDNUMBER 3
+#define COLGRIDNUMBER 8
+#define ROWGRIDNUMBER 4
 
 namespace Position
 {

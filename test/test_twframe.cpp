@@ -681,8 +681,6 @@ TESTBEGIN()
     cout << "write successfully.." << endl;
     system("xdg-open /media/tlg/work/tlgfiles/HDData/result/match.jpg");
 
-    poseest->setFrames(preframe,curframe);
-
     poseest->setCamera(cam);
 
     Mat R,t;
@@ -693,8 +691,11 @@ TESTBEGIN()
     Position::IKeyFrame *curKeyFrame;
     preKeyFrame = pmap->createKeyFrame(preframe);
 
-    cout << "estimate" << endl;
-    if(poseest->estimate(R,t,good_matches,pt3ds))
+    Position::InputPair input(preframe->getKeys(),curframe->getKeys(),good_matches);
+    
+    Position::PoseResult result = poseest->estimate(input);
+    
+    if(!result._match.empty())
     {
         Mat pose2 = Mat::eye(4,4,CV_64F);
         R.copyTo(pose2.rowRange(0,3).colRange(0,3));

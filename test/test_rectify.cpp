@@ -31,27 +31,26 @@ TESTBEGIN()
 
         const Position::CameraParam &cam = pcfg->getCamera();
         ppose->setCamera(cam);
-        ppose->setFrames(pf1,pf2);
-        Mat R;
-        Mat t;
-        Position::Pt3Vector p3ts;
+
+        Position::InputPair input(pf1->getKeys(),pf2->getKeys(),matches);
+        Position::PoseResult result = ppose->estimate(input);
         
-        if(ppose->estimate(R,t,matches,p3ts))
+        if(!result._match.empty())
         {
             Mat _R1(3,3,MATCVTYPE);
             Mat _R2(3,3,MATCVTYPE);
             Mat P1,P2,Q;
             
-            cv::stereoRectify(cam.K,cam.D,cam.K,cam.D,(*first)->_img.size(),R,t,_R1,_R2,P1,P2,Q,CV_CALIB_ZERO_DISPARITY);
+            cv::stereoRectify(cam.K,cam.D,cam.K,cam.D,(*first)->_img.size(),result._R,result._t,_R1,_R2,P1,P2,Q,CV_CALIB_ZERO_DISPARITY);
 
-            cout << R   << endl;
+            cout << result._R   << endl;
             cout << _R1 << endl;
             cout << _R2 << endl;
 
             Mat x_map1,x_map2;
             Mat y_map1,y_map2;
 
-            cv::initUndistortRectifyMap(cam.K,cam.D,R,cam.K,(*first)->_img.size(),CV_32FC1,x_map1,y_map1);
+            cv::initUndistortRectifyMap(cam.K,cam.D,result._R,cam.K,(*first)->_img.size(),CV_32FC1,x_map1,y_map1);
 
             Mat oimg1;
             cv::remap((*first)->_img,oimg1,x_map1,y_map1,cv::INTER_LINEAR);

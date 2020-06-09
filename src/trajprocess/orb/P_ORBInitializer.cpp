@@ -103,8 +103,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     const float minpallax = 0.00;
     const int mintri = 30;
 
-    PROMTD_V("match size",mvMatches12.size());
-    LOG_INFO_F("%d Matches For initilaize!!!");
+    LOG_INFO_F("%d Matches For initilaize!!!",mvMatches12.size());
 
     PROMTD_V("Score",SF/(mvMatches12.size()));
 

@@ -63,7 +63,7 @@ typedef unsigned char u8;
 typedef unsigned int  u32;
 typedef unsigned long u64;
 
-//经纬度
+//! 经纬度
 struct BLHCoordinate
 {
     double lon;
@@ -85,7 +85,7 @@ struct BLHCoordinate
 
 typedef Point3d XYZCoordinate;
 
-//相机结构体
+//! 相机结构体
 struct CameraParam
 {
     Mat K;           //相机内参
@@ -98,7 +98,7 @@ struct CameraParam
     //add more
 };
 
-//姿态结构体
+//! 姿态结构体
 struct PoseData {
     double _t;          //时间
     
@@ -112,7 +112,7 @@ struct PoseData {
     { memset(this,0,sizeof(*this));}
 };
 
-//imu 原始数据
+//! imu 原始数据
 struct ImuRawData
 {
     double _t;
@@ -136,7 +136,7 @@ struct ImuRawData
     }
 };
 
-//信息索引 图片索引，目标在图片中索引
+//! 信息索引 图片索引，目标在图片中索引
 typedef std::pair<int,int> InfoIndex;
 struct BatchItem;
 struct TrackerItem
@@ -153,7 +153,7 @@ struct TrackerItem
 typedef std::vector<TrackerItem>        TrackerItemVector;
 typedef TrackerItemVector::iterator     TrackerItemVIter; 
 
-// 目标结构体
+//! 目标结构体
 struct TargetData {
   
     int           _type;     //类型
@@ -162,13 +162,13 @@ struct TargetData {
     
     BLHCoordinate _pos;      //无值
     
-    //中心点
+    //! 中心点
     inline Point2f center()const
     {
         return (_box.tl() + _box.br()) / 2;
     }
     
-    //有效性
+    //! 有效性
     static inline bool isValid(const TargetData &target)
     {
 		return (target._type > WRONGDATA) || BLHCoordinate::isValid(target._pos) ;
@@ -176,7 +176,7 @@ struct TargetData {
 	TargetData() :_type(WRONGDATA){}
 };
 
-//结果
+//! 结果
 struct ResultData
 {
     int           _type;        //类型
@@ -188,7 +188,7 @@ typedef std::vector<TargetData> TargetVector;
 typedef TargetVector::iterator  TargetVIter;
 typedef std::vector<ResultData> ResultVector;
 typedef ResultVector::iterator  ResultVIter;
-//帧数据
+//! 帧数据
 struct FrameData {
 
     PoseData        _pos;     //姿态
@@ -199,14 +199,14 @@ struct FrameData {
     
     TargetVector    _targets;  //目标集
     
-    //插入
+    //! 插入
     void push_back(const TargetData &target)
     {
         _targets.emplace_back(target);
     }
 };
 
-//ax + by + c = 0
+//! ax + by + c = 0
 struct EpLine
 {
     double a;
@@ -216,7 +216,7 @@ struct EpLine
     EpLine(double _a,double _b,double _c):a(_a),b(_b),c(_c){}
 };
 
-//批处理值
+//! 批处理值
 struct BatchItem
 {
     std::string _btname;
@@ -233,10 +233,41 @@ struct BatchItem
         _poses.reserve(n);
     }
 };
-
+//! 图片序号组
 struct ImagePair {
     size_t pre, cur;
 };
+
+typedef std::vector<cv::Point2f>                PtVector;
+typedef std::vector<cv::Point3f>                Pt3Vector;
+
+typedef std::vector<cv::DMatch>                 MatchVector;
+typedef std::vector<std::vector<MatchVector> >  MatchMatrix;
+
+typedef std::vector<cv::KeyPoint>               KeyPtVector;
+
+ //! 姿态估计组
+struct InputPair
+{
+    const KeyPtVector &_query;
+    const KeyPtVector &_train;
+    const MatchVector &_match;
+    InputPair(const KeyPtVector &query,
+              const KeyPtVector &train,
+              const MatchVector &match):_query(query),_train(train),_match(match){}
+};
+
+
+//! 姿态结果
+struct PoseResult
+{
+    Mat         _R;
+    Mat         _t;
+    Pt3Vector   _vpts;
+    MatchVector _match;
+};
+
+
 typedef vector<ImagePair>                   ImagePairVector;
 typedef vector<std::shared_ptr<BatchItem> > PrjBatchVector;
 typedef PrjBatchVector::iterator            PrjBatchVIter;
@@ -279,15 +310,6 @@ typedef MapPtVector::iterator               MapPtVIter;
 
 typedef std::set<IMapPoint*>                MapPtSet;
 typedef MapPtSet::iterator                  MapPtSetIter;
-
-
-typedef std::vector<cv::KeyPoint>           KeyPtVector;
-
-typedef std::vector<cv::Point2f>            PtVector;
-typedef std::vector<cv::Point3f>            Pt3Vector;
-
-typedef std::vector<cv::DMatch>             MatchVector;
-typedef std::vector<std::vector<MatchVector> > MatchMatrix;
 
 typedef std::vector<size_t>                 SzVector;
 typedef std::vector<u8>                     U8Vector;

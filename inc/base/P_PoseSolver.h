@@ -14,35 +14,19 @@ namespace Position
     class PPoseSolver : public IPoseSolver
     {
     public:
-        PPoseSolver():mPre(NULL),mCur(NULL){}
-         //设置相机参数
+        //设置相机参数
         virtual void setCamera(const CameraParam &cam) 
         {
             mCam = cam;
         }
-        //设置帧
-        virtual void setFrames( IFrame *pre, IFrame *cur) 
-        {
-            assert(pre && cur);
-            mPre = pre;
-            mCur = cur;
-        }
-        //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches ,Pt3Vector &vPts)
+        //! 估算
+        virtual PoseResult estimate(const InputPair &input) 
         {
             assert(NULL);
-            return false;
         }
-
-    protected:
-        //初始化
-        virtual void initParams(const MatchVector &matches) = 0;
-
 
     protected:
         CameraParam              mCam;
-        IFrame                  *mPre;
-        IFrame                  *mCur;
         MatchPairs               mvMatches12;
     };
 
@@ -50,16 +34,8 @@ namespace Position
     class CVPoseSolver : public PPoseSolver
     {
     public:
-         //! 推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t, MatchVector &matches, Pt3Vector &vPts);
-
-     protected:
-        //初始化
-        virtual void initParams(const MatchVector &matches);
-
-    private:
-        PtVector mPrePts;
-        PtVector mCurPts;
+        //! 估算
+        virtual PoseResult estimate(const InputPair &input);
     };
 
     //ORBSLAM中 位姿推算
@@ -67,10 +43,10 @@ namespace Position
     {
     public:
         //构造
-        ORBPoseSolver():mMaxIterations(400),mSigma(2.0),mSigma2(mSigma*mSigma){}
+        ORBPoseSolver():mMaxIterations(400),mSigma(2.0),mSigma2(mSigma*mSigma),mpInput(NULL){}
 
-         //推算位姿
-        virtual bool estimate(cv::Mat &R, cv::Mat &t,MatchVector &matches, Pt3Vector &vPts);
+         //! 估算
+        virtual PoseResult estimate(const InputPair &input) ;
 
         //计算单应矩阵
         void FindHomography (BolVector &vbInliers, float &score, cv::Mat &H21);
@@ -109,8 +85,8 @@ namespace Position
         int                         mMaxIterations;
         float                       mSigma;
         float                       mSigma2;
-        
-        vector< SzVector >    mvSets;
+        InputPair const            *mpInput;
+        vector< SzVector >          mvSets;
     };
 
     DECLAREIFACTORY(IPoseSolver, CVPoseSolver    ,CVPoseSolver)

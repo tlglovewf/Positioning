@@ -166,6 +166,11 @@ namespace Position
                 alignedLeftPt.clear();
                 alignedRightPt.clear();
 
+                if(mFeatureMatchMatrix[i][j].size() < 4)
+                {
+                    return false;
+                }
+
                 for (size_t k=0; k<mFeatureMatchMatrix[i][j].size(); k++) 
                 {
                     alignedLeftPt.emplace_back(mImageFrame[i]->getKeys()[mFeatureMatchMatrix[i][j][k].queryIdx].pt);
@@ -186,22 +191,16 @@ namespace Position
                 mpLastKeyFm = createNewKeyFrame();
                 mpCurrent = mImageFrame[j];
                 mpCurrentKeyFm = createNewKeyFrame();
-                mpEst->setFrames(IFRAME(mpLastKeyFm),IFRAME(mpCurrentKeyFm));
-                
+                InputPair input(mpLastKeyFm->getKeys(),mpCurrentKeyFm->getKeys(),mFeatureMatchMatrix[i][j]);
                 // PROMTD_V(data._name.c_str()," matches ",matches.size());
-                if(mFeatureMatchMatrix[i][j].size() < 4)
-                {
-                    mpLastKeyFm->release();
-                    mpCurrentKeyFm->release();
-                    return false;
-                }
-                Position::Pt3Vector pts;
-                if(mpEst->estimate(R,t, mFeatureMatchMatrix[i][j],pts))
+             
+                PoseResult result = mpEst->estimate(input);
+                if(!result._match.empty())
                 {
                     mCameraPoses[i] = cv::Mat::eye(4,4,MATCVTYPE);
                     cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
-                    R.copyTo(pose.rowRange(0,3).colRange(0,3));
-                    t.copyTo(pose.rowRange(0,3).col(3));
+                    result._R.copyTo(pose.rowRange(0,3).colRange(0,3));
+                    result._t.copyTo(pose.rowRange(0,3).col(3));
                     mCameraPoses[j] = pose;
                     mpLastKeyFm->setPose(mCameraPoses[i]);
                     mpCurrentKeyFm->setPose(mCameraPoses[j]);
@@ -217,7 +216,7 @@ namespace Position
                     for(auto item : mFeatureMatchMatrix[i][j])
                     {
                         Position::IMapPoint *mppt = NULL;
-                        const Point3f fpt = pts[item.queryIdx];
+                        const Point3f fpt = result._vpts[item.queryIdx];
                         Mat mpt = (Mat_<MATTYPE>(4,1) << fpt.x,fpt.y,fpt.z,1.0);
                         mpt = mpt / mpt.at<MATTYPE>(3);
                         mppt = mpMap->createMapPoint(mpt); 
