@@ -14,7 +14,7 @@ namespace Position
     {
     #ifdef USE_VIEW
 
-        mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin, pcfg));
+        mpViewer =  std::shared_ptr<Position::IViewer>(GETVIEWER());
 
         mpViewer->setMap(pmap);
 
@@ -46,7 +46,7 @@ namespace Position
     #ifdef USE_VIEW
         if (GETCFGVALUE(mpConfig, ViewEnable, int))
         {
-            mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin, pcfg));
+            mpViewer = std::shared_ptr<Position::IViewer>(GETVIEWER());
             mpTrajProSelector->setViewer(mpViewer);
             if (mbUseThread)
                 mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop, mpViewer));

@@ -16,11 +16,11 @@
 namespace Position
 {
     //pangolin可视化
-    class Pangolin_Viewer : public IViewer
+    class PangolinViewer : public IViewer
     {
     public:
         //构造函数
-        Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg);
+        PangolinViewer();
 
         //设置显示地图
         virtual void setMap(const std::shared_ptr<IMap> &pMap) 
@@ -67,6 +67,7 @@ namespace Position
         int                             mWinW;
         int                             mWinH;
     };
+    DECLAREIFACTORY(IViewer,PangolinViewer,Pangolin)
 }
 
 #endif

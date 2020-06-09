@@ -44,8 +44,8 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     float   fScaleFactor    = GETCFGVALUE(pcfg,ScaleFactor,float);
     int     nLevels         = GETCFGVALUE(pcfg,PyramidLevel,int);
     mnSearchRadius          = GETCFGVALUE(pcfg,SearchRadius,int);
-    initMode                = GETCFGVALUE(pcfg,InitializationMode,int);
-    initStep                = GETCFGVALUE(pcfg,InitImgLength,int);
+    initMode                = 1;//GETCFGVALUE(pcfg,InitializationMode,int);
+    initStep                = 5;//GETCFGVALUE(pcfg,InitImgLength,int);
     int     fIniThFAST      = 20;
     int     fMinThFAST      = 7;
 
@@ -605,7 +605,7 @@ bool ORBTracking::TrackWithMotionModel()
 
     if(nmatches<20)
     {
-        PROMTD_V("track with motion lost",nmatches);
+        PROMTD_V("Track Motion Lost",nmatches);
         return false;
     }
         

@@ -483,6 +483,9 @@ namespace Position
 #define POSESOLVERFACTORY       IBaseFactory<IPoseSolver>       
 #define TRAJPROCESSERFACTORY    IBaseFactory<ITrajProcesser>    
 
+#define VIEWERFACTORY           IBaseFactory<IViewer>
+#define OPTIMIZERFACTORY        IBaseFactory<IOptimizer>
+
 #define DECLAREIFACTORY(B,F,N)\
         class F##Factory : public IBaseFactory<B>\
         {\

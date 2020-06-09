@@ -65,6 +65,7 @@ namespace Position
                                         bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true);
     };
 
+    DECLAREIFACTORY(IOptimizer, G2oOptimizer,G2o)
 }
 
 #endif

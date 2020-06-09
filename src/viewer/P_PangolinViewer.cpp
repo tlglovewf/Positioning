@@ -6,7 +6,7 @@
 namespace Position
 {
     //构造函数
-    Pangolin_Viewer::Pangolin_Viewer(const std::shared_ptr<IConfig> &pCfg) : mCfg(pCfg), mbInit(false), mbRender(false)
+    PangolinViewer::PangolinViewer() : mCfg(GETGLOBALCONFIG()), mbInit(false), mbRender(false)
     {
         mWinW = 1080;   //GETCFGVALUE(mCfg, ViewerW, int);
         mWinH = 768;    //GETCFGVALUE(mCfg, ViewerH, int);
@@ -14,7 +14,7 @@ namespace Position
     }
     
     //初始化
-    void Pangolin_Viewer::init()
+    void PangolinViewer::init()
     {
         if (mbInit)
             return;
@@ -47,7 +47,7 @@ namespace Position
         PROMTD_S("init pangolin viewer successfully.");
         mbInit = true;
     }
-    void Pangolin_Viewer::renderLoop()
+    void PangolinViewer::renderLoop()
     {
         init();
         while (renderOnce())
@@ -98,7 +98,7 @@ namespace Position
     }
     
     //绘制
-    bool Pangolin_Viewer::renderOnce()
+    bool PangolinViewer::renderOnce()
     {
         assert(mbInit);
         if (!mbInit || !mMap)
@@ -270,7 +270,7 @@ namespace Position
     }
     
     //绘制帧
-    void Pangolin_Viewer::drawFrames()
+    void PangolinViewer::drawFrames()
     {
         drawCoordinateAxis(Point3f(0, 0, 0));
 
@@ -326,7 +326,7 @@ namespace Position
     }
     
     //绘制地图
-    void Pangolin_Viewer::drawMapPoints()
+    void PangolinViewer::drawMapPoints()
     {
         const MapPtVector mpts = mMap->getAllMapPts();
         if (mpts.empty())
@@ -350,7 +350,7 @@ namespace Position
     }
     
     //绘制轨迹线
-    void Pangolin_Viewer::drawTraceLine()
+    void PangolinViewer::drawTraceLine()
     {
         KeyFrameVector vpKFs(mMap->getAllFrames());
         
@@ -371,7 +371,7 @@ namespace Position
     }
     
     //绘制关联线
-    void Pangolin_Viewer::drawRelLines()
+    void PangolinViewer::drawRelLines()
     {
         IKeyFrame *pKf = mMap->currentKeyFrame();
         if (NULL == pKf)

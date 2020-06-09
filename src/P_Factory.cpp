@@ -23,57 +23,6 @@
 
 namespace Position
 {
-     /*
-     * 创建对象
-     */
-    IBlockMatcher* PFactory::CreateBlockMatcher(eBlockMatcherType type,const Mat &img, const Point2f &pt)
-    {
-        switch (type) {
-            case eBMNCC:
-                return new NCC_BlockMatcher(img,pt);
-                //add more
-            default:
-                return NULL;
-        }
-    }
-
-     /*
-      * 优化
-      */
-     IOptimizer* PFactory::CreateOptimizer(eOptimizerType type)
-     {
-         switch(type)
-         {
-             case eOpG2o:
-                return new G2oOptimizer();
-             default:
-                {
-                    assert(NULL);
-                    return NULL;
-                }
-         }
-     }
-
-#ifdef USE_VIEW
-    /*
-     * 创建可视化
-     */
-    IViewer* PFactory::CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg)
-    {
-        switch(type)
-        {
-            case eVPangolin:
-                return new Pangolin_Viewer(pcfg);
-            default:
-                {
-                    assert(NULL);
-                    return NULL;
-                }
-        }
-    }
-#endif
-
-
     /******************************************************/
     /****************** ISerialization ********************/
     /******************************************************/
@@ -108,7 +57,7 @@ namespace Position
     {
 #ifdef USE_VIEW
         //可视化帧数据
-        std::unique_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+        std::shared_ptr<Position::IViewer> pv(GETVIEWER());
         std::shared_ptr<Position::IMap> pmap(new Position::PMap());
         setMap(pmap);
         mpTracSer->loadMap(trac);
@@ -155,43 +104,54 @@ namespace Position
     FACTORYINSTANCEDECLARE(IFeatureMatcher)
     FACTORYINSTANCEDECLARE(IPoseSolver)
     FACTORYINSTANCEDECLARE(ITrajProcesser)
+    FACTORYINSTANCEDECLARE(IOptimizer)
 
-#define INSERT_FEATURE_ITEM(F) { std::shared_ptr<FEATUREFACTORY> p(new F##Factory()); \
-        mItems.insert(make_pair(p->name(),p));}
+#if USE_VIEW
+    FACTORYINSTANCEDECLARE(IViewer)
+#endif
+
+
+#define INSERT_FACTORY_ITEM(F,T) { std::shared_ptr< Position::IBaseFactory<Position::T> > p(new Position::F##Factory);\
+                                mItems.insert(make_pair(p->name(),p));}
 
     IFeatureFactory::IFeatureFactory()
     {
-        INSERT_FEATURE_ITEM(Position::ORBFeature)
-        INSERT_FEATURE_ITEM(Position::SiftFeature)
-        INSERT_FEATURE_ITEM(Position::UniformDistriFeature)
+        INSERT_FACTORY_ITEM(ORBFeature,IFeature)
+        INSERT_FACTORY_ITEM(SiftFeature,IFeature)
+        INSERT_FACTORY_ITEM(UniformDistriFeature,IFeature)
     }
-#undef INSERT_FEATURE_ITEM
 
-#define INSERT_MATCHER_ITEM(F) { std::shared_ptr<FEATUREMATCHERFACTORY> p(new F##Factory()); \
-        mItems.insert(make_pair(p->name(),p));}
     IFeatureMatcherFactory::IFeatureMatcherFactory()
     {
-        INSERT_MATCHER_ITEM(Position::HanMingMatcher)
-        INSERT_MATCHER_ITEM(Position::KnnMatcher    )
+        INSERT_FACTORY_ITEM(HanMingMatcher,IFeatureMatcher)
+        INSERT_FACTORY_ITEM(KnnMatcher    ,IFeatureMatcher)
     }
-#undef INSERT_MATCHER_ITEM
 
-#define INSERT_POSESOLVER_ITEM(F) { std::shared_ptr<POSESOLVERFACTORY> p(new F##Factory()); \
-        mItems.insert(make_pair(p->name(),p));}
     IPoseSolverFactory::IPoseSolverFactory()
     {
-        INSERT_POSESOLVER_ITEM(Position::CVPoseSolver);
-        INSERT_POSESOLVER_ITEM(Position::ORBPoseSolver);
+        INSERT_FACTORY_ITEM(CVPoseSolver,IPoseSolver);
+        INSERT_FACTORY_ITEM(ORBPoseSolver,IPoseSolver);
     }
-#undef INSERT_POSESOLVER_ITEM
 
-#define INSERT_TRJPROCESSER_ITEM(F) { std::shared_ptr<TRAJPROCESSERFACTORY> p(new F##Factory()); \
-        mItems.insert(make_pair(p->name(),p));}
     ITrajProcesserFactory::ITrajProcesserFactory()
     {
-        INSERT_TRJPROCESSER_ITEM(Position::PUniformVTrajProcesser   )
-        INSERT_TRJPROCESSER_ITEM(Position::PMultiVisionTrajProcesser)
-        INSERT_TRJPROCESSER_ITEM(Position::PSfmVisonTrajProcesser   )
+        INSERT_FACTORY_ITEM(PUniformVTrajProcesser   ,ITrajProcesser)
+        INSERT_FACTORY_ITEM(PMultiVisionTrajProcesser,ITrajProcesser)
+        INSERT_FACTORY_ITEM(PSfmVisonTrajProcesser   ,ITrajProcesser)
     }
-#undef INSERT_TRJPROCESSER_ITEM
+
+    IOptimizerFactory::IOptimizerFactory()
+    {
+        INSERT_FACTORY_ITEM(G2oOptimizer,IOptimizer)
+    }
+
+
+#if USE_VIEW
+#define INSERT_VIEWER_ITEM(F) { std::shared_ptr<VIEWERFACTORY> p(new F##Factory()); \
+        mItems.insert(make_pair(p->name(),p));}
+    IViewerFactory::IViewerFactory()
+    {
+        INSERT_VIEWER_ITEM(Position::PangolinViewer);
+    }
+#endif
 }

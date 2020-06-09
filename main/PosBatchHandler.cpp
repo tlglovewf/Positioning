@@ -25,7 +25,7 @@ mCamera(cam)
      assert(positioner);
 
 #if USE_VIEW
-s_Viewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,GETGLOBALCONFIG()));
+s_Viewer = std::shared_ptr<Position::IViewer>(GETVIEWER());
 s_Viewer->setMap(mPoseEstimator.getMap());
 #endif
 

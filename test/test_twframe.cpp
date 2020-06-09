@@ -537,9 +537,9 @@ TESTBEGIN()
     //new UniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
     std::shared_ptr<Position::IFeatureMatcher>  pmatcher(GETFEATUREMATCHER(HanMing));
-    std::shared_ptr<Position::IOptimizer>       pOptimizer(Position::PFactory::CreateOptimizer(Position::eOpG2o));
+    std::shared_ptr<Position::IOptimizer>       pOptimizer(GETOPTIMIZER());
 #ifdef USE_VIEW
-    std::shared_ptr<Position::IViewer>  pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    std::shared_ptr<Position::IViewer>  pv(GETVIEWER());
 #endif
     std::shared_ptr<Position::IPoseSolver>  poseest(GETPOSESOLVER(CVPoseSolver));
     

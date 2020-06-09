@@ -104,17 +104,25 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     const int mintri = 30;
 
     PROMTD_V("match size",mvMatches12.size());
-    PROMTD_V("RH/SF",RH,SF);
+    LOG_INFO_F("%d Matches For initilaize!!!");
+
     PROMTD_V("Score",SF/(mvMatches12.size()));
 
     bool bRet = false;
 
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.45)
+    {
+        LOG_INFO("Recover Pose From Homography!!!");
         bRet = ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
+    }
+       
     else //if(pF_HF>0.6)
+    {
+        LOG_INFO("Recover Pose From Fundamental!!!");
         bRet = ReconstructF(vbMatchesInliersF,F,mK,R21,t21,vP3D,vbTriangulated,minpallax,mintri);
-
+    }
+        
     if(!bRet)
     {
         LOG_WARNING_F("%s Pose Recover Error!!!", CurrentFrame.getData()->_name.c_str());

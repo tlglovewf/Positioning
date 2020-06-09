@@ -10,55 +10,6 @@
 
 namespace Position
 {   
-#define DEFINEENUM(ENUM)  enum e##ENUM##Type
-#define DEFINEFUNC(FUNC)  static I##FUNC* Create##FUNC(e##FUNC##Type type); 
-    /*
-     * 块匹配算法
-     */
-    DEFINEENUM(BlockMatcher)
-    {
-        eBMNCC,
-        eBMSAD,
-        eBMSSD
-    }; 
-    /*
-     * 优化类型
-     */
-    DEFINEENUM(Optimizer)
-    {
-        eOpG2o
-    };
-
-    /*
-     * 可视化类型
-     */
-    DEFINEENUM(Viewer)
-    {
-        eVPangolin
-    };
-    //工厂对象
-    class PFactory
-    {
-     public:
-
-        /*
-         * 创建对象
-         */
-        static IBlockMatcher* CreateBlockMatcher(eBlockMatcherType type,const Mat &img, const Point2f &pt);
-    
-#ifdef USE_VIEW
-        /*
-         * 创建可视化
-         */
-        static IViewer* CreateViewer(eViewerType type,const std::shared_ptr<IConfig> &pcfg);
-#endif
-
-        /*
-         * 优化
-         */
-        DEFINEFUNC(Optimizer)
-    };
-
     /*
      *  持久化 轨迹枚举
      */
@@ -160,6 +111,18 @@ namespace Position
      * 轨迹处理类 "MViewsTraj" "UniformTraj" "SfmTraj"
      */
     FACTORYDECLARE(ITrajProcesser )
+
+    /*
+     * 优化接口类 "G2o"
+     */
+    FACTORYDECLARE(IOptimizer)
+
+#if USE_VIEW
+    /*
+     * 声明可视化 "Pangolin"
+     */
+    FACTORYDECLARE(IViewer)
+#endif
   
 #undef FACTORYDECLARE
 
@@ -171,6 +134,9 @@ namespace Position
 #define GETFEATUREMATCHER(N)        CREATEFACTORYINSTANCE(FeatureMatcher,N)
 #define GETPOSESOLVER(N)            CREATEFACTORYINSTANCE(PoseSolver,N)
 #define GETTRJPROCESSER(N)          CREATEFACTORYINSTANCE(TrajProcesser,N)
+
+#define GETVIEWER()                 CREATEFACTORYINSTANCE(Viewer,Pangolin)
+#define GETOPTIMIZER()              CREATEFACTORYINSTANCE(Optimizer,G2o)
 
 #define   SETMAPSERIALIZATIONMAP(MAP)  Position::MapSerManager::Instance()->setMap(MAP);
 #define   SAVEMAPFRAME(path)           Position::MapSerManager::Instance()->tracSerPtr()->saveMap(path);

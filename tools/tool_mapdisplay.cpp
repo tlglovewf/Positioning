@@ -38,7 +38,7 @@ int main(int argv, char **argc)
         if(pMap)
         {
             
-            std::shared_ptr<Position::IViewer> pViewer(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+            std::shared_ptr<Position::IViewer> pViewer(GETVIEWER());
             pViewer->setMap(pMap);
             pViewer->renderLoop();
         }

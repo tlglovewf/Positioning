@@ -22,8 +22,7 @@ namespace Position
                         mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
 #endif
                         mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER(CVPoseSolver));
-                        // mpEst            = std::shared_ptr<IPoseSolver>(Position::PFactory::CreatePoseSolver(Position::ePoseEstOrb));
-                        mpOptimizer      = std::shared_ptr<IOptimizer>(Position::PFactory::CreateOptimizer(eOpG2o));
+                        mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                        
                         Position::FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(),ImgWd,int),GETCFGVALUE(GETGLOBALCONFIG(),ImgHg,int),&mCam);
                         

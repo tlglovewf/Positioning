@@ -53,7 +53,7 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 
     Position::MapSerManager::Instance()->combineMap(baseMap,secMap);
 
-    Position::IViewer *pv = Position::PFactory::CreateViewer(Position::eVPangolin,pCfg);
+    std::shared_ptr<Position::IViewer> pv(GETVIEWER());
     pv->setMap(baseMap);
     pv->renderLoop();
 
@@ -72,7 +72,7 @@ void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std
 #ifdef USE_VIEW
     if(prj)
     {
-        std::shared_ptr<Position::IViewer> pviewer(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg));
+        std::shared_ptr<Position::IViewer> pviewer(GETVIEWER());
         
         std::shared_ptr<Position::IMap> pmap(new Position::PMap);
         Position::PrjBatchVector &batchvector = prj->getPrjList();
@@ -128,7 +128,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     
-    //std::shared_ptr<Position::IViewer> mpViewer = std::shared_ptr<Position::IViewer>(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    //std::shared_ptr<Position::IViewer> mpViewer = std::shared_ptr<Position::IViewer>(GETVIEWER());
     //pTraj->setViewer(mpViewer);
     //std::unique_ptr<std::thread>  mptViewer = std::unique_ptr<std::thread>(new thread(&Position::IViewer::renderLoop,mpViewer));
 
@@ -202,7 +202,7 @@ void DisplayBatchResult( const std::string &path,const std::shared_ptr<Position:
     std::ifstream sfile;
     sfile.open(path);
 
-    std::unique_ptr<Position::IViewer> pviewer(Position::PFactory::CreateViewer(Position::eVPangolin,pcfg));
+    std::shared_ptr<Position::IViewer> pviewer(GETVIEWER());
 
     std::shared_ptr<Position::IMap> pmap(new Position::PMap);
 
@@ -310,7 +310,7 @@ int main(void)
     Position::FrameDataPtrVIter iter = pData->begin();
     Position::FrameDataPtrVIter ed   = pData->end();
      //可视化帧数据
-    std::shared_ptr<Position::IViewer> pv(Position::PFactory::CreateViewer(Position::eVPangolin,pCfg));
+    std::shared_ptr<Position::IViewer> pv(GETVIEWER());
 
     pTraj->setViewer(pv);
     //插入帧数据

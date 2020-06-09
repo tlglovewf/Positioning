@@ -3,6 +3,7 @@
 #include "P_IOHelper.h"
 #include "P_Checker.h"
 #include "P_Factory.h"
+#include "P_BlockMatcher.h"
 
 namespace Position
 {
@@ -68,7 +69,7 @@ namespace Position
             ed_x = bg.x;
         }
         
-        Ptr<IBlockMatcher> pBlock(PFactory::CreateBlockMatcher(eBMNCC,preframe._img, pt));
+        Ptr<IBlockMatcher> pBlock(new NCC_BlockMatcher(preframe._img,pt));
         Time_Interval timer;
         timer.start();
         for(int i = st_x; i < ed_x; i += space)

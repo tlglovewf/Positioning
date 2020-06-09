@@ -4,6 +4,7 @@
 #include "P_Converter.h"
 #include "P_IOHelper.h"
 #include "Thirdparty/GeographicLib/include/LocalCartesian.hpp"
+#include "P_Utils.h"
 namespace  Position
 {   
 
@@ -18,8 +19,10 @@ namespace  Position
 
         KeyFrameVector vpkfs = pmap->getAllFrames();
         
+        
         LOG_INFO("Gps fuse Begin.");
-
+        Time_Interval time;
+        time.start();
         //只为测试
         const std::string opath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
         const std::string strori = opath + "/ori.txt";
@@ -154,6 +157,7 @@ namespace  Position
 
         sim3opt.beginOpt();
 
+        time.prompt("Gps fuse cost");
         LOG_INFO("Gps Fuse End.");
 
 
