@@ -5,10 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "test_pose",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/test_pose",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/output/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
             "name": "test_newdata",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/output/test_rectify",
+            "program": "${workspaceFolder}/output/test_newdata",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/output/",
