@@ -239,7 +239,7 @@ namespace Position
         }
         //根据基础矩阵筛选
         vector<u8> stats;
-        Mat F = cv::findFundamentalMat(pts1, pts2, stats, FM_RANSAC, windowsize);
+        Mat F = cv::findFundamentalMat(pts1, pts2, stats, FM_RANSAC);//, windowsize);
         goods.reserve(matches.size());
         for (size_t i = 0; i < matches.size(); ++i)
         {
@@ -255,7 +255,7 @@ namespace Position
     //匹配  返回匹配对
     MatchVector KnnMatcher::match(IFrame *preframe, IFrame *curframe, int windowsize)
     {
-        FeatureInfo pre(preframe->getData()->_name,preframe->getKeys(),curframe->getDescript());
+        FeatureInfo pre(preframe->getData()->_name,preframe->getKeys(),preframe->getDescript());
         FeatureInfo cur(curframe->getData()->_name,curframe->getKeys(),curframe->getDescript());
 
         return match(pre,cur,windowsize);

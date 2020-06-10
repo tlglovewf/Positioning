@@ -7,19 +7,19 @@ namespace Position
     {
         // if(0 == eType)
         {
-             mpUniformVTrajPro   = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER(UniformTraj));
+             mpUniformVTrajPro   = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER("UniformTraj"));
         }
         // else
         {
             /* code */
         }
 
-        mpSimpleTrajPro     = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER(MViewsTraj));
+        mpSimpleTrajPro     = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER("MViewsTraj"));
         mpCurrentTrajPro    = eType ? mpSimpleTrajPro : mpUniformVTrajPro;
 
         if(2 == eType)
         {
-            mpCurrentTrajPro = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER(SfmTraj));
+            mpCurrentTrajPro = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER("SfmTraj"));
         }
     }
 

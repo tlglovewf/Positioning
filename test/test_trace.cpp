@@ -7,9 +7,9 @@
 #include "project/hdproject.h"
 #include "project/weiyaproject.h"
 
-
 #include "P_Map.h"
 #include "P_Factory.h"
+#include "P_MapSerializor.h"
 #include "P_Utils.h"
 
 #include "P_FrameViewer.h"
@@ -124,7 +124,7 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
     std::shared_ptr<Position::IFrameData> pData(new HdData(pCfg));
 
-    std::shared_ptr<Position::ITrajProcesser> pTraj(GETTRJPROCESSER(MViewsTraj)); 
+    std::shared_ptr<Position::ITrajProcesser> pTraj(GETTRJPROCESSER("MViewsTraj")); 
     std::shared_ptr<Position::IMap> map = pTraj->getMap();
     // std::shared_ptr<Position::IGpsFusion> gpsfusion(new Position::GpsFunsion());
     

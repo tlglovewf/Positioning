@@ -13,7 +13,7 @@ TESTBEGIN()
     std::shared_ptr<Position::IFrameData>   pData(new WeiyaData(pCfg));
 
     LOG_INITIALIZE(pCfg);
-    SETGLOBALCONFIG(pCfg);
+
     SETCFGVALUE(pCfg,ViewEnable,1);
 
     Position::PMapDisplay mapDisplay(pData,pCfg,2);

@@ -3,7 +3,7 @@
 #include "P_IOHelper.h"
 #include "P_Frame.h"
 
-#include "P_UniformDistriFeature.h"
+#include "P_FeatureExtend.h"
 #include <thread>
 
 #define SAVEMATCHIMG    0  //是否存储同名点匹配文件
@@ -13,15 +13,15 @@ namespace Position
      //构造
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
-#if 0
+#if 1
                         int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
-                        mpFeature        = std::shared_ptr<IFeature>(new UniformDistriFeature(featureCnt));
-                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(Knn));
+                        mpFeature        = std::shared_ptr<IFeature>(new SiftFeatureExtend(featureCnt));
+                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("Knn"));
 #else
-                        mpFeature        = std::shared_ptr<IFeature>(GETFEATURE(Orb));
-                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(HanMing));
+                        mpFeature        = std::shared_ptr<IFeature>(GETFEATURE("Orb"));
+                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("HanMing"));
 #endif
-                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER(ORBPoseSolver)); //CVPoseSolver));
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("ORBPoseSolver")); //"CVPoseSolver"));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                        
                         Position::FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(),ImgWd,int),GETCFGVALUE(GETGLOBALCONFIG(),ImgHg,int),&mCam);
@@ -156,6 +156,7 @@ namespace Position
 
             if(!posresult._match.empty())
             {//推算位姿
+                LOG_INFO_F("Match %d",posresult._match.size());
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 posresult._R.copyTo(pose.rowRange(0,3).colRange(0,3));
                 posresult._t.copyTo(pose.rowRange(0,3).col(3));

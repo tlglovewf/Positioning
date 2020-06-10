@@ -242,7 +242,8 @@ typedef std::vector<cv::Point2f>                PtVector;
 typedef std::vector<cv::Point3f>                Pt3Vector;
 
 typedef std::vector<cv::DMatch>                 MatchVector;
-typedef std::vector<std::vector<MatchVector> >  MatchMatrix;
+typedef std::vector<MatchVector>                MatchVectors;
+typedef std::vector<MatchVectors>               MatchMatrix;
 
 typedef std::vector<cv::KeyPoint>               KeyPtVector;
 

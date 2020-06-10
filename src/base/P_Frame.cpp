@@ -128,8 +128,7 @@ bool   FrameHelper::mInit = false;
 #pragma endregion
 
     //构造函数
-    PFrame::PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index,int cameraIndex /* = 0 */):
-        mCamIdx(cameraIndex),mData(data),mFeature(pFeature)
+    PFrame::PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index):mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
         FeatureInfo info(data->_name);

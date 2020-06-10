@@ -9,11 +9,11 @@ TESTBEGIN()
     std::shared_ptr<Position::IConfig>              pcfg(new ImgAutoConfig("../config/config_new.yaml"));
     std::shared_ptr<Position::IFrameData>           pdata(new NewHwProjectData(pcfg));
     SETGLOBALCONFIG(pcfg);
-    std::shared_ptr<Position::IFeature>             pfeature(GETFEATURE(Sift));
-    std::shared_ptr<Position::IFeatureMatcher>      pmatcher(GETFEATUREMATCHER(Knn));
-    std::shared_ptr<Position::IPoseSolver>          ppose(GETPOSESOLVER(CVPoseSolver));
+    std::shared_ptr<Position::IFeature>             pfeature(GETFEATURE("Sift"));
+    std::shared_ptr<Position::IFeatureMatcher>      pmatcher(GETFEATUREMATCHER("Knn"));
+    std::shared_ptr<Position::IPoseSolver>          ppose(GETPOSESOLVER("CVPoseSolver"));
 
-    SETGLOBALCONFIG(pcfg);
+
     if(pdata->loadDatas())
     {
         Position::FrameDataPtrVIter first = pdata->begin() + 300;

@@ -14,7 +14,7 @@
 
 #include "project/hdproject.h"
 
-#include "P_UniformDistriFeature.h"
+#include "P_FeatureExtend.h"
 
 
 using namespace std;
@@ -388,8 +388,8 @@ TESTBEGIN()
 
     std::shared_ptr<Position::IConfig>  pcfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     SETGLOBALCONFIG(pcfg);
-    std::shared_ptr<Position::IFeature> pfeature(GETFEATURE(Orb));   
-    std::shared_ptr<Position::IFeatureMatcher> pmatch(GETFEATUREMATCHER(Knn));
+    std::shared_ptr<Position::IFeature> pfeature(GETFEATURE("Orb"));   
+    std::shared_ptr<Position::IFeatureMatcher> pmatch(GETFEATUREMATCHER("Knn"));
     Position::FrameData fm1;
     Position::FrameData fm2;
     Position::FrameData fm3;
@@ -532,16 +532,16 @@ TESTBEGIN()
 
     std::shared_ptr<Position::IConfig>      pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IFrameData>   pData(new HdData(pCfg));
-    std::shared_ptr<Position::IFeature>     pFeature(GETFEATURE(Orb));
+    std::shared_ptr<Position::IFeature>     pFeature(GETFEATURE("Orb"));
 
-    //new UniformDistriFeature(GETCFGVALUE(pCfg,FeatureCnt,int)));// new SiftFeature);
+ 
     std::shared_ptr<Position::IMap>     pmap(new Position::PMap);
-    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(GETFEATUREMATCHER(HanMing));
+    std::shared_ptr<Position::IFeatureMatcher>  pmatcher(GETFEATUREMATCHER("HanMing"));
     std::shared_ptr<Position::IOptimizer>       pOptimizer(GETOPTIMIZER());
 #ifdef USE_VIEW
     std::shared_ptr<Position::IViewer>  pv(GETVIEWER());
 #endif
-    std::shared_ptr<Position::IPoseSolver>  poseest(GETPOSESOLVER(CVPoseSolver));
+    std::shared_ptr<Position::IPoseSolver>  poseest(GETPOSESOLVER("CVPoseSolver"));
     
 
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);

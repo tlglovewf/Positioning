@@ -1,4 +1,4 @@
-#include "P_UniformDistriFeature.h"
+#include "P_FeatureExtend.h"
 #include "P_Utils.h"
 #include "P_SiftFeature.h"
 #define EDGE_THRESHOLD 16
@@ -48,7 +48,7 @@ namespace Position
         const int hCell = ceil(height / nRows);
 
         if (!mFeature)
-            mFeature = SiftFeature::create(mMaxFeatures / ((nRows - 1) * nCols), 4, 0.04, 10, 1.6);
+            featureInit(mMaxFeatures / ((nRows - 1) * nCols));
 
         //在每个格子内进行fast特征检测
         for (int i = 0; i < nRows; i++)
@@ -420,7 +420,9 @@ namespace Position
         mFeature->compute(img, keypts, des);
     }
 
-    void UniformDistriFeature::createQuadTree(KeyPtVector &keypts)
+
+    void SiftFeatureExtend::featureInit(int featurecnt)
     {
+        mFeature = SiftFeature::create(featurecnt);
     }
 } // namespace Position

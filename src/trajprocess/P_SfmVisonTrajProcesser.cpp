@@ -9,7 +9,7 @@
 #include "P_IOHelper.h"
 #include "P_Frame.h"
 
-#include "P_UniformDistriFeature.h"
+#include "P_FeatureExtend.h"
 #include <thread>
 
 #define SAVEMATCHIMG    0  //是否存储同名点匹配文件
@@ -19,14 +19,11 @@ namespace Position
      //构造
     PSfmVisonTrajProcesser::PSfmVisonTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
-#if 1
-                        mpFeature        = std::shared_ptr<IFeature>(new UniformDistriFeature(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int)));
-                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER(Knn));
-#else
-                        mpFeature        = std::shared_ptr<IFeature>(Position::PFactory::CreateFeature(Position::eFeatureOrb,GETGLOBALCONFIG()));
-                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(Position::PFactory::CreateFeatureMatcher(Position::eFMDefault,0.8));
-#endif
-                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER(CVPoseSolver));
+
+                        mpFeature        = std::shared_ptr<IFeature>(new SiftFeatureExtend(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int)));
+                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("Knn"));
+
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("CVPoseSolver"));
                         // mpEst            = std::shared_ptr<IPoseSolver>(Position::PFactory::CreatePoseSolver(Position::ePSOrb));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                        

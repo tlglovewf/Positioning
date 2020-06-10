@@ -20,7 +20,7 @@ namespace Position
         //构造函数 主要用于持久可视化
         PFrame(FrameData *data,int index):mData(data),mN(0),mIndex(index){}
         //构造函数 
-        PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index, int cameraIndex = 0);
+        PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index);
         ~PFrame();
          //获取数据
         virtual FrameData* getData()const 
@@ -83,7 +83,6 @@ namespace Position
         }
     protected:
         int                         mN;
-        int                         mCamIdx;
         u64                         mIndex;
 
 

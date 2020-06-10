@@ -5,6 +5,7 @@
 #include "P_Config.h"
 #include "P_IOHelper.h"
 #include "P_Factory.h"
+#include "P_MapSerializor.h"
 int main(int argv, char **argc)
 {
 #if USE_VIEW

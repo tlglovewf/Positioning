@@ -4,6 +4,7 @@
 #include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "P_GpsFusion.h"
+#include "P_MapSerializor.h"
 
 namespace Position
 {
