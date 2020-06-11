@@ -81,16 +81,6 @@ namespace Position
             }
         }
 
-    cv::Mat PUniformVTrajProcesser::track(const FrameDataPtrVector &framedatas, const int initnum)
-    {
-        if(mbReset)
-        {
-            mpTracker->Reset();
-            mbReset = false;
-        }
-        return mpTracker->InitMode(framedatas, initnum);
-    }
-
      //跟踪
     cv::Mat PUniformVTrajProcesser::track(FrameData *data)
     {
@@ -99,6 +89,7 @@ namespace Position
             mpTracker->Reset();
             mbReset = false;
         }
+        LOG_INFO_F("Process :%s",data->_name.c_str());
         return mpTracker->track(data);
     }
 

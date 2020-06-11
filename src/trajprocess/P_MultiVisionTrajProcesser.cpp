@@ -13,15 +13,12 @@ namespace Position
      //构造
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
-#if 1
                         int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
                         mpFeature        = std::shared_ptr<IFeature>(new SiftFeatureExtend(featureCnt));
+
                         mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("Knn"));
-#else
-                        mpFeature        = std::shared_ptr<IFeature>(GETFEATURE("Orb"));
-                        mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("HanMing"));
-#endif
-                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("ORBPoseSolver")); //"CVPoseSolver"));
+
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("CVPoseSolver"));  //"ORBPoseSolver"));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                          
                         mFtSearchRadius = GETCFGVALUE(GETGLOBALCONFIG(),SearchRadius,int);

@@ -398,7 +398,7 @@ void ORBLocalMapping::CreateNewMapPoints()
             nnew++;
         }
     }
-    PROMTD_V(mpCurrentKeyFrame->getData()->_name,"Create New Points", nnew);
+    // PROMTD_V(mpCurrentKeyFrame->getData()->_name,"Create New Points", nnew);
 }
 
 //搜索邻近帧,取所有共视帧以及共视帧关联的最最佳的几个共视帧,简历邻近搜索列表

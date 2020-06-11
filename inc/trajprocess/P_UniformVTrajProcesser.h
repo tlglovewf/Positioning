@@ -26,7 +26,7 @@ namespace Position
         ~PUniformVTrajProcesser();
         //! 跟踪
         virtual cv::Mat track(FrameData *data);
-        virtual cv::Mat track(const FrameDataPtrVector &framedatas, const int initnum);
+        
         //! 处理
         virtual bool process(const FrameDataPtrVector &framedatas);
 

@@ -30,7 +30,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     // Max/Min Frames to insert keyframes and to check relocalisation
     mMinFrames = 0;
     mMaxFrames = camparam.fps;
-
+    mInitStep  = 0;
     mbRGB = 1;// camparam.rgb;
 
     // if(mbRGB)
@@ -44,8 +44,7 @@ ORBTracking::ORBTracking(const std::shared_ptr<ORBVocabulary>& pVoc,
     float   fScaleFactor    = GETCFGVALUE(pcfg,ScaleFactor,float);
     int     nLevels         = GETCFGVALUE(pcfg,PyramidLevel,int);
     mnSearchRadius          = GETCFGVALUE(pcfg,SearchRadius,int);
-    initMode                = 1;//GETCFGVALUE(pcfg,InitializationMode,int);
-    initStep                = 5;//GETCFGVALUE(pcfg,InitImgLength,int);
+
     int     fIniThFAST      = 20;
     int     fMinThFAST      = 7;
 
@@ -64,53 +63,6 @@ void ORBTracking::SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalM
 void ORBTracking::SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClosing)
 {
     mpLoopClosing=pLoopClosing;
-}
-
-cv::Mat ORBTracking::InitMode(const FrameDataPtrVector &framedatas, const int imgnum)
-{
-    cv::Mat initMat;
-    if(mState != eTrackOk)
-    {
-        if(initMode == 0)
-        {
-            initMat = track(framedatas[imgnum]);    
-        }
-        else if(initMode == 1)//增加初始化策略1-2、1-3、1-4……，若失败继续2-3、2-4……，一直循环下去
-        {  
-            if(imgnum == framedatas.size()-1)//最后一帧还未初始化成功处理
-            {     
-                delete mpInitializer;
-                mpInitializer = static_cast<Initializer*>(NULL);
-                return initMat;  
-            }
-            initMat = track(framedatas[imgnum]);
-            if(mpInitializer)
-            {
-                int searchLen = imgnum+1+initStep<framedatas.size()? imgnum+1+initStep: framedatas.size();
-                for(size_t j = imgnum+1; j<searchLen; j++)
-                {
-                    initMat = track(framedatas[j]);
-                    if(mState == eTrackOk)
-                    {
-                        break;
-                    }
-                }
-                if(mState != eTrackOk && mpInitializer)
-                {
-                    delete mpInitializer;
-                    mpInitializer = static_cast<Initializer*>(NULL);
-                }
-                    
-            }
-        }
-        else//其他初始化
-        {
-            //to do...
-        }    
-    }
-    if(mState == eTrackOk)
-        initMat = track(framedatas[imgnum]);
-    return initMat;
 }
 
 cv::Mat ORBTracking::track(FrameData *data)
@@ -306,7 +258,8 @@ void ORBTracking::MonocularInitialization()
             if(mpInitializer)
                 delete mpInitializer;
 
-            mpInitializer =  new Initializer(mCurrentFrame,2.0,300);
+            float th = 0.25 * (1 + mCurrentFrame.getData()->_img.cols / 2000);
+            mpInitializer =  new Initializer(mCurrentFrame,0.5,400);
 
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
 
@@ -323,17 +276,18 @@ void ORBTracking::MonocularInitialization()
             fill(mvIniMatches.begin(),mvIniMatches.end(),-1);
             return;
         }
-        PROMTD_S("Try to initialize.")
+        LOG_INFO_F("Use %s And %s To Initialize",mInitialFrame.getData()->_name.c_str(),mCurrentFrame.getData()->_name.c_str());
         // Find correspondences
         ORBmatcher matcher(mfForInitRatio,true);
         int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,mnSearchRadius);
         // Check if there are enough correspondences
         if(nmatches < 80)
         {
-            PROMTD_V("Initalize Number Of Points",nmatches)
-            PROMTD_S("not enough for initializing. retry.")
+            LOG_WARNING_F("Only %d MatchPair， Not Enough!!!",nmatches);
+            
             delete mpInitializer;
             mpInitializer = static_cast<Initializer*>(NULL);
+            
             return;
         }
 

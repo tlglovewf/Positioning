@@ -157,7 +157,7 @@ namespace  Position
 
         sim3opt.beginOpt();
 
-        time.prompt("Gps fuse cost");
+        time.prompt("Gps fuse cost:");
         LOG_INFO("Gps Fuse End.");
 
 

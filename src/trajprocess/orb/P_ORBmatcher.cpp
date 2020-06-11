@@ -391,12 +391,12 @@ int ORBmatcher::SearchForInitialization(ORBFrame &F1, ORBFrame &F2, vector<cv::P
 
     vector<int> vMatchedDistance(F2.mvKeysUn.size(),INT_MAX);
     vector<int> vnMatches21(F2.mvKeysUn.size(),-1);
-
+    
     for(size_t i1=0, iend1=F1.mvKeysUn.size(); i1<iend1; i1++)
     {
         cv::KeyPoint kp1 = F1.mvKeysUn[i1];
         int level1 = kp1.octave;
-        if(level1>0) //在第n层返回 不进行下层的判断 数字越大 获得的匹配点越多
+        if(level1 >0) //在第n层返回 不进行下层的判断 数字越大 获得的匹配点越多
             continue;
 
         SzVector vIndices2 = F2.GetFeaturesInArea(vbPrevMatched[i1].x,vbPrevMatched[i1].y, windowSize,level1,level1);
@@ -685,7 +685,7 @@ int ORBmatcher::SearchForTriangulation(ORBKeyFrame *pKF1, ORBKeyFrame *pKF2, cv:
                 const cv::KeyPoint &kp1 = pKF1->mvKeysUn[idx1];
 
                 //動態點剔除
-                if(SemanticGraph::Instance()->isDyobj(kp1.pt,pKF1->getData()->_name))
+                if(CHECKDYO(kp1.pt,pKF1->getData()->_name))
                     continue;
 
                 //以及当前特征点对应的描述子

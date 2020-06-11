@@ -161,6 +161,9 @@ namespace Position
         pair<std::string, cv::Mat> mCurSem;
         std::string mPath;
     };
+ 
 } // namespace Position
-
+#define SETDYOSETTING(F)   Position::SemanticGraph::Instance()->loadObjInfos(F)
+#define SETSEMANTICPATH(P) Position::SemanticGraph::Instance()->setSemanticPath(P)
+#define CHECKDYO(P,F)      Position::SemanticGraph::Instance()->isDyobj(P,F)       
 #endif

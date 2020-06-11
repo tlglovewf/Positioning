@@ -216,7 +216,7 @@ namespace Position
                 {
                     const cv::KeyPoint &kpUn = mvKeysUn[vCell[j]];
 
-                    if(SemanticGraph::Instance()->isDyobj(kpUn.pt,this->getData()->_name))
+                    if(CHECKDYO(kpUn.pt,this->getData()->_name))
                         continue;
 
                     if(bCheckLevels)

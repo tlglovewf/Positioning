@@ -20,7 +20,7 @@ Initializer::Initializer(const ORBFrame &ReferenceFrame, float sigma, int iterat
     mvKeys1 = ReferenceFrame.mvKeysUn;
 
     refImg = ReferenceFrame.getData()->_img;
-
+    //重投影误差阈值,越大表示越松,允许的重投影误差越小
     mSigma = sigma;
     mSigma2 = sigma*sigma;
     mMaxIterations = iterations;
@@ -89,7 +89,7 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     BolVector vbMatchesInliersH, vbMatchesInliersF;
     float SH, SF;
     cv::Mat H, F;
-    //计算基础(或者单应) 评分(评分越高 置信越高) 
+    //计算基础(或者单应) 评分(评分越高 越可信) 
     thread threadH(&Initializer::FindHomography,this,ref(vbMatchesInliersH), ref(SH), ref(H));
     thread threadF(&Initializer::FindFundamental,this,ref(vbMatchesInliersF), ref(SF), ref(F));
 
@@ -101,11 +101,9 @@ bool Initializer::Initialize(const ORBFrame &CurrentFrame, const vector<int> &vM
     float RH = SH/(SH+SF);
 
     const float minpallax = 0.00;
-    const int mintri = 30;
+    const int mintri = 40;
 
-    LOG_INFO_F("%d Matches For initilaize!!!",mvMatches12.size());
-
-    PROMTD_V("Score",SF/(mvMatches12.size()));
+    // PROMTD_V("Score",SF/(mvMatches12.size()));
 
     bool bRet = false;
 
@@ -552,7 +550,7 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     R21 = cv::Mat();
     t21 = cv::Mat();
     //最少需求的匹配点数量  取设置的最小值与 阈值系数的匹配点数量中最大值
-    int nMinGood = max(static_cast<int>(0.8*N),minTriangulated);
+    int nMinGood = min(static_cast<int>(0.6*N),minTriangulated);
 
     int nsimilar = 0;
     const int  thMxGood = 0.75 * maxGood;
@@ -568,6 +566,7 @@ bool Initializer::ReconstructF(BolVector &vbMatchesInliers, cv::Mat &F21, cv::Ma
     // If there is not a clear winner or not enough triangulated points reject initialization
     if(maxGood<nMinGood || nsimilar>1)
     {
+        LOG_WARNING_F("Good Point Not Enough. %f",maxGood/(float)nMinGood);
         return false;
     }
 

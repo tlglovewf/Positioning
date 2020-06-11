@@ -243,7 +243,7 @@ namespace Position
         goods.reserve(matches.size());
         for (size_t i = 0; i < matches.size(); ++i)
         {
-            if (stats[i] && !SemanticGraph::Instance()->isDyobj(pts1[i], pre._name))
+            if (stats[i] && !CHECKDYO(pts1[i], pre._name))
             {
                 goods.emplace_back(matches[i]);
             }

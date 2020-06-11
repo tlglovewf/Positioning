@@ -3,6 +3,7 @@
 #include "P_IOHelper.h"
 #include "P_Utils.h"
 #include "P_Checker.h"
+#include "P_SemanticGraph.h"
 #include "Thirdparty/rapidjson/document.h"
 #include "Thirdparty/sqlite3/sqlite3.h"
 
@@ -292,13 +293,18 @@ bool ImgAutoData::loadDatas()
     const std::string seqpath = raw_data + "/seq.txt";
     const std::string trkjson = raw_data + "/track.json";
     const std::string imgpath = raw_data + "/image/";
+    const std::string sempath = raw_data + "/semantic_image/";
     const std::string trackerpath = expath + "tracker";
     const std::string trackrestpath = trackerpath + "/tracker_result/";
     const std::string campath = expath + "config/extrinsics.xml";
 
+
+    SETSEMANTICPATH(sempath);
+    SETDYOSETTING("../config/semgraph.cfg");
     //设置图片路径
     SETCFGVALUE(mpCfg, ImgPath, string(imgpath));
 
+    
     //load camera paramers
     loadCameraParams(campath);
 

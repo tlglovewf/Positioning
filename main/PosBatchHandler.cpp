@@ -83,7 +83,7 @@ void PosBatchHandler::poseEstimate()
 
     LOG_INFO("PoseEstimate ...");
 
-    for(size_t i = 0; i < targets.size(); ++i)
+    for(size_t i = 1; i < targets.size(); ++i)
     {
        if(NULL == targets[i].batch)
        {
@@ -101,7 +101,7 @@ void PosBatchHandler::poseEstimate()
            {//位姿估算成功,对batch中每个位姿进行赋值
 #if USE_VIEW
             cout << "DISPLAY ...." << endl;
-            // s_Viewer->renderLoop();
+            s_Viewer->renderLoop();
 #endif
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();
                cout << "FmSize:" << frames.size() << " " << targets[i].batch->_fmsdata.size() << endl;

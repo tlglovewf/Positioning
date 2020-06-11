@@ -528,7 +528,7 @@ TESTBEGIN()
 
 
     return 0;
-    Position::SemanticGraph::Instance()->loadObjInfos("segraph.config");
+    SETDYOSETTING("segraph.config");
 
     std::shared_ptr<Position::IConfig>      pCfg = std::make_shared<HdConfig>("../config/config_hd.yaml"); 
     std::shared_ptr<Position::IFrameData>   pData(new HdData(pCfg));
@@ -547,8 +547,8 @@ TESTBEGIN()
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
     if(!sempath.empty())
     {
-        Position::SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
-        Position::SemanticGraph::Instance()->setSemanticPath(sempath);
+        SETDYOSETTING("../config/semgraph.cfg");
+        SETSEMANTICPATH(sempath);
     }
 
 #ifdef USE_VIEW

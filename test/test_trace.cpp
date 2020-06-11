@@ -279,8 +279,8 @@ int main(void)
     std::string   sempath = GETCFGVALUE(pCfg,SemPath,string);
     if(!sempath.empty())
     {
-        Position::SemanticGraph::Instance()->loadObjInfos("../config/semgraph.cfg");
-        Position::SemanticGraph::Instance()->setSemanticPath(sempath);
+        SETDYOSETTING("../config/semgraph.cfg");
+        SETSEMANTICPATH(sempath);
     }
 
     // MapDisplay(pCfg);

@@ -32,7 +32,7 @@ TESTBEGIN()
     const int mklen = 250;
     SETGLOBALMASK(Rect2i(0,height - mklen,width,mklen));
 
-    Position::PMapDisplay mapDisplay(pData,pCfg,0);
+    Position::PMapDisplay mapDisplay(pData,pCfg,1);
     mapDisplay.run();
 
 #else

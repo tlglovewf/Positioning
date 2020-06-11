@@ -27,8 +27,6 @@ namespace Position
  
         // Preprocess the input and call Track(). Extract features and performs stereo matching.
         cv::Mat track( FrameData *data);
-
-        cv::Mat InitMode(const FrameDataPtrVector &framedatas, const int imgnum);
         
         void SetLocalMapper(const std::shared_ptr<ORBLocalMapping>& pLocalMapper);
         void SetLoopClosing(const std::shared_ptr<ORBLoopClosing>& pLoopClosing);
@@ -111,11 +109,8 @@ namespace Position
         //New ORBKeyFrame rules (according to fps)
         int mMinFrames;
         int mMaxFrames;
-        
-        //初始化策略选择
-        int initMode;
-        //初始化搜索步长
-        int initStep;
+        int mInitStep;
+
         //for initialize ratio
         float mfForInitRatio;
 
