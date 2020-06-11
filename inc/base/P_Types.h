@@ -204,6 +204,8 @@ struct FrameData {
     {
         _targets.emplace_back(target);
     }
+    FrameData()=default;
+    FrameData(const std::string &name):_name(name){}
 };
 
 //! ax + by + c = 0

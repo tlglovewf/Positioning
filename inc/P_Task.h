@@ -88,7 +88,8 @@ namespace Position
                     const std::string &feature = "SiftEx",
                     const std::string &match = "Knn",
                     const std::string &est = "CVPoseSolver");
-                    
+
+        //! 执行           
         PoseResult run(Item &item);
 
     protected:

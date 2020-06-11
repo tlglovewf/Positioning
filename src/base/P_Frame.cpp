@@ -1,5 +1,7 @@
 #include "P_Frame.h"
 #include "P_MapPoint.h"
+#include "P_IOHelper.h"
+
 namespace Position
 {
 #pragma region  FrameHelper
@@ -7,25 +9,17 @@ int    FrameHelper::FRAME_GRID_ROWS = 48;
 int    FrameHelper::FRAME_GRID_COLS = 64;
 float  FrameHelper::mfGridElementWidthInv   = 0.0;
 float  FrameHelper::mfGridElementHeightInv  = 0.0;
-double FrameHelper::mFx = 0;
-double FrameHelper::mFy = 0;
-double FrameHelper::mCx = 0;
-double FrameHelper::mCy = 0;
 bool   FrameHelper::mInit = false;
 
     //初始化配置参数
-    void FrameHelper::initParams(float width, float height,CameraParam *pcam, int index /* = 0 */)
+    void FrameHelper::initParams(float width, float height)
     {
-        assert(width > 1.0 && height > 1.0);
-        assert(pcam);
-        assert(index >= 0);
-        mfGridElementWidthInv  = static_cast<float>(FRAME_GRID_COLS) / width;
-        mfGridElementHeightInv = static_cast<float>(FRAME_GRID_ROWS) / height;
-        // mFx = pcam[index].K.at<MATTYPE>(0,0);
-        // mFy = pcam[index].K.at<MATTYPE>(1,1);
-        // mCx = pcam[index].K.at<MATTYPE>(0,2);
-        // mCy = pcam[index].K.at<MATTYPE>(1,2);
-        mInit = true;
+        if(!mInit)
+        {
+            mfGridElementWidthInv  = static_cast<float>(FRAME_GRID_COLS) / width;
+            mfGridElementHeightInv = static_cast<float>(FRAME_GRID_ROWS) / height;
+            mInit = true;
+        }
     }
 
     //根据坐标 查询特征点序号
@@ -131,12 +125,18 @@ bool   FrameHelper::mInit = false;
     PFrame::PFrame(FrameData *data,const std::shared_ptr<IFeature> &pFeature,int index):mData(data),mFeature(pFeature)
     {
         assert(pFeature.get());
+        if(data->_img.empty())
+        {
+            LOG_CRIT("Frame Image Is Empty!!!");
+            exit(-1);
+        }
         FeatureInfo info(data->_name);
         pFeature->detect(*data,info);
         mKeypts     = std::move(info._keys);
         mDescript   = std::move(info._des);
-        
+        Position::FrameHelper::initParams(data->_img.cols,data->_img.rows);
         mN = mKeypts.size();
+        FrameHelper::assignFeaturesToGrid(this);
         mbOutlier = U8Vector(mN,false);
         mIndex = index;
         mPose = Mat::eye(4,4,MATCVTYPE);

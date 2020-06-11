@@ -62,8 +62,10 @@ namespace Position
         static std::shared_ptr<IConfig> CreateDefaultInstance();
     };
 
-#define SETGLOBALCONFIG(X) Position::IConfig::SetInstance(X);
-#define GETGLOBALCONFIG()  Position::IConfig::Instance()
+
+#define SETGLOBALCONFIG(X)      Position::IConfig::SetInstance(X);
+#define GETGLOBALCONFIG()       Position::IConfig::Instance()
+#define CREATEGLOBALCONFIG()    SETGLOBALCONFIG(Position::IConfig::CreateDefaultInstance());
 
     //地图点
     class IMapPoint : public IBase

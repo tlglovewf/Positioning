@@ -238,7 +238,7 @@ namespace Position
                                                int minLevel,int maxLevel);
 
         //初始化配置参数
-        static void initParams(float width, float height,CameraParam *pcam, int index = 0);
+        static void initParams(float width, float height);
 
         //将特征点分grid
         static void assignFeaturesToGrid(IFrame *frame);

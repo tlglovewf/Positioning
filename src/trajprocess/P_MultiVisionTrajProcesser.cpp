@@ -23,9 +23,7 @@ namespace Position
 #endif
                         mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("ORBPoseSolver")); //"CVPoseSolver"));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
-                       
-                        Position::FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(),ImgWd,int),GETCFGVALUE(GETGLOBALCONFIG(),ImgHg,int),&mCam);
-                        
+                         
                         mFtSearchRadius = GETCFGVALUE(GETGLOBALCONFIG(),SearchRadius,int);
                         mpEst->setCamera(mCam);
                         mpOptimizer->setCamera(mCam);    
@@ -92,7 +90,6 @@ namespace Position
 
         data->_img = grayimg;
         mpCurrent = new PFrame(data,mpFeature,mpMap->frameCount());
-        Position::FrameHelper::assignFeaturesToGrid(mpCurrent);
         if(mStatus == eTrackNoImage)
         {
             mpLast          = mpCurrent;

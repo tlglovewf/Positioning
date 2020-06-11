@@ -13,7 +13,7 @@ namespace Position
 
     FeatureTask::FeatureTask(const std::string &fname, const Position::CameraParam &cam) : mpFeature(GETFEATURE(fname)), mCamera(cam)
     {
-        FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(), ImgWd, int), GETCFGVALUE(GETGLOBALCONFIG(), ImgHg, int), &mCamera);
+        
     }
     //! run one item
     IFrame *FeatureTask::run(Position::FrameData *item)
@@ -53,7 +53,7 @@ namespace Position
     IFrame *FeatureTask::runimpl(const std::string &path, Position::FrameData *item)
     {
         assert(item);
-
+        LOG_INFO_F("Feature Task: %s",item->_name.c_str());
         if (item->_img.empty())
         {
             Mat img = imread(path + item->_name, CV_LOAD_IMAGE_UNCHANGED);
@@ -68,9 +68,7 @@ namespace Position
             }
         }
 
-        IFrame *pf = new Position::PFrame(item, mpFeature, s_fmcount++);
-        FrameHelper::assignFeaturesToGrid(pf);
-        return pf;
+        return new Position::PFrame(item, mpFeature, s_fmcount++);
     }
 
     /*
@@ -83,6 +81,7 @@ namespace Position
     void MatcherTask::run(Item &item)
     {
         assert(item.queryItem && item.trainItem);
+        LOG_INFO_F("Match Task: %s - %s",item.queryItem->getData()->_name.c_str(),item.trainItem->getData()->_name.c_str());
         Position::MatchVector matches = mpFeatureMatcher->match(item.queryItem, item.trainItem, GETCFGVALUE(GETGLOBALCONFIG(), SearchRadius, int));
         item.matches.swap(matches);
     }
@@ -113,6 +112,7 @@ namespace Position
     //! 执行
     PoseResult PoseTask::run(const MatcherTask::Item &item)
     {
+        LOG_INFO_F("Pose Task: %s",item.trainItem->getData()->_name.c_str());
         InputPair input(item.queryItem->getKeys(),
                         item.trainItem->getKeys(),
                         item.matches);
@@ -133,6 +133,7 @@ namespace Position
     PoseResult PoseFlowTask::run(Item &item)
     {
         assert(item.queryF && item.trainF);
+        LOG_INFO("Begin Pose Estimate ....");
         std::unique_ptr<Position::IFrame> pf(mpFeature.run(item.queryF));
         std::unique_ptr<Position::IFrame> cr(mpFeature.run(item.trainF));
         MatcherTask::Item mi(pf.get(), cr.get());

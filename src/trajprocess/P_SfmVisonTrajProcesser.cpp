@@ -26,8 +26,6 @@ namespace Position
                         mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("CVPoseSolver"));
                         // mpEst            = std::shared_ptr<IPoseSolver>(Position::PFactory::CreatePoseSolver(Position::ePSOrb));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
-                       
-                        Position::FrameHelper::initParams(GETCFGVALUE(GETGLOBALCONFIG(),ImgWd,int),GETCFGVALUE(GETGLOBALCONFIG(),ImgHg,int),&mCam);
                         
                         mFtSearchRadius = GETCFGVALUE(GETGLOBALCONFIG(),SearchRadius,int);
                         mpEst->setCamera(mCam);
@@ -92,7 +90,6 @@ namespace Position
 
                 framedatas[i]->_img = grayimg;
                 mImageFrame[i] = new PFrame(framedatas[i],mpFeature,mpMap->frameCount());
-                Position::FrameHelper::assignFeaturesToGrid(mImageFrame[i]);
             }
 
             //两两匹配

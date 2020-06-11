@@ -22,6 +22,7 @@ namespace Position
     std::shared_ptr<IConfig> IConfig::CreateDefaultInstance()
     {
         g_globaleConfig = shared_ptr<IConfig>(new PConfig());
+        return g_globaleConfig;
     }
 
     //构造
