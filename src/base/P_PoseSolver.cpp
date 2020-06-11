@@ -908,7 +908,7 @@ namespace Position
             float RH = SH/(SH+SF);
 
             const float minParallax = 0.00;//最小的时差角度
-            const float minTriangle = 30; //最少需要多少个点 三角化
+            const float minTriangle = 50; //最少需要多少个点 三角化
 
 
             BolVector bTriangle;

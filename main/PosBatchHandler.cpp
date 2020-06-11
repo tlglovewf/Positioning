@@ -83,7 +83,7 @@ void PosBatchHandler::poseEstimate()
 
     LOG_INFO("PoseEstimate ...");
 
-    for(size_t i = 1; i < targets.size(); ++i)
+    for(size_t i = 0; i < targets.size(); ++i)
     {
        if(NULL == targets[i].batch)
        {

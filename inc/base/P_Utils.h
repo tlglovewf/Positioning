@@ -675,13 +675,13 @@ public:
 	 */
     inline void prompt(const std::string &str,bool isreset = false)
     {
-        std::cout << str.c_str() << end() << "s" << std::endl;
+        std::cout << str.c_str() << ":" << end() << "s" << std::endl;
         if(isreset)
             start();
     }
 
 protected:
-    time_t _t;
+    clock_t _t;
 };
 } // namespace Position
 

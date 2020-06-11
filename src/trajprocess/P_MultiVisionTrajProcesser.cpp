@@ -13,12 +13,12 @@ namespace Position
      //构造
     PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
                    {
-                        int featureCnt   = min(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
+                        int featureCnt   = max(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
                         mpFeature        = std::shared_ptr<IFeature>(new SiftFeatureExtend(featureCnt));
 
                         mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("Knn"));
 
-                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("CVPoseSolver"));  //"ORBPoseSolver"));
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("ORBPoseSolver"));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                          
                         mFtSearchRadius = GETCFGVALUE(GETGLOBALCONFIG(),SearchRadius,int);
@@ -126,31 +126,19 @@ namespace Position
         if(matches.size() < 8)
         {
             mpCurrentKeyFm->release();
-            mpCurrentKeyFm  = NULL;
-            mpCurrent       = NULL;
+            mpCurrentKeyFm  = mpLastKeyFm;
+            mpCurrent       = mpLast;
             LOG_WARNING_F("%s - %s Match Points Not Enough~~ %d",mpLastKeyFm->getData()->_name.c_str(),data->_name.c_str(), matches.size());
             return Mat();
         }
         else
         {
-
-#if SAVEMATCHIMG
-            Mat oimg;
-            cv::drawMatches(mpLastKeyFm->getData()->_img,IFRAME(mpLastKeyFm)->getKeys(),mpCurrentKeyFm->getData()->_img,IFRAME(mpCurrentKeyFm)->getKeys(),matches,oimg);
-            const std::string text = string("Match:") + std::to_string(matches.size());
-            putText(oimg, text, Point(150, 150), CV_FONT_HERSHEY_COMPLEX, 5, Scalar(0, 0, 255), 3, CV_AA);
-            const string outname = outpath +  "match_"  + mpCurrentKeyFm->getData()->_name;
-            PROMTD_V("Save to",outname.c_str());
-            imwrite(outname,oimg);
-#endif
-    
             InputPair input(mpLastKeyFm->getKeys(),mpCurrentKeyFm->getKeys(),matches);
 
             PoseResult posresult = mpEst->estimate(input);
 
             if(!posresult._match.empty())
             {//推算位姿
-                LOG_INFO_F("Match %d",posresult._match.size());
                 cv::Mat pose = cv::Mat::eye(4,4,MATCVTYPE);
                 posresult._R.copyTo(pose.rowRange(0,3).colRange(0,3));
                 posresult._t.copyTo(pose.rowRange(0,3).col(3));

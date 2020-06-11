@@ -43,7 +43,7 @@ namespace Position
     {
     public:
         //构造
-        ORBPoseSolver():mMaxIterations(400),mSigma(2.0),mSigma2(mSigma*mSigma),mpInput(NULL){}
+        ORBPoseSolver():mMaxIterations(400),mSigma(1.0),mSigma2(mSigma*mSigma),mpInput(NULL){}
 
          //! 估算
         virtual PoseResult estimate(const InputPair &input) ;
