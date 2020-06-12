@@ -11,6 +11,7 @@
 
 namespace Position
 {
+    //! Sift
     class SiftFeature : public Feature2D,public IFeature
     {
     public:

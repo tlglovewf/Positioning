@@ -11,7 +11,7 @@
 
 namespace Position
 {
-    //均匀分布特征  分块提取 + 四叉树过滤
+    //! 均匀分布特征  分块提取 + 四叉树过滤
     class UniformDistriFeature : public Position::IFeature
     {
 

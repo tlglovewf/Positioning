@@ -14,14 +14,14 @@ namespace Position
 #pragma region ORBFEATURE
 class ORBextractor;
 
-//orb feature detect
+//! orb feature detect
 class ORBFeature : public IFeature
 {
 public:
-    //计算特征点 以及 描述子
+    //! 计算特征点 以及 描述子
     virtual bool detect(const FrameData &frame,FeatureInfo &info);
 protected:
-    //初始化
+    //! 初始化
     virtual void init();
 
 protected:
