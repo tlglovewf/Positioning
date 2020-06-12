@@ -20,7 +20,7 @@ namespace Position
         return &g2o;
     }
 
-    void POptimizer::initSigma2()
+    void POptimizer::initInforSigma2()
     {
         int nlevels = GETCFGVALUE(GETGLOBALCONFIG(),PyramidLevel,int);
         float scale = GETCFGVALUE(GETGLOBALCONFIG(),ScaleFactor,float);

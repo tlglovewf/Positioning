@@ -7,11 +7,11 @@
 
 #ifndef __SIFTFEATURE_H_H_
 #define __SIFTFEATURE_H_H_
-#include "P_Feature.h"
+#include "P_Interface.h"
 
 namespace Position
 {
-    class SiftFeature : public Feature2D, public PFeature
+    class SiftFeature : public Feature2D,public IFeature
     {
     public:
         //! 构造函数

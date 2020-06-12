@@ -14,7 +14,7 @@ namespace Position
 
 #define DISABLEDC(X)   X();\
                       ~X();
-    // base class 
+    //! 基础类 
     class IBase
     {
     public:
@@ -26,17 +26,17 @@ namespace Position
         }
     };
 
-    //配置属性
+    //! 配置属性
     class IConfigParam : public IBase
     {
     public:
-        // 获取值
+        //! 获取值
         virtual void* data() = 0; 
     };
 #define CFGVALUE(v,type) (*reinterpret_cast<type*>(v->data()))
 #define GETCFGVALUE(v,str,type) CFGVALUE((*v)[#str],type)
 #define SETCFGVALUE(v,str,d)    (GETCFGVALUE(v,str,decltype(d))) = d
-    //! config interface
+    //! 配置接口
     class IConfig : public IBase
     {
     public:
@@ -67,7 +67,7 @@ namespace Position
 #define GETGLOBALCONFIG()       Position::IConfig::Instance()
 #define CREATEGLOBALCONFIG()    SETGLOBALCONFIG(Position::IConfig::CreateDefaultInstance());
 
-    //地图点
+    //! 地图点
     class IMapPoint : public IBase
     {
     public:
@@ -96,7 +96,7 @@ namespace Position
         //返回向量
         virtual cv::Mat normal() = 0;
     };
-    //位姿节点
+    //! 位姿节点
     class IPoseNode : public IBase
     {
     public:
@@ -108,133 +108,135 @@ namespace Position
         virtual u64 index()const = 0;
     };
 
-    //帧对象
+    //! 帧对象
     class IFrame : public IPoseNode
     {
     public:
-        //获取数据
+        //！获取数据
         virtual FrameData* getData()const = 0;
-        //获取关键点
+        //！获取关键点
         virtual const KeyPtVector& getKeys()const = 0;
-        //获取外点
+        //！获取外点
         virtual u8& outlier(int index)  = 0;
-        //获取特征点数量
+        //！获取特征点数量
         virtual int getKeySize()const = 0;
-        //获取描述子
+        //！获取描述子
         virtual const Mat& getDescript()const = 0;
-        //获取中心点
+        //! 获取中心点
         virtual const Mat& getCameraCenter()const = 0;
     };
 
-    //关键帧
+    //! 关键帧
     class IKeyFrame : public IPoseNode
     {
     public:
-        //强制类型转换
+        //! 强制类型转换
         virtual operator IFrame*()const = 0;
-        //帧目标
+        //! 帧目标
         virtual TargetVector& getTargets() = 0;
 
-         //获取关键点
+         //! 获取关键点
         virtual const KeyPtVector& getKeys()const = 0;
 
-        //获取旋转 平移分量
+        //! 获取旋转 平移分量
         virtual Mat getRotation() = 0;
         virtual Mat getTranslation() = 0;
-        //获取光心位置
+        //! 获取光心位置
         virtual const Mat& getCameraCenter() = 0;
-        //获取数据
+        //! 获取数据
         virtual FrameData* getData()const = 0;
-        //是否为坏点
+        //! 是否为坏点
         virtual bool isBad() = 0;
-        //设为坏帧
+        //! 设为坏帧
         virtual void setBadFlag() = 0;
-           //添加地图点
+        //! 添加地图点
         virtual void addMapPoint(IMapPoint *pt, int index) = 0;
-        //是否已有对应地图点
+        //! 是否已有对应地图点
         virtual bool hasMapPoint(int index) = 0;
-        //移除地图点
+        //! 移除地图点
         virtual void rmMapPoint(IMapPoint *pt) = 0;
         virtual void rmMapPoint(int index) = 0;
-         //获取地图点
+        //! 获取地图点
         virtual const MapPtVector& getWorldPoints() = 0;
     };
     #define IFRAME(K) (static_cast<Position::IFrame*>(*(K)))
-    //地图
+    //! 地图
     class IMap : public IBase
     {
     public:
-        //sort
+        //！sort
         static void SortFrames(KeyFrameVector &frames); 
         static IKeyFrame* CreateKeyFrame(const std::shared_ptr<IMap> &pmap, FrameData *data, const Mat &pose);
 
-        //创建关键帧
+        //！创建关键帧
         virtual IKeyFrame* createKeyFrame(IFrame *frame) = 0;
-        //创建地图点
+        //！创建地图点
         virtual IMapPoint* createMapPoint(const cv::Mat &pose)     = 0;
         virtual IMapPoint* createMapPoint(const cv::Point3f &pose) = 0;
 
-        //加入/移除关键帧
+        //！加入/移除关键帧
         virtual void addKeyFrame(IKeyFrame *pKF) = 0;
         virtual void rmKeyFrame(IKeyFrame *pKF)  = 0;
 
-        //加入/移除地图点
+        //！加入/移除地图点
         virtual void addMapPoint(IMapPoint *pMp) = 0;
         virtual void rmMapPoint(IMapPoint *pMp)  = 0;
 
-        //清空
+        //！清空
         virtual void clear() = 0;
 
-        //获取所有地图点
+        //！获取所有地图点
         virtual MapPtVector getAllMapPts() = 0;
 
-        //获取所有帧
+        //！获取所有帧
         virtual KeyFrameVector getAllFrames() = 0;
 
-        //设最近点关联地图点
+        //！设最近点关联地图点
         virtual void setReferenceMapPoints(const MapPtVector &vpMPs) = 0;
-        //获取最近帧关联点
+
+        //！获取最近帧关联点
         virtual MapPtVector getReferenceMapPoints() = 0;
-        //最大帧号
+
+        //！最大帧号
         virtual u64 getMaxKFid() = 0;
 
-        //获取帧，点计数
+        //！获取帧，点计数
         virtual u64 frameCount() = 0;
         virtual u64 mapptCount() = 0;
 
-        //获取点、帧数量
+        //！获取点、帧数量
         virtual u64 mapPointsInMap() = 0;
         virtual u64 keyFrameInMap() = 0;
 
-        //用于多线程 地图更新锁
+        //！用于多线程 地图更新锁
         virtual std::mutex& mapUpdateMutex() = 0;
 
-        //当前帧
+        //！当前帧
         virtual IKeyFrame* currentKeyFrame() = 0;
     };
 
     
-    // data interface
+    //！帧数据接口
     class IFrameData : public IBase
     {
     public:
-        //预处理数据        
+        //！预处理数据        
         virtual bool loadDatas() = 0;
 
-        //第一个元素
+        //！第一个元素
         virtual FrameDataPtrVIter begin() = 0;
 
-        //最后一个元素
+        //！最后一个元素
         virtual FrameDataPtrVIter end() = 0;
 
-        //数据总量
+        //！数据总量
         virtual size_t size()const = 0;
 
-        //根据图像名取时间(天秒)
+        //！根据图像名取时间(天秒)
         virtual double getTimeFromName(const std::string &name) = 0;
     };
 
-    //database interface
+    //！数据库接口类
     class IDatabase : public IBase
     {
     public:
@@ -248,7 +250,7 @@ namespace Position
         virtual void releaseDatas(char **&result) = 0;
     };
 
-    // serialization interface
+    //！持久化接口
     class ISerialization : public IBase
     {
     public:
@@ -261,114 +263,115 @@ namespace Position
     };
 
 
-    //帧批组生成器
+    //！帧批组生成器
     class IBatchesGenerator : public IBase
     {
     public:
-        //生成批处理对象
+        //！生成批处理对象
         virtual PrjBatchVector generate(const std::shared_ptr<IFrameData> &pdata,TrackerItemVector &trackers) = 0;
     };
 
 
-      //project batch file
+    //！工程批列表
     class IProjList : public IBase
     {
     public:
-        //设置生成器
+        //！设置生成器
         virtual void setBatcherGenerator(const std::shared_ptr<IBatchesGenerator> &pGtor) = 0;
 
-        //加载项目列表
+        //！加载项目列表
         virtual void loadPrjList(const std::string &path) = 0;
 
-        //获取项目列表
+        //！获取项目列表
         virtual PrjBatchVector& getPrjList() = 0;
 
-        //目标信息
+        //！目标信息
         virtual TrackerItemVector& trackInfos() = 0;
 
-        //从文件加载
+        //！从文件加载
         virtual void load(const std::string &path) = 0;
 
-        //存储到文件
+        //！存储到文件
         virtual void save(const std::string &path) = 0;
     };
 
-       //帧目标定位器
+    //！帧目标定位器
     class ITargetPositioner : public IBase
     {
     public:
-        //定位 frame序列 必须是排序好的
+        //！定位 frame序列 必须是排序好的
         virtual bool position(KeyFrameVector &frame) = 0;       
     };
 
-    //视觉定位器
+    //！视觉定位器
     class IVisualPositioner : public IBase
     {
     public:
-        //定位目标
+        //！定位目标
         virtual bool position(TrackerItem &item) = 0;
     
     protected:
-        //选择用于量测的帧
+        //！选择用于量测的帧
         virtual void selectFrame(const TrackerItem &item,int &idx1, int &idex2) = 0;
     };
     
-    // visual interface
+    //！可视化接口
     class IViewer : public IBase
     {
     public:
-        //设置显示地图
+        //！设置显示地图
         virtual void setMap(const std::shared_ptr<IMap> &pMap) = 0;
-        //初始化
+        //！初始化
         virtual void init() = 0;
-        //绘制一次
+        //！绘制一次
         virtual bool renderOnce() = 0;
-        //绘制循环
+        //！绘制循环
         virtual void renderLoop() = 0;
-        //绘制状态
+        //！绘制状态
         virtual bool isRender()const = 0;
     };
     
-    //检查
+    //！检查
     template<typename TYPE>
     class IChecker : public IBase
     {
     public:
-        //检查
+        //！检查
         virtual bool check(const TYPE &item) = 0;
     };
 
-    //过滤器
+    //！过滤器
     template<typename TYPE>
     class IFilter : public IBase
     {
     public:
-        //过滤
+        //！过滤
         virtual void doFilter(TYPE &t) = 0;
     };
 
-    //特征接口
+    //！特征接口
     class IFeature : public IBase
     {
     public:
-        //计算特征点
+        //! 计算特征点
         virtual bool detect(const FrameData &frame,FeatureInfo &info) = 0;
     };
 
-    //特征跟踪接口
+    //！特征跟踪接口
     class IFeatureMatcher : public IBase
     {
     public:
         
-        //匹配  返回匹配对
-        //@param preframe   前帧
-        //@param curframe   后帧
-        //@param windowsize 搜索过滤范围(像素)
+        /*匹配  返回匹配对
+         *@param preframe   前帧
+         *@param curframe   后帧
+         *@param windowsize 搜索过滤范围(像素)
+         */
         virtual MatchVector match(IFrame *preframe, IFrame *curframe, int windowsize) = 0;
         virtual MatchVector match(const FeatureInfo &pre,const FeatureInfo &cur, int windowsize) = 0;
     };
 
-    //跟踪状态
+    //！跟踪状态
     enum eTrackStatus
     {   
         eTrackNoImage = 0,
@@ -377,7 +380,7 @@ namespace Position
         eTrackLost
     };
 
-    //帧跟踪接口
+    //！帧跟踪接口
     class ITrajProcesser : public IBase
     {
     public:
@@ -403,25 +406,25 @@ namespace Position
         virtual IKeyFrame* last()const = 0;
     };
 
-     //优化基类
+     //！优化基类
     class IOptimizer : public IBase
     {
     public:
-        //单例
+        //！单例
         static IOptimizer* getSingleton();
         
-        //单张位姿优化
+        //！单张位姿优化
         virtual int frameOptimization(IKeyFrame *pFrame) = 0;
         
-        //ba 优化
+        //！ba 优化
         virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts,int nIterations = 5,
                                         bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true) = 0;
 
-        //设置相机参数
+        //！设置相机参数
         virtual void setCamera(const CameraParam &mCam) = 0;
     };
 
-    //块匹配接口
+    //！块匹配接口
     class IBlockMatcher : public IBase
     {
     public:
@@ -435,7 +438,7 @@ namespace Position
     };
 
    
-    //位姿推算
+    //！位姿推算
     class IPoseSolver : public IBase
     {
     public:
@@ -446,20 +449,20 @@ namespace Position
     };
 
 
-    //gps融合
+    //！gps融合
     class IGpsFusion : public IBase
     {
     public:
-        //融合
+        //！融合
         virtual bool fuse(const std::shared_ptr<IMap> &pmap, const CameraParam &cam) = 0;
     };
 
 
-    //!名称节点
+    //! 名称节点
     class INameNode : public IBase
     {
     public:
-        //! 获取名称
+        //！获取名称
         virtual string name()const = 0;
     };
 

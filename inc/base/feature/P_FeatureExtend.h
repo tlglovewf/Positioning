@@ -7,12 +7,12 @@
 #ifndef _FEATUREEXTEND_H_H
 #define _FEATUREEXTEND_H_H
 
-#include "P_Feature.h"
+#include "P_Interface.h"
 
 namespace Position
 {
     //均匀分布特征  分块提取 + 四叉树过滤
-    class UniformDistriFeature : public Position::PFeature
+    class UniformDistriFeature : public Position::IFeature
     {
 
     public:

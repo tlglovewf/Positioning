@@ -6,7 +6,7 @@
  */
 #ifndef __PORBFEATURE_H_H_
 #define __PORBFEATURE_H_H_
-#include "P_Feature.h"
+#include "P_Interface.h"
 
 namespace Position
 {
@@ -15,7 +15,7 @@ namespace Position
 class ORBextractor;
 
 //orb feature detect
-class ORBFeature : public PFeature
+class ORBFeature : public IFeature
 {
 public:
     //计算特征点 以及 描述子
