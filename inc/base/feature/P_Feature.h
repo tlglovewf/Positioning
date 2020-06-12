@@ -20,13 +20,6 @@ namespace Position
             assert(NULL);
             return false;
         }
-
-         //返回sigma参数(主要用于优化 信息矩阵)
-        virtual const FloatVector& getSigma2() const 
-        {
-            static FloatVector fvt;
-            return fvt;
-        }
     };
 }
 

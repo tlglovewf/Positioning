@@ -22,11 +22,6 @@ namespace Position
         //计算特征点
         virtual bool detect(const FrameData &frame, FeatureInfo &info);
 
-        //返回sigma参数(主要用于优化 信息矩阵)
-        virtual const FloatVector &getSigma2() const
-        {
-            return mSigmaVector;
-        }
     protected:
         void detect(const Mat &img, KeyPtVector &keypts);
 
@@ -41,7 +36,6 @@ namespace Position
 
     protected:
         cv::Ptr<cv::Feature2D> mFeature;
-        Position::FloatVector mSigmaVector;
         int mMaxFeatures;
     };
     //! sift 扩展

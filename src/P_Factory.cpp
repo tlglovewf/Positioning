@@ -15,6 +15,7 @@
 
 #include "P_PangolinViewer.h"
 #include "P_UniformVTrajProcesser.h"
+#include "P_UniformSiftTrajProcesser.h"
 #include "P_MultiVisionTrajProcesser.h"
 #include "P_SfmVisonTrajProcesser.h"
 
@@ -64,6 +65,7 @@ namespace Position
     ITrajProcesserFactory::ITrajProcesserFactory()
     {
         INSERT_FACTORY_ITEM(PUniformVTrajProcesser   ,ITrajProcesser)
+        INSERT_FACTORY_ITEM(PUniformSiftTrajProcesser,ITrajProcesser)
         INSERT_FACTORY_ITEM(PMultiVisionTrajProcesser,ITrajProcesser)
         INSERT_FACTORY_ITEM(PSfmVisonTrajProcesser   ,ITrajProcesser)
     }

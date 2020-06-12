@@ -224,7 +224,7 @@ namespace Position
                         mPointCloud.emplace_back(p);
                     }
                     
-                    mpOptimizer->frameOptimization(mpCurrentKeyFm,mpFeature->getSigma2());
+                    mpOptimizer->frameOptimization(mpCurrentKeyFm);
                     break;
                 }
                 else
@@ -497,7 +497,7 @@ namespace Position
                 Position::MapPtVector    mappts(mpMap->getAllMapPts());
                 bool pBstop = false;
                 // LOG_DEBUG_F("Begin Global opt:%d",keyframes.size());
-                mpOptimizer->bundleAdjustment(keyframes,mappts,mpFeature->getSigma2(),5, &pBstop);
+                mpOptimizer->bundleAdjustment(keyframes,mappts,5, &pBstop);
                 // LOG_DEBUG("Global opt Finished.");
 
                 

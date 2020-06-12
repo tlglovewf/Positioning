@@ -14,17 +14,6 @@ namespace Position
 
     UniformDistriFeature::UniformDistriFeature(int nFeatures) : mMaxFeatures(nFeatures)
     {
-        Position::FloatVector mvScaleFactor(4, 0);
-        Position::FloatVector mvLevelSigma2(4, 0);
-        mSigmaVector.resize(4);
-        mvLevelSigma2[0] = 1.0f;
-        mSigmaVector[0] = 1.0f;
-
-        for (int i = 1; i < 4; i++)
-        {
-            mvScaleFactor[i] = mvScaleFactor[i - 1] * 1.4;
-            mvLevelSigma2[i] = 1.0 / (mvScaleFactor[i] * mvScaleFactor[i]);
-        }
     }
 
     void UniformDistriFeature::detect(const Mat &img, KeyPtVector &keypts)

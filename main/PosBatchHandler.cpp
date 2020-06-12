@@ -104,13 +104,18 @@ void PosBatchHandler::poseEstimate()
             s_Viewer->renderLoop();
 #endif
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();
-               cout << "FmSize:" << frames.size() << " " << targets[i].batch->_fmsdata.size() << endl;
-               assert(frames.size() == targets[i].batch->_fmsdata.size());
-               for(size_t m = 0; m < frames.size(); ++m)
+               if(frames.size() == targets[i].batch->_fmsdata.size())
                {
-                   assert(targets[i].batch->_fmsdata[m]->_name == frames[m]->getData()->_name);
-                   targets[i].batch->_fmsdata[m] = frames[m]->getData();
-                   targets[i].batch->_poses.emplace_back(frames[m]->getPose());
+                   for(size_t m = 0; m < frames.size(); ++m)
+                   {
+                       assert(targets[i].batch->_fmsdata[m]->_name == frames[m]->getData()->_name);
+                       targets[i].batch->_fmsdata[m] = frames[m]->getData();
+                       targets[i].batch->_poses.emplace_back(frames[m]->getPose());
+                   }
+               }
+               else
+               {
+                   
                }
            }
        }

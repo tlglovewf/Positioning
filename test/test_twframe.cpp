@@ -714,7 +714,7 @@ TESTBEGIN()
         }
         // cout << "before op " << good_matches.size() <<  endl;
         // cout << curKeyFrame->getPose() << endl;
-        pOptimizer->frameOptimization(curKeyFrame,pFeature->getSigma2());
+        pOptimizer->frameOptimization(curKeyFrame);
         // cout << "after op " << endl;
         // cout << curKeyFrame->getPose() << endl;
 

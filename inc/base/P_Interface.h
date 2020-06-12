@@ -353,9 +353,6 @@ namespace Position
     public:
         //计算特征点
         virtual bool detect(const FrameData &frame,FeatureInfo &info) = 0;
-        //获取名称
-        //返回sigma参数(主要用于优化 信息矩阵)
-        virtual const FloatVector& getSigma2() const = 0;
     };
 
     //特征跟踪接口
@@ -414,17 +411,14 @@ namespace Position
         static IOptimizer* getSingleton();
         
         //单张位姿优化
-        virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2) = 0;
+        virtual int frameOptimization(IKeyFrame *pFrame) = 0;
         
         //ba 优化
-        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,
+        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts,int nIterations = 5,
                                         bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true) = 0;
 
         //设置相机参数
         virtual void setCamera(const CameraParam &mCam) = 0;
-
-        //设置特征提取类
-        virtual void setFeature(const std::shared_ptr<IFeature> &feature) = 0;
     };
 
     //块匹配接口

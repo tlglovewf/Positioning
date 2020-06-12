@@ -1,4 +1,4 @@
-#include "P_MultiVisionTrajProcesser.h"
+#include "P_UniformSiftTrajProcesser.h"
 #include "P_Factory.h"
 #include "P_IOHelper.h"
 #include "P_Frame.h"
@@ -11,7 +11,7 @@
 namespace Position
 {
      //构造
-    PMultiVisionTrajProcesser::PMultiVisionTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera())
+    PUniformSiftTrajProcesser::PUniformSiftTrajProcesser():mCam(GETGLOBALCONFIG()->getCamera()),mFeatureTask("SiftEx",mCam),mMatcherTask("Knn"),mPoseTask("ORBPoseSolver",mCam)
                    {
                         int featureCnt   = max(GETCFGVALUE(GETGLOBALCONFIG(),FeatureCnt,int),500);
                         mpFeature        = std::shared_ptr<IFeature>(new SiftFeatureExtend(featureCnt));
@@ -27,15 +27,15 @@ namespace Position
                    }
 
     //创建新关键帧
-    IKeyFrame* PMultiVisionTrajProcesser::createNewKeyFrame()
+    IKeyFrame* PUniformSiftTrajProcesser::createNewKeyFrame()
     {
         assert(mpCurrent);
         return mpMap->createKeyFrame(mpCurrent);
     }
 
-    bool PMultiVisionTrajProcesser::process(const FrameDataPtrVector &framedatas)
+    bool PUniformSiftTrajProcesser::process(const FrameDataPtrVector &framedatas)
     {
-        LOG_INFO("Use MultiVision Process ...");
+        LOG_INFO("Use UniformSift Process ...");
         if(framedatas.size() < 2)
         {
             return false;
@@ -67,7 +67,7 @@ namespace Position
     }
 
     //跟踪
-    cv::Mat PMultiVisionTrajProcesser::track(FrameData *data)
+    cv::Mat PUniformSiftTrajProcesser::track(FrameData *data)
     {
         LOG_INFO_F("Process:%s",data->_name.c_str());
         Mat grayimg ;

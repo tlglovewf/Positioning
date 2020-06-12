@@ -20,8 +20,6 @@ class ORBFeature : public PFeature
 public:
     //计算特征点 以及 描述子
     virtual bool detect(const FrameData &frame,FeatureInfo &info);
-    //返回sigma参数(主要用于优化 信息矩阵)
-    virtual const FloatVector &getSigma2() const;
 protected:
     //初始化
     virtual void init();

@@ -19,8 +19,25 @@ namespace Position
         static G2oOptimizer g2o;
         return &g2o;
     }
+
+    void POptimizer::initSigma2()
+    {
+        int nlevels = GETCFGVALUE(GETGLOBALCONFIG(),PyramidLevel,int);
+        float scale = GETCFGVALUE(GETGLOBALCONFIG(),ScaleFactor,float);
+
+        mSigma2.resize(nlevels);
+        float  lastfactor = 1.0f;
+        mSigma2[0]=1.0f;
+        for(int i=1; i<nlevels; i++)
+        {
+            float curfactor = lastfactor * scale;
+            mSigma2[i]= 1.0f / (curfactor*curfactor);
+            lastfactor = curfactor;
+        }
+    }
+
     //单张位姿优化
-    int G2oOptimizer::frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2)
+    int G2oOptimizer::frameOptimization(IKeyFrame *pFrame)
     {
         assert(pFrame && !pFrame->getWorldPoints().empty());
         g2o::SparseOptimizer optimizer;
@@ -69,9 +86,9 @@ namespace Position
                     e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(0)));
                     e->setMeasurement(obs);
                     float invSigma2 = 1.0;
-                    if(kp.octave < sigma2.size())
+                    if(kp.octave < mSigma2.size())
                     {
-                        invSigma2 = sigma2[kp.octave];
+                        invSigma2 = mSigma2[kp.octave];
                     }
                     
                     e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);
@@ -158,7 +175,7 @@ namespace Position
     }
 
     //ba 优化
-    void G2oOptimizer::bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations/* =5 */,
+    void G2oOptimizer::bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts,int nIterations/* =5 */,
                                         bool *pbStopFlag /*= NULL*/,int nIndex /*= 0*/,bool bRobust /* = true */)
     {
         BolVector vbNotIncludedMp;
@@ -248,9 +265,9 @@ namespace Position
                 e->setMeasurement(obs);
 
                 float invSigma2 = 1.0;
-                if(kp.octave < sigma2.size())
+                if(kp.octave < mSigma2.size())
                 {
-                    invSigma2 = sigma2[kp.octave];
+                    invSigma2 = mSigma2[kp.octave];
                 }
                 
                 e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);

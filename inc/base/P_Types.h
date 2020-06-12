@@ -234,6 +234,15 @@ struct BatchItem
         _fmsdata.reserve(n);
         _poses.reserve(n);
     }
+    FrameData* get(const std::string &name)
+    {
+       auto it = std::find_if(_fmsdata.begin(),_fmsdata.end(),[&name](FrameData *pd)
+        {
+            return pd->_name == name;
+        });
+        assert(it != _fmsdata.end());
+        return *it;
+    }
 };
 //! 图片序号组
 struct ImagePair {

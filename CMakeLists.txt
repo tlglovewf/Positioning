@@ -19,7 +19,7 @@ endif()
 # osx settting 
 if(CMAKE_HOST_APPLE)
    set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Wl,-rpath,")
-   set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG_SEP ":")
+   set(CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG_SEP ":") 
    cmake_policy(SET CMP0042 NEW)
 endif()
 

@@ -16,6 +16,10 @@ namespace Position
     class POptimizer : public IOptimizer
     {
     public:
+        POptimizer()
+        {
+            initInforSigma2();
+        }
         //单张位姿优化
         virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2) 
         {
@@ -24,7 +28,7 @@ namespace Position
         }
         
         //ba 优化
-        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,
+        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts,int nIterations = 5,
                                         bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true) 
                                         {
                                             assert(NULL);
@@ -40,17 +44,16 @@ namespace Position
             mCx = mCam.K.at<MATTYPE>(0,2);
             mCy = mCam.K.at<MATTYPE>(1,2);
         }
-        //设置特征提取类
-        virtual void setFeature(const std::shared_ptr<IFeature> &feature)
-        {
-            mpFeature = feature;
-        }
+
+    protected:
+        //! 根据金字塔层级和缩放比 计算层级对应的sigma参数 主要用于优化时的信息矩阵比例
+        void initInforSigma2();
     protected:
         float mFx;
         float mFy;
         float mCx;
         float mCy;
-        std::shared_ptr<IFeature> mpFeature;
+        FloatVector               mSigma2;
     };
 
     //g2o 优化类
@@ -58,10 +61,10 @@ namespace Position
     {
     public:
         //单张位姿优化
-        virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2);
+        virtual int frameOptimization(IKeyFrame *pFrame);
 
         //ba 优化
-        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts, const FloatVector &sigma2,int nIterations = 5,
+        virtual void bundleAdjustment(const KeyFrameVector &keyframes,const MapPtVector &mappts,int nIterations = 5,
                                         bool *pbStopFlag = NULL,int nIndex = 0,bool bRobust = true);
     };
 
