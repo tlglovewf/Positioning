@@ -1,6 +1,8 @@
 #include "GpsSim3Optimizer.h"
 #include "P_Utils.h"
 #include "P_IOHelper.h"
+#include "P_Converter.h"
+
 //使用sim3对in_pose进行变换得到out_pose
 static void transformPoseUseSim3(Eigen::Matrix4d& sim3, Eigen::Matrix4d& in_pose,  Eigen::Matrix4d& out_pose)
 {
@@ -127,7 +129,7 @@ void GpsVoComputeSim3(std::vector<Eigen::Vector3d>& P1, std::vector<Eigen::Vecto
     }
 }
 
-void GpsSim3Optimizer::beginOpt()
+void GpsSim3Optimizer::optimize()
 {
     //1.计算sim3 2.优化
     ComputeSim3();
@@ -181,23 +183,32 @@ void GpsSim3Optimizer::getGlobalGPS(double time,double& latitude, double& longit
 
 }
 //获取相对位姿，从当前帧到第一帧
-Eigen::Matrix4d GpsSim3Optimizer::getGlobalPos(double time)
+// Eigen::Matrix4d GpsSim3Optimizer::getReleativePose(double time)
+// {
+//     if(mGlobalMap.frames[0]->time_stamp - time < 0.001 && mGlobalMap.frames[0]->time_stamp - time > -0.001)//第一帧
+//     {
+//         return Eigen::Matrix4d::Identity();
+//     }
+//     for(int i = 0 ;i < mGlobalMap.frames.size(); i++)
+//     {
+        
+//         if(mGlobalMap.frames[i]->time_stamp - time < 0.001 && mGlobalMap.frames[i]->time_stamp - time > -0.001)
+//         {
+//             Eigen::Matrix4d Tivw = mGlobalMap.frames[i]->getPose().inverse() * mGlobalMap.frames[0]->getPose();
+//             Eigen::Matrix4d Tvwi = Tivw.inverse();
+//             return Tvwi;
+//         }
+        
+//     }
+// }
+
+Mat GpsSim3Optimizer::getReleativePose(int index)
 {
-    if(mGlobalMap.frames[0]->time_stamp - time < 0.001 && mGlobalMap.frames[0]->time_stamp - time > -0.001)//第一帧
-    {
-        return Eigen::Matrix4d::Identity();
-    }
-    for(int i = 0 ;i < mGlobalMap.frames.size(); i++)
-    {
-        
-        if(mGlobalMap.frames[i]->time_stamp - time < 0.001 && mGlobalMap.frames[i]->time_stamp - time > -0.001)
-        {
-            Eigen::Matrix4d Tivw = mGlobalMap.frames[i]->getPose().inverse() * mGlobalMap.frames[0]->getPose();
-            Eigen::Matrix4d Tvwi = Tivw.inverse();
-            return Tvwi;
-        }
-        
-    }
+    if(index >= mGlobalMap.frames.size())
+        return Mat();
+    
+    Eigen::Matrix4d Tivw = mGlobalMap.frames[index]->getPose().inverse() * mGlobalMap.frames[0]->getPose();
+    return Position::PConverter::toCvMat(Tivw);
 }
 
 void GpsSim3Optimizer::ComputeSim3()

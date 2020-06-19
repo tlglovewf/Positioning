@@ -23,11 +23,43 @@ struct Datum
 };
 extern Datum WGS84Datum;
 
-//坐标转换类(静态类)
+//! 坐标转换类(静态类)
 class PCoorTrans
 {
 public:
-    //大地坐标->地心地固空间直角坐标系
+
+    //! 围绕x轴旋转
+    static inline Mat RotateByX(double degree)
+    {
+        double sin = sinf(D2R(degree));
+        double cos = cosf(D2R(degree));
+
+        return (Mat_<MATTYPE>(3,3) << 1, 0   , 0   ,
+                                      0, cos ,-sin ,
+                                      0, sin , cos );
+    }
+    //! 围绕y轴旋转
+    static inline Mat RotateByY(double degree)
+    {
+        double sin = sinf(D2R(degree));
+        double cos = cosf(D2R(degree));
+
+        return (Mat_<MATTYPE>(3,3) << cos , 0 , sin ,
+                                      0   , 1 , 0   ,
+                                      -sin, 0 , cos );
+    }
+    //! 围绕z轴旋转
+    static inline Mat RotateByZ(double degree)
+    {
+        double sin = sinf(D2R(degree));
+        double cos = cosf(D2R(degree));
+
+        return (Mat_<MATTYPE>(3,3) << cos, -sin, 0 ,
+                                      sin, cos , 0 ,
+                                      0  , 0   , 1 );
+    }
+
+    //! 大地坐标->地心地固空间直角坐标系
     static XYZCoordinate BLH_to_XYZ(const BLHCoordinate &blh, Datum dt = WGS84Datum)
     {
 #if 0
@@ -58,7 +90,7 @@ public:
 #endif
         return {WGS84_X, WGS84_Y, WGS84_Z};
     }
-    //地心地固坐标系->大地坐标系
+    //! 地心地固坐标系->大地坐标系
     static BLHCoordinate XYZ_to_BLH(const XYZCoordinate &pt, Datum dt = WGS84Datum)
     {
 #if 0
@@ -106,8 +138,8 @@ public:
         return {bb, l, h};
     }
 
-    //计算 xyz坐标系转enu坐标系 旋转矩阵
-    static cv::Mat XYZ_to_ENU(const double &B, const double &L)
+    //! 计算 xyz坐标系转enu坐标系 旋转矩阵
+    static cv::Mat XYZ_to_ENU( double B,  double L)
     {
         double r_L = D2R(L);
         double r_B = D2R(B);
@@ -118,34 +150,25 @@ public:
         return XYZ2ENU;
     }
 
-    //计算 imu坐标系 转enu坐标系
-    static cv::Mat IMU_to_ENU(const double &yaw, const double &pitch, const double &roll)
+    //! 计算 imu坐标系 转enu坐标系
+    static cv::Mat IMU_to_ENU( double yaw,  double pitch,  double roll)
     {
-
-        double r_pitch = D2R(pitch);
-        double r_roll = D2R(roll);
-        double r_yaw = D2R(yaw);
-
         //绕y轴
-        cv::Mat rollR = (cv::Mat_<double>(3, 3)
-                             << cos(r_roll),
-                         0, sin(r_roll),
-                         0, 1, 0,
-                         -sin(r_roll), 0, cos(r_roll));
-
+        cv::Mat rollR = RotateByY(roll);
         //绕x轴
-        cv::Mat pitchR = (cv::Mat_<double>(3, 3) << 1, 0, 0,
-                          0, cos(r_pitch), -sin(r_pitch),
-                          0, sin(r_pitch), cos(r_pitch));
-
+        cv::Mat pitchR = RotateByX(pitch);
         //绕z轴
-        cv::Mat yawR = (cv::Mat_<double>(3, 3) << cos(r_yaw), -sin(r_yaw), 0,
-                        sin(r_yaw), cos(r_yaw), 0,
-                        0, 0, 1);
+        cv::Mat yawR =  RotateByZ(yaw);
         return yawR * pitchR * rollR;
     }
+    
+    //! 计算enu坐标系到imu坐标系
+    static cv::Mat ENU_to_IMU(double yaw, double pitch, double roll)
+    {
+        return IMU_to_ENU(yaw,pitch,roll).inv();
+    }
 
-    //经纬度转高斯投影坐标（B 维度  L 精度   H 高程)
+    //! 经纬度转高斯投影坐标（B 维度  L 精度   H 高程)
     static Point3d BLH_to_GaussPrj(const BLHCoordinate &BLH, Datum datum = WGS84Datum) //,double lon)
     {
         int ProjNo, ZoneWide; ////带宽
@@ -177,7 +200,7 @@ public:
         return Point3d(yval, xval, BLH.alt);
     }
 
-    //高斯投影由大地平面坐标(Unit:Metres)反算经纬度(Unit:DD)
+    //! 高斯投影由大地平面坐标(Unit:Metres)反算经纬度(Unit:DD)
     static BLHCoordinate GaussPrj_to_BLH(Point3d XYZ, double lon, Datum datum = WGS84Datum)
     {
         int ProjNo, ZoneWide; ////带宽
@@ -213,7 +236,7 @@ public:
         b = R2D(b);
         return BLHCoordinate{b, l, XYZ.z};
     }
-    //经纬度转mercator投影
+    //! 经纬度转mercator投影
     static inline Point3d BLH_to_Mercator(const BLHCoordinate &blh)
     {
         Point3d mercator;
@@ -226,7 +249,7 @@ public:
 
         return mercator;
     }
-    //mercator投影转经纬度
+    //! mercator投影转经纬度
     static inline BLHCoordinate Mercator_to_BLH(const Point3d &mercator)
     {
         BLHCoordinate blh;
@@ -238,6 +261,75 @@ public:
         blh.lat = R2D(2 * (atan(exp(mercator.y / WGS84Datum.r_max))) - 0.5 * PI64);
 
         return blh;
+    }
+
+
+    // Checks if a matrix is a valid rotation matrix.
+    static bool inline IsRotationMatrix(const Mat &R)
+    {
+        Mat Rt;
+        transpose(R, Rt);
+        Mat shouldBeIdentity = Rt * R;
+        Mat I = Mat::eye(3,3, shouldBeIdentity.type());
+        return  norm(I, shouldBeIdentity) < 1e-6;
+    }
+
+    // Calculates rotation matrix to euler angles
+    // The result is the same as MATLAB except the order
+    // of the euler angles ( x and z are swapped ).
+    static Vec3f RotationMatrixToEulerAngles(const Mat &R)
+    {
+    
+        assert(IsRotationMatrix(R));
+        
+        float sy = sqrt(R.at<MATTYPE>(0,0) * R.at<MATTYPE>(0,0) +  R.at<MATTYPE>(1,0) * R.at<MATTYPE>(1,0) );
+    
+        bool singular = sy < 1e-6; // If
+    
+        float x, y, z;
+        if (!singular)
+        {
+            x = atan2(R.at<MATTYPE>(2,1) , R.at<MATTYPE>(2,2));
+            y = atan2(-R.at<MATTYPE>(2,0), sy);
+            z = atan2(R.at<MATTYPE>(1,0), R.at<MATTYPE>(0,0));
+        }
+        else
+        {
+            x = atan2(-R.at<MATTYPE>(1,2), R.at<MATTYPE>(1,1));
+            y = atan2(-R.at<MATTYPE>(2,0), sy);
+            z = 0;
+        }
+        return Vec3f(x, y, z);
+    }
+
+    // Calculates rotation matrix given euler angles.
+    static Mat EulerAnglesToRotationMatrix(const Vec3f &theta)
+    {
+        // Calculate rotation about x axis
+        Mat R_x = (Mat_<MATTYPE>(3,3) <<
+                1,       0,              0,
+                0,       cos(theta[0]),   -sin(theta[0]),
+                0,       sin(theta[0]),   cos(theta[0])
+                );
+        
+        // Calculate rotation about y axis
+        Mat R_y = (Mat_<MATTYPE>(3,3) <<
+                cos(theta[1]),    0,      sin(theta[1]),
+                0,               1,      0,
+                -sin(theta[1]),   0,      cos(theta[1])
+                );
+        
+        // Calculate rotation about z axis
+        Mat R_z = (Mat_<MATTYPE>(3,3) <<
+                cos(theta[2]),    -sin(theta[2]),      0,
+                sin(theta[2]),    cos(theta[2]),       0,
+                0,               0,                  1);
+        
+        
+        // Combined rotation matrix
+        Mat R = R_z * R_y * R_x;
+        
+        return R;
     }
 };
 

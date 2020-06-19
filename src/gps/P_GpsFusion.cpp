@@ -8,7 +8,7 @@
 namespace  Position
 {   
 
-
+#define TEST_RESULT 0
     //gps fuse
     bool  GpsFunsion::fuse(const std::shared_ptr<IMap> &pmap, const CameraParam &cam)
     {
@@ -23,8 +23,10 @@ namespace  Position
         LOG_INFO("Gps fuse Begin.");
         Time_Interval time;
         time.start();
+    
         //只为测试
-        const std::string opath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
+#if TEST_RESULT
+        const std::string opath = "/media/tu/Work/Datas/TracePath/";// GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
         const std::string strori = opath + "/ori.txt";
         const std::string strfus = opath + "/est.txt";
         cout << "Gps Save to: " << opath.c_str() << endl;
@@ -33,7 +35,7 @@ namespace  Position
 
         std::ofstream ffuse;
         ffuse.open(strfus);
-
+#endif
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {
             IKeyFrame *pkf = vpkfs[i];
@@ -44,7 +46,7 @@ namespace  Position
             }
             Mat Trw = pkf->getPose();
             Mat Rwc = Trw.rowRange(0,3).colRange(0,3).t();
-            Mat twc = pkf->getCameraCenter();  -Rwc * Trw.rowRange(0,3).col(3);
+            Mat twc = pkf->getCameraCenter(); 
 
             Eigen::Vector3d posi(twc.at<MATTYPE>(0),
                                  twc.at<MATTYPE>(1),
@@ -97,12 +99,10 @@ namespace  Position
             frame_p->gps_accu     = 1;
 
             map.frames.push_back(frame_p);
-            BLHCoordinate blh;        
-
-            blh.lon = gps.lon;
-            blh.lat = gps.lat;
-            blh.alt = gps.alt;
+#if TEST_RESULT
+            BLHCoordinate blh(gps.lat,gps.lon,gps.alt)  ;
             PStaticWriter::WriteRealTrace(fori,blh,pkf->getData()->_name);
+#endif
         }
 
 
@@ -155,28 +155,28 @@ namespace  Position
 
         sim3opt.setOrbMap(map);
 
-        sim3opt.beginOpt();
+        sim3opt.optimize();
 
         time.prompt("Gps fuse cost:");
         LOG_INFO("Gps Fuse End.");
 
-
         for(size_t i = 0; i <vpkfs.size(); ++i)
         {
-            
             double lon,lat,alt;
             double xyz[3] = {0};
             sim3opt.getFrameXYZ(i,xyz[0],xyz[1],xyz[2]);
             geoConverter.Reverse(xyz[0], xyz[1],xyz[2],lat,lon,alt);
-           
-            BLHCoordinate blh;
-            blh.lon = lon;
-            blh.lat = lat;
-            blh.alt = alt;
+            Mat pose = sim3opt.getReleativePose(i);
+
+            vpkfs[i]->setPose(pose);
+
+            BLHCoordinate blh = {lat,lon,alt};
+
+            vpkfs[i]->getData()->_pos.pos = blh;
+#if TEST_RESULT
             PStaticWriter::WriteEstTrace(ffuse,blh,Point3d(0,0,0), vpkfs[i]->getData()->_name);
+#endif
         }
-
-
         return true;
     }
 }

@@ -125,7 +125,7 @@ namespace Position
                 Mat prepose = frame[ i - 1 ]->getPose();
                 Mat curpose = frame[ i ]->getPose();
                 //计算帧间R，t
-                Mat dpose   = PUtils::computeVelocity(prepose,curpose);           
+                Mat dpose   = PUtils::ComputeVelocity(prepose,curpose);           
                 Mat R,t;
                 PUtils::GetRTFromFramePose(dpose,R,t);
                 // calculate world trans matrix
@@ -195,7 +195,7 @@ namespace Position
         {//只有在关联帧数大于2 才进入量测赋值,否则保持原有当前帧的值
             assert(target.batch);
             int idx1, idx2;
-            if(target.batch->_fmsdata.size() != target.batch->_poses.size())
+            if(target.batch->_v < 2)
             {
                 LOG_WARNING_F("Target %d Batch Pose Not Enough.",target.id);
                 LOG_INFO_F("Target %d Pos:%f,%f",target.id,target.blh.lon,target.blh.lat);
@@ -210,8 +210,8 @@ namespace Position
             }
             FrameData &frame1 = *target.batch->_fmsdata[idx1];
             FrameData &frame2 = *target.batch->_fmsdata[idx2];
-            Mat &pose1 = target.batch->_poses[idx1];
-            Mat &pose2 = target.batch->_poses[idx2];
+            Mat &pose1 = target.batch->getFramePose(idx1);
+            Mat &pose2 = target.batch->getFramePose(idx2);
             const TargetData &targ1 = GetTargetFromFrame(frame1,target.id);
             const TargetData &targ2 = GetTargetFromFrame(frame2,target.id);
 
@@ -232,8 +232,9 @@ namespace Position
             cvtColor(img2, img2, CV_GRAY2BGR);
             PUtils::DrawEpiLine(line.a,line.b,line.c,targ2.center(),img2);
 
-            string outname = "/media/tlg/work/tlgfiles/my/" + std::to_string(target.id) + "_epline.jpg";
-            imwrite(outname,img2);
+            string outname = "Target: " + std::to_string(target.id) + "_EpiLine";
+            PUtils::ShowImage(outname,img2);
+            waitKey(0);
 #endif
             //三角测量
             cv::Mat P1(3,4,MATCVTYPE,cv::Scalar(0));
@@ -278,7 +279,7 @@ namespace Position
         }
         else
         {
-            LOG_WARNING_F("Frame Not Enough.Target %d Not Changed.",target.id);
+            LOG_WARNING_F("Frame Not Enough.Target %d Pos Have Not Changed.",target.id);
         }
         return true;
     }
@@ -301,31 +302,21 @@ namespace Position
         }
         else
         {//取中间有位姿的帧
-            
-            
-            std::vector<Mat>::const_iterator iter = std::find_if(item.batch->_poses.begin(),
-                                                                 item.batch->_poses.end(),[](const Mat &pse)->bool
+            //取最靠近目标且姿态不为空的两帧
+            std::vector<Mat>::reverse_iterator it = find_if(item.batch->_fmspose.rbegin(), item.batch->_fmspose.rend(),[](const Mat &pse)->bool
             {
                 return !pse.empty();
             });
 
-            
-            assert(item.batch->_fmsdata.size() == item.batch->_poses.size());
-
-            if(iter != item.batch->_poses.end())
-            {
-                int st = iter - item.batch->_poses.begin();
-                int mid = (item.batch->_poses.end() - iter) / 2;
-                idx1 = st + (mid - 1);     //取中间帧
-
-                idx2 = item.batch->_fmsdata.size() - 1;//取最后一帧
-
-                PROMTD_V("Select Frame ",idx1, " ", idx2);
-            }
-            else
+            if(it == item.batch->_fmspose.rend())
             {
                 idx1 = 0;
                 idx2 = 0;
+            }
+            else
+            {
+                idx1 = item.batch->_n - (it - item.batch->_fmspose.rbegin()) - 2;
+                idx2 = idx1 + 1;
             }
         }
     }

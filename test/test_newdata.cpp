@@ -4,6 +4,7 @@
 #include "P_Factory.h"
 #include "P_MapDisplay.h"
 #include "P_Mask.h"
+#include "P_Utils.h"
 TESTBEGIN()
 #if USE_VIEW
     // if(argv < 2)
@@ -37,6 +38,7 @@ TESTBEGIN()
 
 #else
     pData->loadDatas();
+
     string imgpath = GETCFGVALUE(pCfg,ImgPath,string);
     for(Position::FrameDataPtrVIter it = pData->begin(); it != pData->end(); it++)
     {
@@ -49,14 +51,11 @@ TESTBEGIN()
             undistort(img,oimg,pCfg->getCamera().K,pCfg->getCamera().D);
             resize(oimg,oimg,Size(oimg.cols >> 1, oimg.rows >> 1));
             imshow("test",oimg);
-            // imwrite("/media/tu/Work/Datas/9-200524-00/Output/" + (*it)->_name,oimg);
             waitKey(100);
         }
     }
 
 #endif
 
-    
-    
 #endif
 TESTEND()

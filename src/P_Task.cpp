@@ -78,12 +78,13 @@ namespace Position
     MatcherTask::MatcherTask(const std::string &name) : mpFeatureMatcher(GETFEATUREMATCHER(name)) {}
 
     //! 处理单个
-    void MatcherTask::run(Item &item)
+    int MatcherTask::run(Item &item)
     {
         assert(item.queryItem && item.trainItem);
         LOG_INFO_F("Match Task: %s - %s",item.queryItem->getData()->_name.c_str(),item.trainItem->getData()->_name.c_str());
-        Position::MatchVector matches = mpFeatureMatcher->match(item.queryItem, item.trainItem, GETCFGVALUE(GETGLOBALCONFIG(), SearchRadius, int));
+        Position::MatchVector matches = mpFeatureMatcher->match(item.queryItem, item.trainItem, 10);
         item.matches.swap(matches);
+        return item.matches.size();
     }
 
     //! 批执行

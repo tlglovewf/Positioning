@@ -232,7 +232,7 @@ public:
     /* 从位姿获取R和t
      *
      */
-    static void GetRtFromPose(const PoseData &predata,
+    static void ComputeRtFromPose(const PoseData &predata,
                               const PoseData &curdata,
                               const Mat cam2imuR,
                               const Mat cam2imuT,
@@ -241,7 +241,7 @@ public:
     /* 通过帧间R、t推算绝对坐标
      *
      */
-    static void CalcPoseFromRT(const PoseData &origin,
+    static void ComputePoseFromRT(const PoseData &origin,
                                const Mat &R, const Mat &t,
                                const Mat &cam2imuR,
                                const Mat &cam2imuT,
@@ -380,7 +380,7 @@ public:
     }
 
     //根据两帧位姿态,计算速度
-    static inline cv::Mat computeVelocity(const cv::Mat &prepose, const cv::Mat &curpose)
+    static inline cv::Mat ComputeVelocity(const cv::Mat &prepose, const cv::Mat &curpose)
     {
        return curpose * prepose.inv();
     }
@@ -484,6 +484,8 @@ public:
     {
         DrawEpiLine(line.a,line.b,line.c,pt,img);
     }
+    //! 固定窗口大小显示图片
+    static void ShowImage(const string &name, Mat &img);
     //像素坐标系->图像坐标系
     static inline cv::Point2d Pixel2Cam(const cv::Point2d &p, const cv::Mat &K)
     {
@@ -596,7 +598,7 @@ public:
 
     /* get distance from two frames
      */
-    static inline double ComputeDistBetBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2);
+    static double  ComputeDistBetBLH(const BLHCoordinate &blh1, const BLHCoordinate &blh2);
 
     /* get gauss project error
     */

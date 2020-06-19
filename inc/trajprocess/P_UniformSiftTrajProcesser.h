@@ -25,16 +25,9 @@ namespace Position
             return true;
         }
 
-        //创建新关键帧
-        virtual IKeyFrame *createNewKeyFrame();
-
     protected:
-        std::shared_ptr<IFeature> mpFeature;
-        std::shared_ptr<IFeatureMatcher> mpFeatureMatcher;
-        std::shared_ptr<IPoseSolver> mpEst;
         std::shared_ptr<IOptimizer> mpOptimizer;
         CameraParam mCam;
-        int mFtSearchRadius;
 
         FeatureTask                 mFeatureTask;
         MatcherTask                 mMatcherTask;

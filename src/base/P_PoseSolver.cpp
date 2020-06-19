@@ -918,12 +918,11 @@ namespace Position
             // else //if(pF_HF>0.6)
                 bol = ReconstructF(vbMatchesInliersF,F,mCam.K,result._R,result._t,result._vpts,bTriangle,minParallax,minTriangle);
 
-            PROMTD_V("reconstruct >> ",RH, "Ret : ", bol);
-
             if(bol)
             {//剔除三角化失败的点
                 result._match.reserve(input._match.size());
                 MatchVector::const_iterator it = input._match.begin();
+                result._F = F;
                 for(;it !=  input._match.end();++it)
                 {
                     if(!bTriangle[it->queryIdx])
@@ -945,9 +944,9 @@ namespace Position
                     
                     Position::PUtils::DrawEpiLine(epline,curpt, out);
                 }
-                std::string outpath = GETCFGVALUE(GETGLOBALCONFIG(),OutPath,string);
-                imwrite( outpath + "/orbepline.jpg",out);
-                cout << "F" << endl;
+
+                PUtils::ShowImage("orbepline",out);
+
 #endif
             }
         }
@@ -995,6 +994,8 @@ namespace Position
         Mat E = findEssentialMat(prePts, curPts, mCam.K, CV_FM_8POINT,
                              0.999, 1.0, mask);
         recoverPose(E, prePts, curPts, mCam.K, result._R, result._t, mask);
+        
+        result._F = PUtils::ComputeFundamentalMat(E,mCam.K,mCam.K);
 
         Mat K1 = (Mat_<MATTYPE>(3,4) << 1,0,0,0,
                                         0,1,0,0,
@@ -1018,11 +1019,12 @@ namespace Position
         
         BolVector bols;
         bols.resize(result._vpts.size());
-
+        
         for(size_t i = 0; i < prePts.size(); ++i)
         {
             Mat x = out.col(i);
             x = x/x.at<MATTYPE>(3,0);
+
             if(x.at<MATTYPE>(2) < 0)
             {//剔除负点
                 bols[ mvMatches12[i].first ] = true;
@@ -1032,16 +1034,18 @@ namespace Position
         }
 
         MatchVector::const_iterator it = input._match.begin();
-        result._match.reserve(input._match.size());
+        result._match.reserve(len);
+        int index = 0;
         for(;it != input._match.end();++it)
         {//剔除错误点
 
             if(!bols[it->queryIdx] )
             {
                result._match.emplace_back(*it);
+               ++index;
             }
         }
-
+        result._rate = index / (float)len;
         return result;
     }
 

@@ -126,10 +126,18 @@ namespace Position
             putText(img,"Read  : Point"     ,Point2f(50,50) ,CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(255,0,0)  ,2,CV_AA);
             putText(img,"Yellow: FootPt"    ,Point2f(50,150),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(255,255,0),2,CV_AA); 
             putText(img,"Green : Epiline"   ,Point2f(50,250),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(0,255,0)  ,2,CV_AA);
-            putText(img,string("Distance: ") + std::to_string(distance) ,Point2f(50,350),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(0,0,255)  ,2,CV_AA);
+            // putText(img,string("Distance: ") + std::to_string(distance) ,Point2f(50,350),CV_FONT_HERSHEY_COMPLEX,2,CV_RGB(0,0,255)  ,2,CV_AA);
         }
     }
-
+     //! 固定窗口大小显示图片
+    void PUtils::ShowImage(const string &name, Mat &img)
+    {
+        cv::namedWindow(name,CV_WINDOW_NORMAL);
+        cv::resizeWindow(name,Size(1080,720));
+        cv::moveWindow(name,0,0);
+        setWindowProperty(name,CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
+        imshow(name,img);
+    }
     //直方图均衡
     void PUtils::ImageHistEqualized(const Mat &img, Mat &outimg)
     {
@@ -255,11 +263,11 @@ namespace Position
     /* 从位姿获取R和t
      *
      */
-    void PUtils::GetRtFromPose(const PoseData &predata,
-                              const PoseData &curdata,
-                              const Mat cam2imuR,
-                              const Mat cam2imuT,
-                              Mat &R, Mat &t)
+    void PUtils::ComputeRtFromPose(const PoseData &predata,
+                                   const PoseData &curdata,
+                                   const Mat cam2imuR,
+                                   const Mat cam2imuT,
+                                   Mat &R, Mat &t)
     {
         const BLHCoordinate &blht1 = predata.pos;
         const BLHCoordinate &blht2 = curdata.pos;
@@ -301,12 +309,12 @@ namespace Position
     /* 通过帧间R、t推算绝对坐标
      *
      */
-    void PUtils::CalcPoseFromRT(const PoseData &origin,
-                               const Mat &R, const Mat &t,
-                               const Mat &cam2imuR,
-                               const Mat &cam2imuT,
-                               BLHCoordinate &blh,
-                               const PoseData &realdst)
+    void PUtils::ComputePoseFromRT(const PoseData &origin,
+                                   const Mat &R, const Mat &t,
+                                   const Mat &cam2imuR,
+                                   const Mat &cam2imuT,
+                                   BLHCoordinate &blh,
+                                   const PoseData &realdst)
     {
         const BLHCoordinate &ogngps = origin.pos;
 

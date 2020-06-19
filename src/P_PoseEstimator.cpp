@@ -14,7 +14,7 @@ namespace Position
             /* code */
         }
 
-        mpSimpleTrajPro     = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER("SiftTraj"));   //"MViewsTraj"));
+        mpSimpleTrajPro     = std::shared_ptr<ITrajProcesser>(GETTRJPROCESSER("MViewsTraj"));// "SiftTraj"));   
         mpCurrentTrajPro    = eType ? mpSimpleTrajPro : mpUniformVTrajPro;
 
         if(2 == eType)

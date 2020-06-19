@@ -342,8 +342,7 @@ void ORBTracking::MonocularInitialization()
                                                 matches);
             const string text = "match size :" + std::to_string(matches.size());
             putText(otimg, text , Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 2, Scalar(0, 0, 255), 3, CV_AA);
-            PROMTD_S("save init image. ");
-            cv::imwrite("/media/tlg/work/tlgfiles/HDData/result/orbinit.jpg",otimg);
+            PUtils::ShowImage("init",otimg);
 #endif
             
         }

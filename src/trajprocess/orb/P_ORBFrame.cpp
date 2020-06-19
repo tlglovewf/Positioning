@@ -114,7 +114,7 @@ namespace Position
         UpdatePoseMatrices();
     }
 
-    void ORBFrame::UpdatePoseMatrices()
+    void ORBFrame:: UpdatePoseMatrices()
     { 
         mRcw = mTcw.rowRange(0,3).colRange(0,3);
         mRwc = mRcw.t();

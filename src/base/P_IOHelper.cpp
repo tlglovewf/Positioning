@@ -33,7 +33,7 @@ namespace Position
 
     void DefaultWRNode::writeItem(const std::string &name, const cv::Mat &pose)
     {
-        if(!name.empty())
+        if(!name.empty() && !pose.empty())
         {
             //name  R3x3  T3X1
             mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right) 
@@ -138,16 +138,11 @@ namespace Position
             //save every batch poses
             for(size_t i = 0; i < batchvtr.size() ; ++i)
             {
-                if(batchvtr[i]->_poses.empty())
-                    continue;
-
                 mfile << batchvtr[i]->_btname.c_str() << " " << batchvtr[i]->_n << endl;
-                assert(batchvtr[i]->_fmsdata.size() == batchvtr[i]->_poses.size());
-                assert(batchvtr[i]->_fmsdata.size() == batchvtr[i]->_n);
                 for(size_t j = 0; j < batchvtr[i]->_n; ++j)
                 {
-                    const Mat pose = batchvtr[i]->_poses[j];
-                    writeItem(batchvtr[i]->_fmsdata[j]->_name,batchvtr[i]->_poses[j]);
+                    const Mat &pose = batchvtr[i]->getFramePose(j);
+                    writeItem(batchvtr[i]->_fmsdata[j]->_name,pose);
                 }
             }
         }

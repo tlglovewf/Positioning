@@ -186,7 +186,7 @@ void HdPosePrj::loadPrjList(const std::string &path)
             getline(mfile,line);
             Position::FrameData *fms = new Position::FrameData;
             fms->_name = line;
-            pv->_fmsdata.emplace_back(fms);
+            pv->insert(fms);
         }
         mBatches.emplace_back(pv);
     }
@@ -201,84 +201,81 @@ void HdPosePrj::load(const std::string &path)
 //保存地图
 void HdPosePrj::save(const std::string &path)
 {
-    assert(!path.empty());
-    BEGINFILEREGION(path,out)
-    PROMTD_V("save hd prj result to : ",path.c_str());
-    //head    
-    mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
-          << std::setw(9)  << "ImageName"
-          << std::setw(7)  << "valid"
-          << std::setw(15) << "R11"
-          << std::setw(15) << "R12"
-          << std::setw(15) << "R13"
-          << std::setw(15) << "R21"
-          << std::setw(15) << "R22"
-          << std::setw(15) << "R23"
-          << std::setw(15) << "R31"
-          << std::setw(15) << "R32"
-          << std::setw(15) << "R33"
-          << std::setw(15) << "T1"
-          << std::setw(15) << "T2"
-          << std::setw(15) << "T3"
-          << std::endl;
+    // assert(!path.empty());
+    // BEGINFILEREGION(path,out)
+    // PROMTD_V("save hd prj result to : ",path.c_str());
+    // //head    
+    // mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
+    //       << std::setw(9)  << "ImageName"
+    //       << std::setw(7)  << "valid"
+    //       << std::setw(15) << "R11"
+    //       << std::setw(15) << "R12"
+    //       << std::setw(15) << "R13"
+    //       << std::setw(15) << "R21"
+    //       << std::setw(15) << "R22"
+    //       << std::setw(15) << "R23"
+    //       << std::setw(15) << "R31"
+    //       << std::setw(15) << "R32"
+    //       << std::setw(15) << "R33"
+    //       << std::setw(15) << "T1"
+    //       << std::setw(15) << "T2"
+    //       << std::setw(15) << "T3"
+    //       << std::endl;
     
-    Position::PrjBatchVIter it = mBatches.begin();
-    Position::PrjBatchVIter ed = mBatches.end();
-    for(;it != ed; ++it)
-    {
-        if((*it)->isvaild())
-        {
-            //batch info
-            mfile << (*it)->_btname.c_str() << " " << (*it)->_n << std::endl;
-            Mat pose = Mat::eye(4,4,MATCVTYPE);
-            for(int i = 0;i < (*it)->_n; ++i)
-            {
-                Mat T =  (*it)->_poses[i];
-                int vaild = !T.empty();
-                //pose
-                mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
-                      << std::setw(9)  << (*it)->_fmsdata[i]->_name.c_str()
-                      << std::setw(7)  << vaild;
-                if(vaild)
-                {
-                    if(i==0)
-                        pose = Mat::eye(4,4,MATCVTYPE);
-                    else
-                    {
-                        if(!(*it)->_poses[i-1].empty())
-                        {
-                            Mat Rfuse = T.rowRange(0,3).colRange(0,3).t();
-                            Mat tfuse = -Rfuse*T.rowRange(0,3).col(3);
-                            Rfuse.copyTo(pose.rowRange(0,3).colRange(0,3));
-                            tfuse.copyTo(pose.rowRange(0,3).col(3));
-                        }       
-                        else
-                            pose = Mat::eye(4,4,MATCVTYPE);   
-                    }
-                }
-                else
-                    pose = Mat::zeros(4,4,MATCVTYPE);
-                    
+    // Position::PrjBatchVIter it = mBatches.begin();
+    // Position::PrjBatchVIter ed = mBatches.end();
+    // for(;it != ed; ++it)
+    // {
+    //     //batch info
+    //     mfile << (*it)->_btname.c_str() << " " << (*it)->_n << std::endl;
+    //     Mat pose = Mat::eye(4,4,MATCVTYPE);
+    //     for(int i = 0;i < (*it)->_n; ++i)
+    //     {
+    //         Mat T =  (*it)->getFramePose(i);
+    //         int vaild = !T.empty();
+    //         //pose
+    //         mfile << std::setiosflags(std::ios::fixed) << std::setiosflags(std::ios::right)
+    //               << std::setw(9)  << (*it)->_fmsdata[i].first->_name.c_str()
+    //               << std::setw(7)  << vaild;
+    //         if(vaild)
+    //         {
+    //             if(i==0)
+    //                 pose = Mat::eye(4,4,MATCVTYPE);
+    //             else
+    //             {
+    //                 if(!(*it)->_poses[i-1].empty())
+    //                 {
+    //                     Mat Rfuse = T.rowRange(0,3).colRange(0,3).t();
+    //                     Mat tfuse = -Rfuse*T.rowRange(0,3).col(3);
+    //                     Rfuse.copyTo(pose.rowRange(0,3).colRange(0,3));
+    //                     tfuse.copyTo(pose.rowRange(0,3).col(3));
+    //                 }       
+    //                 else
+    //                     pose = Mat::eye(4,4,MATCVTYPE);   
+    //             }
+    //         }
+    //         else
+    //             pose = Mat::zeros(4,4,MATCVTYPE);
                 
-                //尺度信息
-                double scale = 1.0;
-                mfile << std::setiosflags(std::ios::fixed) << std::setprecision(9) << std::setiosflags(std::ios::right)
-                      << std::setw(15) << pose.at<MATTYPE>(0,0)
-                      << std::setw(15) << pose.at<MATTYPE>(0,1)
-                      << std::setw(15) << pose.at<MATTYPE>(0,2)
-                      << std::setw(15) << pose.at<MATTYPE>(1,0)
-                      << std::setw(15) << pose.at<MATTYPE>(1,1)
-                      << std::setw(15) << pose.at<MATTYPE>(1,2)
-                      << std::setw(15) << pose.at<MATTYPE>(2,0)
-                      << std::setw(15) << pose.at<MATTYPE>(2,1)
-                      << std::setw(15) << pose.at<MATTYPE>(2,2)
-                      << std::setw(15) << pose.at<MATTYPE>(0,3) * scale
-                      << std::setw(15) << pose.at<MATTYPE>(1,3) * scale
-                      << std::setw(15) << pose.at<MATTYPE>(2,3) * scale
-                      << std::endl;
-            }
-        }
-    }
-    PROMTD_S("save successfully!!!");
-    ENDFILEREGION()
+            
+    //         //尺度信息
+    //         double scale = 1.0;
+    //         mfile << std::setiosflags(std::ios::fixed) << std::setprecision(9) << std::setiosflags(std::ios::right)
+    //               << std::setw(15) << pose.at<MATTYPE>(0,0)
+    //               << std::setw(15) << pose.at<MATTYPE>(0,1)
+    //               << std::setw(15) << pose.at<MATTYPE>(0,2)
+    //               << std::setw(15) << pose.at<MATTYPE>(1,0)
+    //               << std::setw(15) << pose.at<MATTYPE>(1,1)
+    //               << std::setw(15) << pose.at<MATTYPE>(1,2)
+    //               << std::setw(15) << pose.at<MATTYPE>(2,0)
+    //               << std::setw(15) << pose.at<MATTYPE>(2,1)
+    //               << std::setw(15) << pose.at<MATTYPE>(2,2)
+    //               << std::setw(15) << pose.at<MATTYPE>(0,3) * scale
+    //               << std::setw(15) << pose.at<MATTYPE>(1,3) * scale
+    //               << std::setw(15) << pose.at<MATTYPE>(2,3) * scale
+    //               << std::endl;
+    //     }
+    // }
+    // PROMTD_S("save successfully!!!");
+    // ENDFILEREGION()
 }

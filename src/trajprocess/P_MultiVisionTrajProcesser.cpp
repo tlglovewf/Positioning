@@ -18,7 +18,7 @@ namespace Position
 
                         mpFeatureMatcher = std::shared_ptr<IFeatureMatcher>(GETFEATUREMATCHER("Knn"));
 
-                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("ORBPoseSolver"));
+                        mpEst            = std::shared_ptr<IPoseSolver>(GETPOSESOLVER("ORBPoseSolver"));// ORBPoseSolver"));
                         mpOptimizer      = std::shared_ptr<IOptimizer>(GETOPTIMIZER());
                          
                         mFtSearchRadius = GETCFGVALUE(GETGLOBALCONFIG(),SearchRadius,int);

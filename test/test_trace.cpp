@@ -70,39 +70,38 @@ void MapDisplay(const std::shared_ptr<Position::IConfig> &pCfg)
 void BatchTraceDisplay(const std::shared_ptr<Position::IProjList> &prj,const std::shared_ptr<Position::IConfig> &pcfg)
 {
 #ifdef USE_VIEW
-    if(prj)
-    {
-        std::shared_ptr<Position::IViewer> pviewer(GETVIEWER());
+    // if(prj)
+    // {
+    //     std::shared_ptr<Position::IViewer> pviewer(GETVIEWER());
         
-        std::shared_ptr<Position::IMap> pmap(new Position::PMap);
-        Position::PrjBatchVector &batchvector = prj->getPrjList();
-        Position::PrjBatchVIter  iter = batchvector.begin();
-        Position::PrjBatchVIter ed    = batchvector.end(); 
+    //     std::shared_ptr<Position::IMap> pmap(new Position::PMap);
+    //     Position::PrjBatchVector &batchvector = prj->getPrjList();
+    //     Position::PrjBatchVIter  iter = batchvector.begin();
+    //     Position::PrjBatchVIter ed    = batchvector.end(); 
 
-        //每个batch 间隔的空隙
-        Mat spaceLen = Mat::zeros(4,4,MATCVTYPE);
+    //     //每个batch 间隔的空隙
+    //     Mat spaceLen = Mat::zeros(4,4,MATCVTYPE);
         
-        int index = 0;
+    //     int index = 0;
         
-        for(;iter != ed; ++iter)
-        {
-            spaceLen.at<MATTYPE>(0,3) = 10 * index++;
-            if((*iter)->_poses.empty())
-                break;
-            PROMTD_V("display batch ", (*iter)->_btname.c_str());
-            cout << (*iter)->_n << " " << (*iter)->_poses.size() << endl;
-            for(int i = 0;i < (*iter)->_n; ++i)
-            {
-                if((*iter)->_poses[i].empty())
-                    continue;
-                Position::FrameData *data = (*iter)->_fmsdata[i]; 
-                Position::IMap::CreateKeyFrame(pmap,data,spaceLen + (*iter)->_poses[i]);
-            }
-            PROMTD_V("display end ", (*iter)->_btname.c_str());
-        }
-        pviewer->setMap(pmap);
-        pviewer->renderLoop();
-    }
+    //     for(;iter != ed; ++iter)
+    //     {
+    //         spaceLen.at<MATTYPE>(0,3) = 10 * index++;
+
+    //         PROMTD_V("display batch ", (*iter)->_btname.c_str());
+    //         cout << (*iter)->_n << " " << (*iter)->_poses.size() << endl;
+    //         for(int i = 0;i < (*iter)->_n; ++i)
+    //         {
+    //             if((*iter)->_poses[i].empty())
+    //                 continue;
+    //             Position::FrameData *data = (*iter)->_fmsdata[i]; 
+    //             Position::IMap::CreateKeyFrame(pmap,data,spaceLen + (*iter)->_poses[i]);
+    //         }
+    //         PROMTD_V("display end ", (*iter)->_btname.c_str());
+    //     }
+    //     pviewer->setMap(pmap);
+    //     pviewer->renderLoop();
+    // }
 #endif
 }
 
@@ -174,14 +173,14 @@ void LoadBatchList(const std::shared_ptr<Position::IConfig> &pCfg)
 
                 if(kit == frames.end())
                 {
-                    (*it)->_poses.emplace_back(Mat());
+                    (*it)->_fmspose.emplace_back(Mat());
                 }
                 else
                 {
                     Mat posefuse = Mat::eye(4,4,MATCVTYPE);
                     (*kit)->getRotation().copyTo(posefuse.rowRange(0,3).colRange(0,3));
                     (*kit)->getTranslation().copyTo(posefuse.rowRange(0,3).col(3));
-                    (*it)->_poses.emplace_back(posefuse);
+                    (*it)->_fmspose.emplace_back(posefuse);
                 }
                 
             }

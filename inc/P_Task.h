@@ -49,7 +49,7 @@ namespace Position
         MatcherTask(const std::string &name) ;
 
         //! 处理单个
-        void run(Item &item);
+        int run(Item &item);
 
         //! 批执行
         void run(TaskItems &items);
@@ -85,9 +85,9 @@ namespace Position
             Item(Position::FrameData *query, Position::FrameData *train) : queryF(query), trainF(train) {}
         };
         PoseFlowTask(const Position::CameraParam &cam,
-                    const std::string &feature = "SiftEx",
-                    const std::string &match = "Knn",
-                    const std::string &est = "CVPoseSolver");
+                     const std::string &feature = "SiftEx",
+                     const std::string &match   = "Knn",
+                     const std::string &est     = "CVPoseSolver");
 
         //! 执行           
         PoseResult run(Item &item);

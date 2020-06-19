@@ -1,11 +1,10 @@
 #pragma once
 
 #include "GpsGlobalMap.h"
+#include "P_Types.h"
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Geometry>
-#include <iostream>
 #include "Thirdparty/GeographicLib/include/LocalCartesian.hpp"
-#include <fstream>
 #include "Thirdparty/g2o/g2o/core/block_solver.h"
 #include "Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h"
 #include "Thirdparty/g2o/g2o/solvers/linear_solver_eigen.h"
@@ -82,17 +81,20 @@ struct GPSData
     double conf;//置信值
 };
 
-
+//! gps sim3 优化类
 class GpsSim3Optimizer
 {
 public:
     GpsSim3Optimizer();
     ~GpsSim3Optimizer();
-    void beginOpt();
+    void optimize();
     void setOrbMap(gps::GpsGlobalMap& globalmap);
     void getGlobalGPS(double time,double& latitude, double& longitude, double& altitude);
     void getFrameXYZ(int index, double &x, double &y, double &z);
-    Eigen::Matrix4d getGlobalPos(double time);
+    //! 根据时间获取相对姿态信息
+    // Eigen::Matrix4d getReleativePose(double time);
+    //! 根据序号获取相对姿态信息
+    cv::Mat         getReleativePose(int index);
     GeographicLib::LocalCartesian geoConverter;//gps坐标转换器
 private:
     void ComputeSim3();//计算sim3

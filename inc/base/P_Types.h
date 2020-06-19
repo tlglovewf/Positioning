@@ -223,25 +223,63 @@ struct BatchItem
 {
     std::string _btname;
     int _n;
-    std::vector<FrameData*>  _fmsdata;
-    std::vector<Mat>         _poses;
-    inline bool isvaild()const
+    int _v;
+
+    std::vector< FrameData* >  _fmsdata;
+    std::vector< Mat >         _fmspose;
+
+    BatchItem(const std::string &btn,int n):_btname(btn),_n(n),_v(0)
     {
-        return _fmsdata.size() == _poses.size();
     }
-    BatchItem(const std::string &btn,int n):_btname(btn),_n(n)
+    //! 所有帧都成功估算到位姿
+    bool inline isAll()const
     {
-        _fmsdata.reserve(n);
-        _poses.reserve(n);
+        return _v == _n;
     }
-    FrameData* get(const std::string &name)
+    //! 初始化批次信息, bg ed代表framedataviter
+    template<typename T>
+    void init( T bg, T ed)
     {
-       auto it = std::find_if(_fmsdata.begin(),_fmsdata.end(),[&name](FrameData *pd)
+        _fmsdata = std::vector< FrameData* >(bg,ed);
+        _fmspose.resize(ed - bg);
+        assert(_fmspose.size() == _fmsdata.size());
+    }
+
+    //! 设置帧姿态
+    void setFramePose(int index, const Mat &p)
+    {
+        assert(index < _n && !_fmsdata.empty());
+        if(!p.empty())
+            ++_v;
+        _fmspose[index] = p;
+    }
+    void setFramePose(FrameData *data, const Mat &p)
+    {
+       auto iter =  std::find_if(_fmsdata.begin(),_fmsdata.end(),[&](const FrameData *item)->bool
         {
-            return pd->_name == name;
+            return item == data;
         });
-        assert(it != _fmsdata.end());
-        return *it;
+        if(iter != _fmsdata.end())
+        {
+            int idx = iter - _fmsdata.begin();
+            if(!p.empty())
+                ++_v;
+            _fmspose[idx] = p;
+        }
+    }
+    //! 获取帧姿态
+    Mat& getFramePose(int index)
+    {
+        assert(index < _n);
+        return _fmspose[index];
+    }
+    //! 插入帧
+    void insert(FrameData *data, const Mat &p = Mat())
+    {
+        _fmsdata.emplace_back(data);
+        if(!p.empty())
+            ++_v;
+        _fmspose.emplace_back(p);
     }
 };
 //! 图片序号组
@@ -287,8 +325,11 @@ struct PoseResult
 {
     Mat         _R;
     Mat         _t;
-    Pt3Vector   _vpts;
+    Mat         _F;
+    Pt3Vector   _vpts; //! vpts.size == prekeysize
     MatchVector _match;
+    float       _rate;
+    PoseResult():_rate(0){}
 };
 
 

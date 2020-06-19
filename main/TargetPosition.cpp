@@ -93,7 +93,7 @@ int main(int argc, char **argv)
         poshandler.savePose(outpath);
 
         //目标定位 
-        // poshandler.targetPositioning();
+        poshandler.targetPositioning();
         // //结果输出
         // poshandler.saveResult(trackerpath + "tracker_rst.txt");
     }

@@ -4,6 +4,7 @@
 #include "P_Checker.h"
 #include "P_Factory.h"
 #include "P_Utils.h"
+#include "P_GpsFusion.h"
 
 #if USE_VIEW
 std::shared_ptr<Position::IViewer> s_Viewer;
@@ -17,8 +18,9 @@ PosBatchHandler::PosBatchHandler(const std::shared_ptr<IConfig>           &pcfg 
 mpConfig(pcfg),
 mPrjList(prjlist),
 mPositioner(positioner),
-mPoseEstimator(pcfg,cam,0),
-mCamera(cam)
+mGpsFusion(new GpsFunsion()),
+mCamera(cam),
+mPoseEstimator(pcfg,cam,1)
 {
      assert(pcfg);
      assert(prjlist);
@@ -69,7 +71,7 @@ void PosBatchHandler::savePose(const std::string &path)
     }
 }
 
-//估算batch 位姿
+//! 估算batch 位姿
 void PosBatchHandler::poseEstimate()
 {
     TrackerItemVector &targets = mPrjList->trackInfos();
@@ -82,9 +84,11 @@ void PosBatchHandler::poseEstimate()
        
 
     LOG_INFO("PoseEstimate ...");
-
+    
     for(size_t i = 0; i < targets.size(); ++i)
     {
+       if( i > 0)
+            break;
        if(NULL == targets[i].batch)
        {
            LOG_WARNING("Target Batch Empty.");
@@ -104,18 +108,24 @@ void PosBatchHandler::poseEstimate()
             s_Viewer->renderLoop();
 #endif
                KeyFrameVector frames = mPoseEstimator.getMap()->getAllFrames();
+            //  gps 融合 确认尺度 并修复部分跳变点（由于测试数据 gps 点对应的问题 此处暂时注释）
+            //    mGpsFusion->fuse(mPoseEstimator.getMap(),mCamera);
+
                if(frames.size() == targets[i].batch->_fmsdata.size())
-               {
+               {//所有帧都估算出了位姿
                    for(size_t m = 0; m < frames.size(); ++m)
                    {
-                       assert(targets[i].batch->_fmsdata[m]->_name == frames[m]->getData()->_name);
-                       targets[i].batch->_fmsdata[m] = frames[m]->getData();
-                       targets[i].batch->_poses.emplace_back(frames[m]->getPose());
+                       assert(targets[i].batch->_fmsdata[m] == frames[m]->getData());
+                       targets[i].batch->setFramePose(frames[m]->getData(),frames[m]->getPose());
                    }
                }
                else
                {
-                   
+                   FrameDataPtrVector &fmsdata = targets[i].batch->_fmsdata;
+                   for(size_t m = 0; m < frames.size(); ++m)
+                   {
+                        targets[i].batch->setFramePose(frames[m]->getData(),frames[m]->getPose());
+                   }
                }
            }
        }
@@ -126,7 +136,7 @@ void PosBatchHandler::poseEstimate()
 }
 
 
-//目标定位
+//! 目标定位
 void PosBatchHandler::targetPositioning()
 {
     TrackerItemVector &targets = mPrjList->trackInfos();

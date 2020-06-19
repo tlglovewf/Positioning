@@ -204,8 +204,8 @@ bool ImgAutoData::loadTrackJson(const std::string &path, Position::FrameDataPtrV
 
                         if (trmkArray.IsArray())
                         {
-                            LOG_INFO_F("trk size:%d", trmkArray.Size());
-                            LOG_INFO_F("fmt size:%d", framedatas.size());
+                            // LOG_INFO_F("trk size:%d", trmkArray.Size());
+                            // LOG_INFO_F("fmt size:%d", framedatas.size());
 
                             if (trmkArray.Size() != framedatas.size())
                             {
