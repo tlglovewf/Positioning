@@ -118,7 +118,7 @@ namespace Position
             float distance = -1;
             if(pt.x > 0)
             {
-                Point2f foot = GetFootPoint(a,b,c,pt);
+                Point2f foot = ComputeFootPoint(a,b,c,pt);
                 line(img,pt,foot,CV_RGB(255,255,0));
                 circle(img,foot,thickness,CV_RGB(255,255,0),thickness);
                 distance = cv::norm(foot-pt);

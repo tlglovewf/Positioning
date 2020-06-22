@@ -248,6 +248,38 @@ public:
                                BLHCoordinate &blh,
                                const PoseData &realdst);
 
+    /* 畸变矫正图像点
+     * 
+     */
+    static void UndistortPoints(Position::PtVector &pts, const Position::CameraParam &cam)
+    {
+        if(pts.empty())
+            return;
+
+        Position::PtVector temp;
+        // Fill matrix with points
+        cv::Mat mat(pts.size(),2,MATCVTYPE);
+        for(int i=0; i < pts.size(); i++)
+        {
+            mat.at<MATTYPE>(i,0) = pts[i].x;
+            mat.at<MATTYPE>(i,1) = pts[i].y;
+        }
+
+        // Undistort points
+        mat=mat.reshape(2);
+        cv::undistortPoints(mat,mat,cam.K,cam.D,cv::Mat(),cam.K);
+        mat=mat.reshape(1);
+
+        // Fill undistorted keypoint vector
+        temp.reserve(pts.size());
+        for(int i=0; i < pts.size(); i++)
+        {
+            Point2f pt(mat.at<MATTYPE>(i,0),mat.at<MATTYPE>(i,1));
+            temp.emplace_back(pt);
+        }
+
+        pts.swap(temp);
+    }
     /****************************************************
      **********************视觉相关***********************
      ****************************************************/
@@ -387,7 +419,7 @@ public:
 
     // 设直线方程为ax+by+c=0,点坐标为(m,n)
     // 则垂足为((b*b*m-a*b*n-a*c)/(a*a+b*b),(a*a*n-a*b*m-b*c)/(a*a+b*b)) 
-    static inline Point2f GetFootPoint(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt)
+    static inline Point2f ComputeFootPoint(MATTYPE a, MATTYPE b, MATTYPE c, const Point2f &pt)
     {
         MATTYPE x = (b * b * pt.x - a * b * pt.y - a * c) / (a * a + b * b);
         MATTYPE y = (a * a * pt.y - a * b * pt.x - b * c) / (a * a + b * b);
@@ -427,7 +459,7 @@ public:
     }
 
     //反投 依赖Frame的姿态 rpy
-    static cv::Point2f backProject(const FrameData &frame,const BLHCoordinate &blh,const CameraParam &camera)
+    static cv::Point2f BackProject(const FrameData &frame,const BLHCoordinate &blh,const CameraParam &camera)
     {
         //calc target xyz coordinate
 	    Point3d  xyz = PCoorTrans::BLH_to_XYZ(blh);

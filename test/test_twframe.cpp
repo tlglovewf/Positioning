@@ -241,6 +241,27 @@ int CheckRT(const cv::Mat &R, const cv::Mat &t,
 }
 
 
+float ComputeParallax(const Position::KeyPtVector &pt1s,
+                      const Position::KeyPtVector &pt2s,
+                      const Position::MatchVector &matches)
+{
+    const size_t len = matches.size();
+
+    Point2f sum(0,0);
+    for(size_t i = 0; i < len ; ++i)
+    {
+        Point2f pt = (pt1s[matches[i].queryIdx].pt - pt2s[matches[i].trainIdx].pt);
+        sum.x += fabs(pt.x);
+        sum.y += fabs(pt.y);
+    }
+    sum = sum * (1 / (float)len);
+    return cv::norm(sum);
+}
+
+
+
+
+
 
 
 
@@ -261,8 +282,8 @@ TESTBEGIN()
 
     int stno = GETCFGVALUE(pCfg,StNo,int);
 
-    Position::FrameDataPtrVIter iter = pData->begin() + 300;
-    Position::FrameDataPtrVIter next = iter + 3;
+    Position::FrameDataPtrVIter iter = pData->begin() + 1278;
+    Position::FrameDataPtrVIter next = iter + 1;
 
     std::shared_ptr<Position::IMap> pmap(new Position::PMap());
 
@@ -281,16 +302,80 @@ TESTBEGIN()
     int sz = mtTask.run(mitem);
     cout << "match size : " << sz << endl;
 
+    pmap->addKeyFrame(pmap->createKeyFrame(pf1));
+    pmap->addKeyFrame(pmap->createKeyFrame(pf2));
     Position::PoseResult result = psTask.run(mitem);
 
     Position::BolVector bols;
     CheckFundamental(pf1->getKeys(),pf2->getKeys(),mitem.matches,result._F,bols,1);
 
 
+    cout << "parallax " <<  ComputeParallax(pf1->getKeys(),pf2->getKeys(),mitem.matches) << endl;
+
     cout << mitem.matches.size() << " " << result._match.size() << " " <<  result._rate << endl;
 
+    Position::PtVector pt1s;
+    Position::PtVector pt2s;
+
+    Position::PtVector ppts;
+    ppts.reserve(4);
+
+    ppts.emplace_back(Point2f(1366,324));
+    ppts.emplace_back(Point2f(1366 + 78, 324 + 76));
+    ppts.emplace_back(Point2f(1396,312));
+    ppts.emplace_back(Point2f(1396 + 82, 312 + 82));
+
+    // for(size_t i = 0; i < mitem.matches.size(); ++i)
+    // {
+    //     pt1s.emplace_back(pf1->getKeys()[mitem.matches[i].queryIdx].pt);
+    //     pt2s.emplace_back(pf2->getKeys()[mitem.matches[i].trainIdx].pt);
+    // }
+
+    pt1s.emplace_back(Point2f(1366,324));
+    pt2s.emplace_back(Point2f(1396,312));
+    pt1s.emplace_back(Point2f(1366 + 78, 324 + 76));
+    pt2s.emplace_back(Point2f(1396 + 82, 312 + 82));
+    pt1s.emplace_back(Point2f(1366, 324 + 76));
+    pt2s.emplace_back(Point2f(1396, 312 + 82));
+    pt1s.emplace_back(Point2f(1366 + 78, 324));
+    pt2s.emplace_back(Point2f(1396 + 82, 312));
+
+    Mat mask;
+    Mat H = cv::findHomography(pt1s,pt2s,mask,CV_RANSAC,1);
+    cout << H << endl; 
+
+    Position::PUtils::UndistortPoints(ppts,pCfg->getCamera());
+
+    Position::TargetData target1;
+    target1._box = cv::Rect2f(ppts[0],ppts[1]);
+    Position::TargetData target2;
+    target2._box = cv::Rect2f(ppts[2],ppts[3]);
+
+    cout << "src : " << target1.center() << endl;
+    cout << "dst : " << target2.center() << endl;
+
+    Mat tmp(Point3d(target1.center().x,target1.center().y,1.0),true);
 
 
+    Mat mpt =  H * tmp;
+    mpt = mpt / mpt.at<MATTYPE>(2);
+    Point3d pt(mpt);
+    cout << "afH : " << pt << endl;
+
+    Mat tt1 = pf1->getData()->_img.clone();
+    circle(tt1,target1.center(),3,CV_RGB(255,0,0),3);
+
+    Mat tt2 = pf2->getData()->_img.clone();
+    circle(tt2,target2.center(),3,CV_RGB(255,0,0),3);
+    circle(tt2,Point2f(pt.x,pt.y),3,CV_RGB(0,255,0),3);
+    circle(tt2,target1.center(),3,CV_RGB(0,0,255),3);
+    
+    // Mat out = Position::PUtils::DrawFeatureMatch(pf1->getData()->_img,pf2->getData()->_img,pf1->getKeys(),pf2->getKeys(),mitem.matches);
+
+    // Position::PUtils::ShowImage("test",out);
+    Position::PUtils::ShowImage("tt1",tt1);
+    Position::PUtils::ShowImage("tt2",tt2);
+    waitKey(0);
 
 #ifdef USE_VIEW
         // pv->renderLoop();

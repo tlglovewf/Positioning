@@ -281,7 +281,7 @@ namespace Position
 
         // // Undistort points
         // mat=mat.reshape(2);
-        // cv::undistortPoints(mat,mat,mK,mDistCoef,cv::Mat(),mK);
+        // cv::undistortPoints(-,mat,mK,mDistCoef,cv::Mat(),mK);
         // mat=mat.reshape(1);
 
         // // Fill undistorted keypoint vector
