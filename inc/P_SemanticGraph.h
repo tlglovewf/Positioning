@@ -138,7 +138,27 @@ namespace Position
             }
             return false;
         }
-
+    //! 根据语义色彩生成区域图
+    Mat GenerateObjArea(const Mat &img, const Vec3b &clr)
+    {
+        Mat oimg(img.rows,img.cols,CV_8U);
+        for(size_t i = 0; i < img.cols; ++i)
+        {
+            for(size_t j = 0; j < img.rows; ++j)
+            {
+                if(img.at<Vec3b>(j,i) == clr)
+                {
+                    oimg.at<uchar>(j,i) = 255;
+                }
+                else
+                {
+                    oimg.at<uchar>(j,i) = 0;
+                }
+            }
+        }
+        return oimg;
+    }
+    
     protected:
         //剔除前后空格
         void trimString(std::string &str)

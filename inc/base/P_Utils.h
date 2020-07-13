@@ -295,6 +295,41 @@ public:
     //绘制直方图
     static void HistDraw(const Mat &img);
 
+    //拟合直线 y = kx + c
+    static void FitLine(const cv::InputArray &pts, float &k, float &c)
+    {
+        assert(!pts.empty());
+        Vec4f line;
+        fitLine(pts,line,CV_DIST_L1,0,0.01,0.01);
+
+        Point2f pt(line[2],line[3]);
+        Point2f dir(line[0],line[1]);
+        
+        k = line[1]/line[0];
+        c = line[3] - line[2] * k;
+    }
+    //根据轮廓绘制拟合直线
+    static void DrawFitLine(Mat img, cv::InputArray &pts,cv::OutputArray opts)
+    {
+        approxPolyDP(pts,opts,0.1,true);
+
+        float k ;
+        float c ;
+
+        Position::PUtils::FitLine(opts,k,c);
+        //屏蔽斜率比较点的点
+        if(fabs(k) < 0.1)
+            return ;
+        
+        Rect rt = boundingRect(opts);
+        //屏蔽面积比较小的
+        if(rt.area() < 10)
+           return;
+
+        cv::line(img,Point2f( (rt.y - c) / k ,rt.y),Point2f( (rt.y + rt.height - c) / k,rt.y + rt.height ),CV_RGB(0,0,0),3);
+       
+    }
+
     //计算内点率 
     //status  基础矩阵或者单应矩阵 ransac计算出的掩码数组
     static float ComputeInlierRate(const U8Vector &status)
@@ -499,7 +534,6 @@ public:
         return pt;
     }
 
-
     //绘制关键点
     static Mat DrawKeyPoints(const Mat &img, const KeyPtVector &keys)
     {
@@ -518,6 +552,7 @@ public:
     }
     //! 固定窗口大小显示图片
     static void ShowImage(const string &name, Mat &img);
+
     //像素坐标系->图像坐标系
     static inline cv::Point2d Pixel2Cam(const cv::Point2d &p, const cv::Mat &K)
     {

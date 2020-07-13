@@ -21,7 +21,7 @@ namespace Position
             initInforSigma2();
         }
         //单张位姿优化
-        virtual int frameOptimization(IKeyFrame *pFrame, const FloatVector &sigma2) 
+        virtual int frameOptimization(IKeyFrame *pFrame) 
         {
             assert(NULL);
             return 0;
