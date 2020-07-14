@@ -40,8 +40,10 @@ namespace Position
         std::shared_ptr<Position::IViewer> pv(GETVIEWER());
         std::shared_ptr<Position::IMap> pmap(new Position::PMap());
         setMap(pmap);
-        mpTracSer->loadMap(trac);
-        mpPtSer->loadMap(mpts);
+        if(!trac.empty())
+            mpTracSer->loadMap(trac);
+        if(!mpts.empty())
+            mpPtSer->loadMap(mpts);
         pv->setMap(pmap);
         pv->renderLoop();
     #endif
