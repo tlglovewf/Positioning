@@ -11,3 +11,4 @@ FOREACH(TEST_FILE ${TEST_FILES})
     target_link_libraries(${TEST_NAME} ${Positioning})
 ENDFOREACH()
  
+ 

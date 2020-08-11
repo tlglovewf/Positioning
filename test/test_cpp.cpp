@@ -9,6 +9,10 @@
 #include "P_SemanticGraph.h"
 #include "P_Mask.h"
 #include "P_ORBFeature.h"
+#include "hash_map"
+
+#include "variant/optional.hpp"
+
 template <typename T>
 inline void display(T items)
 {
@@ -35,52 +39,19 @@ LINE_LOG() ":" X
 typedef unsigned int U4;
 typedef int L4;
 
-
-Mat GenerateImageMask(const Mat &img, const Vec3b &clr)
+#pragma pack(2)
+struct TestS
 {
-    Mat oimg(img.rows,img.cols,CV_8U);
-    for(size_t i = 0; i < img.cols; ++i)
-    {
-        for(size_t j = 0; j < img.rows; ++j)
-        {
-            if(img.at<Vec3b>(j,i) == clr)
-            {
-                oimg.at<uchar>(j,i) = 255;
-            }
-            else
-            {
-                oimg.at<uchar>(j,i) = 0;
-            }
-        }
-    }
-    return oimg;
-}
+    char    _c;
+    
+    int     _i;
+
+    short   _s;
+};
 
 
 TESTBEGIN()
 
-   Mat img = imread("/media/tu/Work/GitHub/TwoFrameSO/data/segim/0-006437-608-0007821.png",CV_LOAD_IMAGE_UNCHANGED);
-   
-//    Mat grayimg = GenerateImageMask(img,Vec3b(255,255,255));
-   Mat grayimg = GenerateImageMask(img,Vec3b(0,220,220));
 
-
-  
-
-   std::vector< std::vector< Point> > contours;
-
-   findContours(grayimg,contours,CV_RETR_EXTERNAL,CV_CHAIN_APPROX_NONE);
-
-   for(size_t i = 0; i < contours.size(); ++i)
-   {
-        cv::Rect rt = cv::boundingRect(contours[i]);
-        if(rt.area() > 300)
-            rectangle(img,rt,CV_RGB(255,0,0),3);
-   }
-
-     Position::PUtils::ShowImage("test",img);
-
-
-   waitKey(0);
 
 TESTEND()
