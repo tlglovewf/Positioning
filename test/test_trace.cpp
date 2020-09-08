@@ -11,7 +11,7 @@
 #include "P_Factory.h"
 #include "P_MapSerializor.h"
 #include "P_Utils.h"
-
+#include "feature/P_SiftFeature.h"
 #include "P_FrameViewer.h"
 
 #include "P_PangolinViewer.h"
@@ -34,26 +34,33 @@ using namespace cv;
 
 int main(void)
 {  
-    Mat m = imread("/media/tu/Work/Datas/9-200524-00/Output/Pic/0-059362-531-0000001.jpg",CV_LOAD_IMAGE_UNCHANGED);
+    cv::Ptr<Position::SiftFeature> sift = Position::SiftFeature::create(2000);
 
-    std::vector<uchar> imgde;
+    cv::Mat img = imread("/media/tu/Work/GitHub/TwoFrameSO/data/inputim/0-006437-467-0007818.jpg",CV_LOAD_IMAGE_UNCHANGED);
 
-    imencode(".png",m,imgde);
+    Position::FrameData fmdata;
+    fmdata._img = img;
+    Position::FeatureInfo fminfo("1");
+    Position::Time_Interval timer;
+    timer.start();
+    sift->detect(fmdata,fminfo);
+    sift->compute(fmdata._img,fminfo._keys,fminfo._des);
+    // sift->detectAndCompute(fmdata._img,noArray(),fminfo._keys,fminfo._des);
+    timer.prompt("cost",true);
+    cv::Mat mt = Position::PUtils::DrawKeyPoints(img,fminfo._keys);
 
-    std::string outfile(imgde.begin(),imgde.end());
+    Position::PUtils::ShowImage("test",mt);
 
-    ofstream file("/media/tu/Work/Datas/img.txt");
-    assert(file.is_open());
-    file << outfile << endl;
-    file.close();
+    cv::Mat vt;
 
+    double sigma = 0.01;
 
+    cv::GaussianBlur(img,vt,cv::Size(),sigma,sigma);
+    timer.prompt("gauss",true);
+    Position::PUtils::ShowImage("gauss",vt);
+    // cv::imwrite("/media/tu/Work/Datas/newdata/result.jpg",mt);
 
-    //Position::PUtils::ShowImage("test",m);
+    cv::waitKey(0);
 
-
-    PROMT_S("Run successfully.");
-
-    // waitKey(0);
     return 0;
 }

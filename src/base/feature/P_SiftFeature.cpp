@@ -18,7 +18,6 @@ namespace Position
     bool SiftFeature::detect(const FrameData &frame,FeatureInfo &info)
     {
         Feature2D::detect(frame._img,info._keys);
-        this->compute(frame._img,info._keys,info._des);
     }
 
     /******************************* Defs and macros *****************************/

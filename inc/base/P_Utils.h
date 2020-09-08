@@ -732,13 +732,13 @@ public:
      */
     inline void start()
     {
-        _t = clock();
+        _t = std::chrono::high_resolution_clock::now();
     }
     /*  结束
      */
     inline float end()
     {
-        return (clock() - _t) / (float)CLOCKS_PER_SEC;
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - _t).count() / 1000.0f;
     }
     /* 输出
 	 */
@@ -750,7 +750,7 @@ public:
     }
 
 protected:
-    clock_t _t;
+    std::chrono::system_clock::time_point _t;
 };
 } // namespace Position
 
