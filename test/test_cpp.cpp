@@ -52,6 +52,20 @@ struct TestS
 
 TESTBEGIN()
 
+    std::vector<int> values = {33,12,7,3,24,21,55};
+
+    Position::Time_Interval timer;
+    timer.start();
+    
+    //std::sort(values.begin(),values.end(),std::less<int>());
+    
+    std::random_shuffle(values.begin(),values.end());
+
+    for_each(values.begin(),values.end(),[](int v){
+        cout << v << " ";
+    });
 
 
+    cout << endl;
+    timer.prompt("cost");
 TESTEND()

@@ -43,9 +43,13 @@ TESTBEGIN()
                 Position::FrameData framedata;
                 framedata._img = img;
                 Position::FeatureInfo info(item.path().filename());
-                sift.detect(framedata,info);
+                Position::Time_Interval timer;
+                timer.start();
+                // sift.detect(framedata,info);
                 
-                sift.compute(img,info._keys,info._des);
+                // sift.compute(img,info._keys,info._des);
+                sift.detectAndCompute(framedata._img,noArray(),info._keys,info._des);
+                timer.prompt("cost");
             }
         }
     }

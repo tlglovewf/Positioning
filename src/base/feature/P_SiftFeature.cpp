@@ -17,6 +17,8 @@ namespace Position
      //计算特征点
     bool SiftFeature::detect(const FrameData &frame,FeatureInfo &info)
     {
+        _tempgpyr.clear();
+        _tempdogpyr.clear();
         Feature2D::detect(frame._img,info._keys);
     }
 
@@ -1006,14 +1008,18 @@ namespace Position
             actualNOctaves = maxOctave - firstOctave + 1;
         }
 
-        Mat base = createInitialImage(image, firstOctave < 0, (float)sigma);
-        std::vector<Mat> gpyr, dogpyr;
-        int nOctaves = actualNOctaves > 0 ? actualNOctaves : cvRound(std::log((double)std::min(base.cols, base.rows)) / std::log(2.) - 2) - firstOctave;
+        if(_tempgpyr.empty())
+        {
+            Mat base = createInitialImage(image, firstOctave < 0, (float)sigma);
 
-        //double t, tf = getTickFrequency();
-        //t = (double)getTickCount();
-        buildGaussianPyramid(base, gpyr, nOctaves);
-        buildDoGPyramid(gpyr, dogpyr);
+            int nOctaves = actualNOctaves > 0 ? actualNOctaves : cvRound(std::log((double)std::min(base.cols, base.rows)) / std::log(2.) - 2) - firstOctave;
+
+            //double t, tf = getTickFrequency();
+            //t = (double)getTickCount();
+            buildGaussianPyramid(base, _tempgpyr, nOctaves);
+            buildDoGPyramid(_tempgpyr, _tempdogpyr);
+        }
+
 
         //t = (double)getTickCount() - t;
         //printf("pyramid construction time: %g\n", t*1000./tf);
@@ -1021,13 +1027,14 @@ namespace Position
         if (!useProvidedKeypoints)
         {
             //t = (double)getTickCount();
-            findScaleSpaceExtrema(gpyr, dogpyr, keypoints);
+            assert(!_tempgpyr.empty());
+            assert(!_tempdogpyr.empty());
+            findScaleSpaceExtrema(_tempgpyr,_tempdogpyr, keypoints);
             KeyPointsFilter::removeDuplicatedSorted(keypoints);
 
             if (nfeatures > 0)
                 KeyPointsFilter::retainBest(keypoints, nfeatures);
-            //t = (double)getTickCount() - t;
-            //printf("keypoint detection time: %g\n", t*1000./tf);
+
 
             if (firstOctave < 0)
                 for (size_t i = 0; i < keypoints.size(); i++)
@@ -1055,7 +1062,7 @@ namespace Position
             _descriptors.create((int)keypoints.size(), dsize, CV_32F);
             Mat descriptors = _descriptors.getMat();
 
-            calcDescriptors(gpyr, keypoints, descriptors, nOctaveLayers, firstOctave);
+            calcDescriptors(_tempgpyr, keypoints, descriptors, nOctaveLayers, firstOctave);
             //t = (double)getTickCount() - t;
             //printf("descriptor extraction time: %g\n", t*1000./tf);
         }

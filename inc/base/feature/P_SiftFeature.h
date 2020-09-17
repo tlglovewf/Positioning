@@ -74,6 +74,8 @@ namespace Position
         CV_PROP_RW double contrastThreshold;
         CV_PROP_RW double edgeThreshold;
         CV_PROP_RW double sigma;
+        std::vector<cv::Mat>  _tempgpyr;
+        std::vector<cv::Mat>  _tempdogpyr;
     };
     DECLAREIFACTORY(IFeature, SiftFeature,Sift)
 }
