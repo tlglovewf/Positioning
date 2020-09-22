@@ -550,8 +550,13 @@ public:
     {
         DrawEpiLine(line.a,line.b,line.c,pt,img);
     }
+    
     //! 固定窗口大小显示图片
     static void ShowImage(const string &name, Mat &img);
+    //! 图片并排显示
+    static void ShowHImages(const string &name, cv::InputArrayOfArrays imgs);
+    //！ 图片并列显示
+    static void ShowVImages(const string &name, cv::InputArrayOfArrays imgs);
 
     //像素坐标系->图像坐标系
     static inline cv::Point2d Pixel2Cam(const cv::Point2d &p, const cv::Mat &K)
@@ -644,6 +649,80 @@ public:
                                Point2f(rect.x, rect.y + rect.height));
         }
     }
+
+    /*
+     * line handler 
+     *
+     */
+    class LineHelper
+    {
+    public:
+        /* line inner point
+        */
+        struct Point
+        {
+            float x;
+            float y;
+            Point():x(0),y(0){}
+            Point(float _x, float _y):x(_x),y(_y){}
+        };
+        /* line func  y = kx + b
+        */
+        struct LinePara
+        {
+            float k;
+            float b;
+            LinePara(float _k, float _b):k(_k),b(_b){}
+        };
+        /* compute line param y = kx + b from two lines endpoint
+        * 
+        * 
+        */
+        static LinePara ComputeLineParams(const LineHelper::Point &pt1, const LineHelper::Point &pt2)
+        {
+            double m = 0;
+    
+            // 计算分子  
+            m = pt2.x - pt1.x;
+
+            if (0 == m)
+            {
+                return LinePara(1e4,pt1.y - 1e4 * pt1.x);
+            }
+            else
+            {
+                float k = (pt2.y - pt1.y) / (pt2.x - pt1.x);
+                return LinePara( k, pt1.y - k * pt1.x);
+            }
+        }
+
+        /*
+        * Compute Cross Point
+        */ 
+        static bool ComputeCross(const LineHelper::LinePara &line1, const LineHelper::LinePara &line2, LineHelper::Point &pt)
+        {
+            //check parallel
+            if(fabs(line1.k - line2.k) > 0.5)
+            {
+
+                pt.x = (line2.b - line2.b) / (line1.k - line2.k);
+                pt.y = line1.k * pt.x + line1.b;
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        /*
+        * Compute point to line distance
+        */
+        static float ComputeDistance(const LineHelper::Point &pt, const LineHelper::LinePara &line)
+        {
+            return fabs(line.k * pt.x - pt.y + line.b) / sqrt(line.k * line.k + 1);
+        }
+    };
 
     /**
 	* 获取文件名No

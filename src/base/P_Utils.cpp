@@ -138,6 +138,39 @@ namespace Position
         setWindowProperty(name,CV_WND_PROP_FULLSCREEN,CV_WINDOW_NORMAL);
         imshow(name,img);
     }
+
+     //! 图片并排显示
+    void PUtils::ShowHImages(const string &name, cv::InputArrayOfArrays imgs)
+    {
+        std::vector<cv::Mat> mats;
+        imgs.getMatVector(mats);
+        if(mats.size() != 2)
+            return;
+        if(mats[0].size() != mats[1].size())
+        {
+            cv::resize(mats[1],mats[1],mats[0].size());
+        }
+        cv::Mat img;
+        cv::hconcat(mats,img);
+        ShowImage(name,img);
+    }
+
+    //！ 图片并列显示
+    void PUtils::ShowVImages(const string &name, cv::InputArrayOfArrays imgs)
+    {
+        std::vector<cv::Mat> mats;
+        imgs.getMatVector(mats);
+        if(mats.size() != 2)
+            return;
+        if(mats[0].size() != mats[1].size())
+        {
+            cv::resize(mats[1],mats[1],mats[0].size());
+        }
+        cv::Mat img;
+        cv::vconcat(mats,img);
+        ShowImage(name,img);
+    }
+
     //直方图均衡
     void PUtils::ImageHistEqualized(const Mat &img, Mat &outimg)
     {

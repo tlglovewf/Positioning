@@ -10,4 +10,4 @@ FOREACH(TEST_FILE ${TEST_FILES})
     ${CMAKE_CURRENT_SOURCE_DIR}/${TEST_NAME}.cpp)
     target_link_libraries(${TEST_NAME} ${Positioning})
 ENDFOREACH()
-  
+   
