@@ -1,0 +1,60 @@
+%YAML:1.0
+
+#---------------------------------
+#hd data preprocess config file
+#---------------------------------
+
+HdCamFx: 1201.093480021
+HdCamFy: 1201.700469966
+HdCamCx: 732.166707527
+HdCamCy: 561.641423523
+HdCamk1: -0.089838292
+HdCamk2: 0.078488821x
+HdCamk3: 0.000000000
+HdCamp1: 0.002193266
+HdCamp2: 0.000100047
+
+ImgPath: "/media/tlg/work/tlgfiles/HDData/0326-1/Image-0/"
+SemPath: "/media/tlg/work/tlgfiles/HDData/0326-1/Image-1/"
+PosPath: "/media/tlg/work/tlgfiles/HDData/0326cam/data1/camera.txt"
+
+OutPath: "/media/tlg/work/tlgfiles/HDData/result/"
+
+ImgWd:  1440
+ImgHg:  1080
+ImgFps: 20  #0 every frame is keyframe
+
+
+StNo: 165  #796   #11000
+
+EdNo: 200  #820   #100
+
+
+#feature params
+FeatureCnt:   2000  #特征点提取数量
+PyramidLevel: 8     #图片金字塔层数
+ScaleFactor:  1.2   #图片金字塔缩小比
+SearchRadius: 20    #视觉匹配搜索范围
+
+
+#0-Normal
+#1-Imgbyimg
+#2-Inverse to do
+InitializationMode: 1
+
+#if only used when InitializationMode set by Imgbyimg mode
+InitImgLength: 5
+
+#set Mask
+MaskEnable: 0
+#set Roi only use when MaskEnable = 1
+Lx: 50
+Ly: 50
+Wd: 100
+Ht: 100
+
+#Visualization
+ViewEnable: 1
+
+#ISerialization
+MapSave: 0

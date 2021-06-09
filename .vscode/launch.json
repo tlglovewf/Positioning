@@ -1,0 +1,68 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test_pose",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/test_pose",
+            "args": ["/media/tu/Work/Datas/9-200527-02/Output/Pic/"  "0-000006-687-0001459.jpg" "0-000006-781-0001461.jpg"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/output/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
+            "name": "test_newdata",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/test_newdata",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/output/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
+            "name": "test_twframe",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/test_twframe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/output/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
+            "name": "test_weiya",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/tool_mapdisplay",
+            "args": ["../config/config_weiya.yaml"  "pose.txt"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/output/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+        {
+            "name": "TargetPosition",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/output/TargetPosition",
+            "args": ["/media/tu/Work/Datas/9900000120042200"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/output/",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb"
+        },
+    ]
+}

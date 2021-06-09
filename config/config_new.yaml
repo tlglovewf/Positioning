@@ -1,0 +1,45 @@
+%YAML:1.0
+
+#---------------------------------
+#weiya data preprocess config file
+#---------------------------------
+
+
+#util info
+StNo: 800 #20360 #800  #20360
+EdNo: 830 #20560 #950  #20460
+
+#camera param
+ImgWd:  1920
+ImgHg:  1200
+ImgFps: 20  #0 every frame is keyframe
+
+
+#path 
+PrjPath: "/media/tu/Work/Datas/9-200524-00/Output"
+
+LogPath: ""
+LogPrio: "DEBUG"  #log打印等级 DEBUG INFO WARNNING ERROR CRITICAL
+#ImgPath: ""
+#SemPath: ""
+#PosPath: "/Users/TLG/Downloads/data/weiya/20191105/gray/pst.txt"
+OutPath: "/media/tu/Work/Datas/newdata/"
+
+#CamMatrixPath: ""
+#BsPath:        ""
+
+#feature params
+FeatureCnt:   2000  #特征点提取数量
+PyramidLevel: 8     #图片金字塔层数
+ScaleFactor:  1.3   #图片金字塔缩小比
+SearchRadius: 10    #视觉匹配搜索范围
+
+
+#set Mask
+MaskEnable: 0
+
+#Visualization
+ViewEnable: 1
+
+#ISerialization
+MapSave: 0
