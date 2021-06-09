@@ -3,6 +3,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <thread>
+
 cv::Mat do_canny(cv::Mat frame)
 {
     cv::Mat gray;
@@ -14,6 +15,7 @@ cv::Mat do_canny(cv::Mat frame)
     return cny;
 }
 
+<<<<<<< HEAD
 // template<class T> inline
 // // typename std::enable_if<std::is_abstract
 // auto GetValue(T a, T b) -> decltype(a + b)
@@ -128,6 +130,10 @@ TESTBEGIN()
 
     return 0;
 
+=======
+TESTBEGIN()
+
+>>>>>>> b538c63d2ae51602e44277e6f6b8bb8c34ed3dc4
     //cv::Mat img = cv::imread("/media/tu/Work/GitHub/TwoFrameSO/data/inputim/0-006437-717-0007823.jpg");
     cv::Mat img = cv::imread("/media/tu/Work/Datas/test/222.jpg");
     
@@ -225,7 +231,11 @@ TESTBEGIN()
         line( img, pt1, pt2, Scalar(0,0,255), 1.5, CV_AA);
     }
 #endif
+<<<<<<< HEAD
     cout << rot.elemSize() << endl;
+=======
+
+>>>>>>> b538c63d2ae51602e44277e6f6b8bb8c34ed3dc4
     Position::PUtils::ShowImage("origin",rot);
   
 

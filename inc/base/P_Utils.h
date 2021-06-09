@@ -806,7 +806,6 @@ public:
          std::ifstream file(path,ios::in);
          std::string str((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
      }
-
 };
 
 //及时
